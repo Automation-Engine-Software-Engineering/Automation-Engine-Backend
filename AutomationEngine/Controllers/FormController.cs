@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Services;
-using DataLayer.Models.FormBuilder; // Update accordingly  
+using DataLayer.Models.FormBuilder;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.SqlServer.Server;
 using ViewModels;
+using Microsoft.IdentityModel.Tokens;
 
-namespace AutomationEngine.Controllers // Replace with your actual namespace  
+namespace AutomationEngine.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -21,134 +22,96 @@ namespace AutomationEngine.Controllers // Replace with your actual namespace
 
         // POST: api/form/create  
         [HttpPost("create")]
-        public async Task<IActionResult> CreateForm([FromBody] Form form)
+        public async Task<ResultViewModel> CreateForm([FromBody] Form form)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            if (form == null)
+                throw new ArgumentNullException("فرم یافت نشد");
 
             await _formService.CreateFormAsync(form);
-            await _formService.SaveChangesAsync(); // Ensure changes are saved  
-
-            return CreatedAtAction(nameof(GetForm), new { id = form.Id }, form);
+            await _formService.SaveChangesAsync();
+            return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
 
         // POST: api/form/update  
         [HttpPost("update")]
-        public async Task<IActionResult> EditForm([FromBody] Form form)
+        public async Task<ResultViewModel> UpdateForm([FromBody] Form form)
         {
-            if (form == null || !ModelState.IsValid)
-            {
-                return BadRequest("Form data is invalid.");
-            }
+            if (form == null)
+                throw new ArgumentNullException("فرم یافت نشد");
 
-            try
-            {
-                await _formService.EditFormAsync(form);
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound($"Form with ID {form.Id} not found.");
-            }
-
-            return NoContent(); // 204 No Content  
+            await _formService.UpdateFormAsync(form);
+            await _formService.SaveChangesAsync();
+            return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
 
         // POST: api/form/delete  
-        [HttpPost("delete")]
-        public async Task<IActionResult> DeleteForm([FromBody] int formId)
+        [HttpPost("remove")]
+        public async Task<ResultViewModel> RemoveForm([FromBody] int formId)
         {
-            try
-            {
-                var form = await _formService.GetFormAsync(formId);
-                await _formService.DeleteFormAsync(form);
-                return NoContent(); // 204 No Content  
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound($"Form with ID {formId} not found.");
-            }
+            if (formId == null)
+                throw new ArgumentNullException("فرم یافت نشد");
+
+            var form = await _formService.GetFormAsync(formId);
+            await _formService.RemoveFormAsync(form);
+            return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
 
         // GET: api/form/all  
         [HttpGet("all")]
-        public async Task<ActionResult<List<Form>>> GetAllForms()
+        public async Task<ResultViewModel> GetAllForms()
         {
             var forms = await _formService.GetAllFormsAsync();
-            return Ok(forms); // 200 OK  
+            return (new ResultViewModel { Data = forms, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
 
         // GET: api/form/{id}  
         [HttpGet("{id}")]
-        public async Task<ActionResult<Form>> GetForm(int id)
+        public async Task<ResultViewModel> GetForm(int formId)
         {
-            try
-            {
-                var form = await _formService.GetFormAsync(id);
-                return Ok(form); // 200 OK  
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound($"Form with ID {id} not found."); // 404 Not Found  
-            }
+            if (formId == null)
+                throw new ArgumentNullException("فرم یافت نشد");
+
+            var form = await _formService.GetFormAsync(formId);
+            return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
 
         // POST: api/form/{formId}/updateBody  
         [HttpPost("{formId}/insertHtmlContent")]
-        public async Task<IActionResult> InsertHtmlContent(int formId, [FromBody] string htmlContent)
+        public async Task<ResultViewModel> InsertHtmlContent( int formId, [FromBody] string htmlContent)
         {
-            // Validate Input  
-            if (formId <= 0)
-            {
-                return BadRequest("Invalid form ID.");
-            }
+            if (formId == null)
+                throw new ArgumentNullException("فرم یافت نشد");
 
-            if (string.IsNullOrWhiteSpace(htmlContent))
-            {
-                return BadRequest("HTML content cannot be empty.");
-            }
+            if (htmlContent.IsNullOrEmpty())
+                throw new ArgumentNullException("فرم یافت نشد");
 
-            try
-            {
-                // Update the HtmlFormBody field in the database  
-                await _formService.UpdateFormBodyAsync(formId, htmlContent);
-
-                return NoContent(); // 204 No Content - Successfully updated  
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound($"Form with ID '{formId}' not found.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+            await _formService.UpdateFormBodyAsync(formId, htmlContent);
+            return (new ResultViewModel { Message = "عملیات با موفقیت انجام شد", Status = true });
         }
 
-        // POST: api/formbuilder/submit  
-        [HttpPost("submit")]
-        public async Task<IActionResult> SubmitForm([FromBody] FormData formData)
-        {
-            if (formData == null || formData.Fields == null || formData.Fields.Count == 0)
-            {
-                return BadRequest("Invalid form data.");
-            }
+        //// POST: api/formbuilder/submit  
+        //[HttpPost("submit")]
+        //public async Task<ResultViewModel> SubmitForm([FromBody] FormData formData)
+        //{
+        //    if (formData == null || formData.Fields == null || formData.Fields.Count == 0)
+        //    {
+        //        return BadRequest("Invalid form data.");
+        //    }
 
-            try
-            {
-                foreach (var field in formData.Fields)
-                {
-                    // Assuming the service method is responsible for determining which DB operation to perform  
-                    await _formService.InsertFieldValueAsync(field.TableName, field.FieldName, field.Value);
-                }
+        //    try
+        //    {
+        //        foreach (var field in formData.Fields)
+        //        {
+        //            // Assuming the service method is responsible for determining which DB operation to perform  
+        //            await _formService.InsertFieldValueAsync(field.TableName, field.FieldName, field.Value);
+        //        }
 
-                return Ok("Form data submitted successfully.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
+        //        return Ok("Form data submitted successfully.");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Internal server error: {ex.Message}");
+        //    }
+        //}
     }
 }

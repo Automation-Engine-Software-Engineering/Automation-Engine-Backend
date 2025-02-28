@@ -1,23 +1,32 @@
 ﻿using DataLayer.Context;
 using DataLayer.Models.FormBuilder;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Data;
+using System.Data.Common;
+using System.Reflection.PortableExecutable;
 using System.Text;
+using System.Text.RegularExpressions;
 using ViewModels;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using static System.Runtime.InteropServices.Marshalling.IIUnknownCacheStrategy;
 
 namespace Services
 {
     public interface IEntityService
     {
-        Task CreateEntityAsync(string tableName);
-        Task EditEntityAsync(string oldEntityName, string newEntityName);
-        Task DeleteEntityAsync(string entityName);
-        Task<List<string>> GetAllEntitiesAsync();
-        Task AddColumnToTableAsync(string entityName, List<Column> columns);
-        Task EditColumnInTableAsync(string entityName, string oldColumnName, string newColumnName, string newColumnType);
-        Task<List<string>> GetAllColumnsAsync(string entityName);
-        Task<List<Dictionary<string, object>>> GetAllColumnValuesAsync(string entityName);
-        Task<List<object>> GetColumnValuesAsync(string entityName, string columnName);
+        Task CreateEntityAsync(Entity entity);
+        Task RemoveEntityAsync(Entity entity);
+        Task UpdateEntityAsync(Entity oldEntity);
+        Task<List<Entity>> GetAllEntitiesAsync();
+        Task<Entity> GetEntitiesByIdAsync(int entityId);
+        Task AddColumnToTableAsync(Entity entity, List<Peroperty> columns);
+        Task UpdatePeropertyInTableAsync(Peroperty peroperty);
+        Task<List<Peroperty>> GetAllColumnsAsync();
+        Task<List<Dictionary<string, object>>> GetAllColumnValuesAsync(int entityId);
+        Task<List<object>> GetColumnValuesAsync(int PeropertyId);
     }
 
     public class EntityService : IEntityService
@@ -31,105 +40,186 @@ namespace Services
             _dynamicDbContext = dynamicDbContext;
         }
 
-        public async Task CreateEntityAsync(string entityName)
+        public async Task CreateEntityAsync(Entity entity)
         {
-            var columnDefinitions = "Id INT PRIMARY KEY";
-            var commandText = $"CREATE TABLE {entityName} ({columnDefinitions})";
-            await _dynamicDbContext.ExecuteSqlRawAsync(commandText);
-        }
-
-        public async Task DeleteEntityAsync(string entityName)
-        {
-            var commandText = $"DROP TABLE IF EXISTS {entityName}";
-            await _dynamicDbContext.ExecuteSqlRawAsync(commandText);
-        }
-
-        public async Task EditEntityAsync(string oldEntityName, string newEntityName)
-        {
-            var commandText = $"ALTER TABLE {oldEntityName} RENAME TO {newEntityName}";
-            await _dynamicDbContext.ExecuteSqlRawAsync(commandText);
-        }
-
-        public async Task<List<string>> GetAllEntitiesAsync()
-        {
-            var tableNames = new List<string>();
-
-            var query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'";
-            using (var connection = _dynamicDbContext.Database.GetDbConnection())
+            using (var command = _dynamicDbContext.Database.GetDbConnection().CreateCommand())
             {
-                await connection.OpenAsync();
-                using (var command = connection.CreateCommand())
-                {
-                    command.CommandText = query;
-
-                    using (var reader = await command.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            tableNames.Add(reader.GetString(0));
-                        }
-                    }
-                }
+                var columnDefinitions = "Id INT PRIMARY KEY";
+                command.CommandText = $"CREATE TABLE @TableName ({columnDefinitions})";
+                var parameters = new List<SqlParameter>() { new SqlParameter("@TableName", entity.TableName) };
+                await _dynamicDbContext.ExecuteSqlRawAsync(command, parameters);
             }
-
-            return tableNames;
+            _context.Entity.Add(entity);
+            _context.SaveChanges();
         }
 
-        public async Task AddColumnToTableAsync(string entityName, List<Column> columns)
+        public async Task RemoveEntityAsync(Entity entity)
         {
-            var commandText = new StringBuilder($"ALTER TABLE {entityName} ADD ");
-            commandText.Append(string.Join(", ", columns.Select(x => $"{x.Name} {x.Type}")));
-            await _dynamicDbContext.ExecuteSqlRawAsync(commandText.ToString());
-        }
-
-        public async Task EditColumnInTableAsync(string entityName, string oldColumnName, string newColumnName, string newColumnType)
-        {
-            var commandText = $"ALTER TABLE {entityName} CHANGE {oldColumnName} {newColumnName} {newColumnType}";
-            await _dynamicDbContext.ExecuteSqlRawAsync(commandText);
-        }
-
-        public async Task<List<string>> GetAllColumnsAsync(string entityName)
-        {
-            var columnNames = new List<string>();
-
-            var query = $"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @entityName";
-            using (var connection = _dynamicDbContext.Database.GetDbConnection())
+            using (var command = _dynamicDbContext.Database.GetDbConnection().CreateCommand())
             {
-                await connection.OpenAsync();
-                using (var command = connection.CreateCommand())
-                {
-                    command.CommandText = query;
-                    var parameter = command.CreateParameter();
-                    parameter.ParameterName = "@entityName";
-                    parameter.Value = entityName;
-                    command.Parameters.Add(parameter);
-
-                    using (var reader = await command.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            columnNames.Add(reader.GetString(0));
-                        }
-                    }
-                }
+                command.CommandText = $"DROP TABLE IF EXISTS @TableName";
+                var parameters = new List<SqlParameter>() { new SqlParameter("@TableName", entity.TableName) };
+                await _dynamicDbContext.ExecuteSqlRawAsync(command, parameters);
             }
-
-            return columnNames;
+            _context.Entity.Remove(entity);
+            _context.SaveChanges();
         }
-        public async Task<List<Dictionary<string, object>>> GetAllColumnValuesAsync(string entityName)
-        {
-            var query = $"SELECT * FROM {entityName}";
-            var result = await _dynamicDbContext.Set<Dictionary<string, object>>().FromSqlRaw(query).ToListAsync();
 
+        public async Task UpdateEntityAsync(Entity entity)
+        {
+            using (var command = _dynamicDbContext.Database.GetDbConnection().CreateCommand())
+            {
+                command.CommandText = $"ALTER TABLE @OldTableName RENAME TO @NewTableName";
+                var parameters = new List<SqlParameter>() {
+                    new SqlParameter("@TableName", entity.TableName) ,  new SqlParameter("@NewTableName", entity.TableName)
+                };
+                await _dynamicDbContext.ExecuteSqlRawAsync(command, parameters);
+            }
+            var feachModel = await _context.Entity.FirstOrDefaultAsync(x => x.Id == entity.Id);
+            feachModel.PreviewName = entity.PreviewName;
+            feachModel.TableName = entity.TableName;
+            feachModel.Peroperties = entity.Peroperties;
+            _context.Entity.Update(feachModel);
+        }
+
+        public async Task<List<Entity>> GetAllEntitiesAsync()
+        {
+            var result = await _context.Entity.ToListAsync();
             return result;
         }
 
-        public async Task<List<object>> GetColumnValuesAsync(string entityName, string columnName)
+        public async Task<Entity> GetEntitiesByIdAsync(int entityId)
         {
-            var query = $"SELECT {columnName} FROM {entityName}";
-            var result = await _dynamicDbContext.Set<Dictionary<string, object>>().FromSqlRaw(query).ToListAsync();
-
-            return result.Select(row => row[columnName]).ToList();
+            var result = await _context.Entity.FirstOrDefaultAsync(x => x.Id == entityId);
+            return result;
         }
+
+        public async Task AddColumnToTableAsync(Entity entity, List<Peroperty> columns)
+        {
+            using (var command = _dynamicDbContext.Database.GetDbConnection().CreateCommand())
+            {
+                command.CommandText = $"ALTER TABLE @TableName ADD ";
+                for (int i = 0; i < columns.Count; i++)
+                {
+                    command.CommandText += "@Entity" + i + " " + "@Type" + i;
+                    if (i != columns.Count)
+                        command.CommandText += " , ";
+                };
+
+                var parameters = new List<SqlParameter>();
+                for (int i = 0; i < columns.Count; i++)
+                {
+                    parameters.Add(new SqlParameter("@Entity", columns[i]));
+                }
+                parameters.Add(new SqlParameter("@TableName", entity.TableName));
+                command.Parameters.Add(parameters);
+                await _dynamicDbContext.ExecuteSqlRawAsync(command, parameters);
+            }
+            _context.AddRangeAsync(columns);
+            _context.SaveChanges();
+        }
+
+        public async Task UpdatePeropertyInTableAsync(Peroperty peroperty)
+        {
+            var feachModel = await _context.Peroperty.FirstOrDefaultAsync(x => x.Id == peroperty.Id);
+            var table = await _context.Entity.FirstOrDefaultAsync(x => x.Id == feachModel.EntityId);
+            using (var command = _dynamicDbContext.Database.GetDbConnection().CreateCommand())
+            {
+                command.CommandText = $"ALTER TABLE @TableName ALTER COLUMN @ColumnName @ColumnType;";
+
+                var parameters = new List<SqlParameter>() { new SqlParameter("@TableName", table.TableName),
+                    new SqlParameter("@ColumnName", peroperty.PeropertyName),
+                    new SqlParameter("@ColumnType", peroperty.Type)};
+
+                await _dynamicDbContext.ExecuteSqlRawAsync(command, parameters);
+            }
+
+            var result = await _context.Peroperty.FirstOrDefaultAsync(x => x.Id == peroperty.Id);
+            result.PreviewName = peroperty.PreviewName;
+            result.PeropertyName = peroperty.PeropertyName;
+            result.DefaultValue = peroperty.DefaultValue;
+            result.AllowNull = peroperty.AllowNull;
+            _context.AddAsync(result);
+            _context.SaveChanges();
+        }
+
+        public async Task<List<Peroperty>> GetAllColumnsAsync()
+        {
+            return await _context.Peroperty.ToListAsync();
+        }
+
+        public async Task<List<Dictionary<string, object>>> GetAllColumnValuesAsync(int entityId)
+        {
+            var dicResult = new List<Dictionary<string, object>>();
+            var entity = await _context.Entity.FirstOrDefaultAsync(x => x.Id == entityId);
+            using (var command = _dynamicDbContext.Database.GetDbConnection().CreateCommand())
+            {
+                command.CommandText = $"SELECT * FROM @EntityName";
+
+                var parameters = new List<SqlParameter>() { new SqlParameter("@EntityName", entity.TableName) };
+                var result = await _dynamicDbContext.ExecuteReaderAsync(command, parameters);
+                while (await result.ReadAsync())
+                {
+                    for (int i = 0; i < result.FieldCount; i++)
+                    {
+                        var dic = new Dictionary<string, object>();
+                        dic.Add(result.GetName(i), result.GetValue(i));
+                        dicResult.Add(dic);
+                    }
+                }
+                return dicResult;
+            }
+            return null;
+        }
+
+        public async Task<List<object>> GetColumnValuesAsync(int PeropertyId)
+        {
+            var dicResult = new List<object>();
+            var entity = await _context.Peroperty.Include(x => x.Entity).FirstOrDefaultAsync(x => x.Id == PeropertyId);
+            using (var command = _dynamicDbContext.Database.GetDbConnection().CreateCommand())
+            {
+                command.CommandText = $"SELECT @ColumnName FROM @EntityName";
+
+                var parameters = new List<SqlParameter>() { new SqlParameter("@EntityName", entity.Entity.TableName), new SqlParameter("@ColumnName", entity.PeropertyName) };
+                var result = await _dynamicDbContext.ExecuteReaderAsync(command, parameters);
+                while (await result.ReadAsync())
+                {
+                    for (int i = 0; i < result.FieldCount; i++)
+                    {
+                        dicResult.Add(result.GetValue(i));
+                    }
+                }
+                return dicResult;
+            }
+            return null;
+        }
+
+        //public async Task InsertFieldValueAsync(string tableName, string fieldName, string value)
+        //{
+        //    var tableExists = await TableExistsAsync(tableName);
+        //    if (!tableExists)
+        //    {
+        //        throw new Exception($"Table '{tableName}' does not exist.");
+        //    }
+        //    var query = $"INSERT INTO {tableName} ({fieldName}) VALUES ({value})";
+        //    await _dynamicDbContext.ExecuteSqlRawAsync(query);
+        //}
+
+        //private async Task<bool> TableExistsAsync(string tableName)
+        //{
+        //    var query = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = @TableName";
+        //    using (var connection = _dynamicDbContext.Database.GetDbConnection())
+        //    {
+        //        await connection.OpenAsync();
+        //        using (var command = connection.CreateCommand())
+        //        {
+        //            command.CommandText = query;
+        //            command.Parameters.Add(new SqlParameter("@TableName", tableName));
+        //            var result = await command.ExecuteScalarAsync();
+        //            var count = Convert.ToInt32(result);
+        //            return count > 0;
+        //        }
+        //    }
+        //}
     }
 }
