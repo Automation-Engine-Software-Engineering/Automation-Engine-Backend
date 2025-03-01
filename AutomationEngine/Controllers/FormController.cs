@@ -46,13 +46,14 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/delete  
         [HttpPost("remove")]
-        public async Task<ResultViewModel> RemoveForm([FromBody] int formId)
+        public async Task<ResultViewModel> RemoveForm(int formId)
         {
             if (formId == null)
                 throw new ArgumentNullException("فرم یافت نشد");
 
             var form = await _formService.GetFormAsync(formId);
             await _formService.RemoveFormAsync(form);
+            _formService.SaveChangesAsync();
             return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
 
@@ -65,7 +66,7 @@ namespace AutomationEngine.Controllers
         }
 
         // GET: api/form/{id}  
-        [HttpGet("{id}")]
+        [HttpGet("{formId}")]
         public async Task<ResultViewModel> GetForm(int formId)
         {
             if (formId == null)
@@ -77,7 +78,7 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/{formId}/updateBody  
         [HttpPost("{formId}/insertHtmlContent")]
-        public async Task<ResultViewModel> InsertHtmlContent( int formId, [FromBody] string htmlContent)
+        public async Task<ResultViewModel> InsertHtmlContent( int formId,string htmlContent)
         {
             if (formId == null)
                 throw new ArgumentNullException("فرم یافت نشد");
@@ -86,6 +87,7 @@ namespace AutomationEngine.Controllers
                 throw new ArgumentNullException("فرم یافت نشد");
 
             await _formService.UpdateFormBodyAsync(formId, htmlContent);
+            _formService.SaveChangesAsync();
             return (new ResultViewModel { Message = "عملیات با موفقیت انجام شد", Status = true });
         }
 

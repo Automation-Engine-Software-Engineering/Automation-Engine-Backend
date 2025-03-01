@@ -17,16 +17,17 @@ namespace Services
 {
     public interface IEntityService
     {
-        Task CreateEntityAsync(Entity entity);
+        Task CreateEntityAsync(int? formId, Entity entity);
         Task RemoveEntityAsync(Entity entity);
         Task UpdateEntityAsync(Entity oldEntity);
-        Task<List<Entity>> GetAllEntitiesAsync();
+        Task<List<Entity>> GetAllEntitiesAsync(int? formId);
         Task<Entity> GetEntitiesByIdAsync(int entityId);
         Task AddColumnToTableAsync(Entity entity, List<Peroperty> columns);
         Task UpdatePeropertyInTableAsync(Peroperty peroperty);
         Task<List<Peroperty>> GetAllColumnsAsync();
-        Task<List<Dictionary<string, object>>> GetAllColumnValuesAsync(int entityId);
-        Task<List<object>> GetColumnValuesAsync(int PeropertyId);
+        Task<List<Peroperty>> GetAllColumnValuesAsync(int entityId);
+        Task<Peroperty> GetColumnValuesAsync(int PeropertyId);
+        Task SaveChangesAsync();
     }
 
     public class EntityService : IEntityService
@@ -40,7 +41,7 @@ namespace Services
             _dynamicDbContext = dynamicDbContext;
         }
 
-        public async Task CreateEntityAsync(Entity entity)
+        public async Task CreateEntityAsync(int? formId, Entity entity)
         {
             using (var command = _dynamicDbContext.Database.GetDbConnection().CreateCommand())
             {
@@ -49,8 +50,13 @@ namespace Services
                 var parameters = new List<SqlParameter>() { new SqlParameter("@TableName", entity.TableName) };
                 await _dynamicDbContext.ExecuteSqlRawAsync(command, parameters);
             }
+            if (formId != null)
+            {
+                var form = await _context.Form.FirstOrDefaultAsync(x => x.Id == formId);
+                entity.Forms = new List<Form>();
+                entity.Forms.Add(form);
+            }
             _context.Entity.Add(entity);
-            _context.SaveChanges();
         }
 
         public async Task RemoveEntityAsync(Entity entity)
@@ -62,7 +68,6 @@ namespace Services
                 await _dynamicDbContext.ExecuteSqlRawAsync(command, parameters);
             }
             _context.Entity.Remove(entity);
-            _context.SaveChanges();
         }
 
         public async Task UpdateEntityAsync(Entity entity)
@@ -82,15 +87,22 @@ namespace Services
             _context.Entity.Update(feachModel);
         }
 
-        public async Task<List<Entity>> GetAllEntitiesAsync()
+        public async Task<List<Entity>> GetAllEntitiesAsync(int? formId)
         {
-            var result = await _context.Entity.ToListAsync();
+            var result = new List<Entity>();
+            if (formId != null)
+                result = await _context.Entity.Include(x => x.Forms)
+                    .Where(x => x.Forms.Any(x => x.Id == formId)).ToListAsync();
+            else
+                result = await _context.Entity.ToListAsync();
             return result;
+
         }
 
         public async Task<Entity> GetEntitiesByIdAsync(int entityId)
         {
-            var result = await _context.Entity.FirstOrDefaultAsync(x => x.Id == entityId);
+            var result = await _context.Entity.Include(x => x.Peroperties)
+                .FirstOrDefaultAsync(x => x.Id == entityId);
             return result;
         }
 
@@ -109,14 +121,13 @@ namespace Services
                 var parameters = new List<SqlParameter>();
                 for (int i = 0; i < columns.Count; i++)
                 {
-                    parameters.Add(new SqlParameter("@Entity", columns[i]));
+                    parameters.Add(new SqlParameter("@Entity"+i, columns[i].PeropertyName));
                 }
                 parameters.Add(new SqlParameter("@TableName", entity.TableName));
-                command.Parameters.Add(parameters);
                 await _dynamicDbContext.ExecuteSqlRawAsync(command, parameters);
             }
-            _context.AddRangeAsync(columns);
-            _context.SaveChanges();
+            await _context.AddRangeAsync(columns);
+            await _context.SaveChangesAsync();
         }
 
         public async Task UpdatePeropertyInTableAsync(Peroperty peroperty)
@@ -140,7 +151,6 @@ namespace Services
             result.DefaultValue = peroperty.DefaultValue;
             result.AllowNull = peroperty.AllowNull;
             _context.AddAsync(result);
-            _context.SaveChanges();
         }
 
         public async Task<List<Peroperty>> GetAllColumnsAsync()
@@ -148,52 +158,26 @@ namespace Services
             return await _context.Peroperty.ToListAsync();
         }
 
-        public async Task<List<Dictionary<string, object>>> GetAllColumnValuesAsync(int entityId)
+        public async Task<List<Peroperty>> GetAllColumnValuesAsync(int entityId)
         {
-            var dicResult = new List<Dictionary<string, object>>();
-            var entity = await _context.Entity.FirstOrDefaultAsync(x => x.Id == entityId);
-            using (var command = _dynamicDbContext.Database.GetDbConnection().CreateCommand())
-            {
-                command.CommandText = $"SELECT * FROM @EntityName";
-
-                var parameters = new List<SqlParameter>() { new SqlParameter("@EntityName", entity.TableName) };
-                var result = await _dynamicDbContext.ExecuteReaderAsync(command, parameters);
-                while (await result.ReadAsync())
-                {
-                    for (int i = 0; i < result.FieldCount; i++)
-                    {
-                        var dic = new Dictionary<string, object>();
-                        dic.Add(result.GetName(i), result.GetValue(i));
-                        dicResult.Add(dic);
-                    }
-                }
-                return dicResult;
-            }
-            return null;
+            return await _context.Peroperty.Where(x => x.EntityId == entityId).ToListAsync();
         }
 
-        public async Task<List<object>> GetColumnValuesAsync(int PeropertyId)
+        public async Task<Peroperty> GetColumnValuesAsync(int peropertyId)
         {
-            var dicResult = new List<object>();
-            var entity = await _context.Peroperty.Include(x => x.Entity).FirstOrDefaultAsync(x => x.Id == PeropertyId);
-            using (var command = _dynamicDbContext.Database.GetDbConnection().CreateCommand())
-            {
-                command.CommandText = $"SELECT @ColumnName FROM @EntityName";
-
-                var parameters = new List<SqlParameter>() { new SqlParameter("@EntityName", entity.Entity.TableName), new SqlParameter("@ColumnName", entity.PeropertyName) };
-                var result = await _dynamicDbContext.ExecuteReaderAsync(command, parameters);
-                while (await result.ReadAsync())
-                {
-                    for (int i = 0; i < result.FieldCount; i++)
-                    {
-                        dicResult.Add(result.GetValue(i));
-                    }
-                }
-                return dicResult;
-            }
-            return null;
+            return await _context.Peroperty.FirstOrDefaultAsync(x => x.Id == peropertyId);
         }
-
+        public async Task SaveChangesAsync()
+        {
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
         //public async Task InsertFieldValueAsync(string tableName, string fieldName, string value)
         //{
         //    var tableExists = await TableExistsAsync(tableName);

@@ -15,23 +15,43 @@ namespace DataLayer.Context
         {
             parameters.ForEach(x =>
             {
-                x.ToString().IsValidateString();
+                x.Value.ToString().IsValidateString();
             });
-            using (var connection = Database.GetDbConnection())
+
+            var query = command.CommandText;
+            parameters.ForEach(x =>
             {
-                parameters.ForEach(x => command.Parameters.Add(x));
-                await connection.OpenAsync();
-                command.ExecuteScalarAsync();
-                await connection.CloseAsync();
-            }
+              query =  query.Replace(x.ParameterName.ToString() , x.Value.ToString());
+            });
+
+            Database.ExecuteSqlRawAsync(query);
+            //using (var connection = Database.GetDbConnection())
+            //{
+            //    command.Parameters.Clear();
+            //    parameters.ForEach(x => command.Parameters.Add(x));
+            //    await connection.OpenAsync();
+            //    command.ExecuteScalarAsync();
+            //    await connection.CloseAsync();
+            //}
+
         }
 
-        public async Task<DbDataReader> ExecuteReaderAsync(DbCommand command, List<SqlParameter>? parameters = null)
+        public async Task<List<Dictionary<string , object>>> ExecuteReaderAsync(DbCommand command, List<SqlParameter>? parameters = null)
         {
-            using (var reader = await command.ExecuteReaderAsync())
+
+            parameters.ForEach(x =>
             {
-                return reader; 
-            }
+                x.Value.ToString().IsValidateString();
+            });
+
+            var query = command.CommandText;
+            parameters.ForEach(x =>
+            {
+                query = query.Replace(x.ParameterName.ToString(), x.Value.ToString());
+            });
+
+            var result = await this.Set<Dictionary<string, object>>().FromSqlRaw(query).ToListAsync();
+            return result;
         }
     }
 }
