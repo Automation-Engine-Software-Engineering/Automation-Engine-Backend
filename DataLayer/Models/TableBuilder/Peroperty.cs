@@ -10,15 +10,15 @@ namespace DataLayer.Models.FormBuilder
     public class Peroperty
     {
         public int Id { get; set; }
-        public string PreviewName { get; set; }
-        public string PeropertyName { get; set; }
+        public string PreviewName { get; set; } = "";
+        public string PeropertyName { get; set; } = "";
         public PeropertyTypes Type { get; set; }
         public bool AllowNull { get; set; }
-        public string DefaultValue { get; set; }
+        public string DefaultValue { get; set; } = "";
 
         public int EntityId { get; set; }
         [ForeignKey(nameof(EntityId))]
-        public Entity Entity { get; set; }
+        public Entity? Entity { get; set; }
     }
     public enum PeropertyTypes
     {

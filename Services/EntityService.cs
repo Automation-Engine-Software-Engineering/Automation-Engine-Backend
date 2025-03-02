@@ -53,8 +53,7 @@ namespace Services
             if (formId != null)
             {
                 var form = await _context.Form.FirstOrDefaultAsync(x => x.Id == formId);
-                entity.Forms = new List<Form>();
-                entity.Forms.Add(form);
+                entity.Forms = [form];
             }
             _context.Entity.Add(entity);
         }

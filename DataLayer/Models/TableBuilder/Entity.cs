@@ -11,11 +11,11 @@ namespace DataLayer.Models.FormBuilder
     {
         [Key]
         public int Id { get; set; }
-        public string PreviewName { get; set; }
-        public string TableName { get; set; }
+        public string PreviewName { get; set; } = "";
+        public string TableName { get; set; } = "";
         public string? Description { get; set; }
 
-        public List<Peroperty> Peroperties { get; set; }
-        public List<Form> Forms { get; set; }
+        public List<Peroperty>? Peroperties { get; set; }
+        public List<Form>? Forms { get; set; }
     }
 }
