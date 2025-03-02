@@ -121,6 +121,7 @@ namespace Services
                 for (int i = 0; i < columns.Count; i++)
                 {
                     parameters.Add(new SqlParameter("@Entity"+i, columns[i].PeropertyName));
+                    columns[i].EntityId = entity.Id;
                 }
                 parameters.Add(new SqlParameter("@TableName", entity.TableName));
                 await _dynamicDbContext.ExecuteSqlRawAsync(command, parameters);
