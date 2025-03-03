@@ -113,7 +113,7 @@ namespace Services
                 for (int i = 0; i < columns.Count; i++)
                 {
                     command.CommandText += "@Entity" + i + " " + "@Type" + i;
-                    if (i != columns.Count)
+                    if (i != columns.Count-1)
                         command.CommandText += " , ";
                 };
 
@@ -121,12 +121,14 @@ namespace Services
                 for (int i = 0; i < columns.Count; i++)
                 {
                     parameters.Add(new SqlParameter("@Entity"+i, columns[i].PeropertyName));
+                    parameters.Add(new SqlParameter("@Type" + i, columns[i].Type));
                     columns[i].EntityId = entity.Id;
+                    columns[i].Entity = null;
                 }
                 parameters.Add(new SqlParameter("@TableName", entity.TableName));
                 await _dynamicDbContext.ExecuteSqlRawAsync(command, parameters);
             }
-            await _context.AddRangeAsync(columns);
+            await _context.Peroperty.AddRangeAsync(columns);
             await _context.SaveChangesAsync();
         }
 

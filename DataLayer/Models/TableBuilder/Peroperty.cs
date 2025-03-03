@@ -22,6 +22,6 @@ namespace DataLayer.Models.FormBuilder
     }
     public enum PeropertyTypes
     {
-        intiger = 1, nvarchar = 2, bit = 3, RadioBox = 4
+        INT = 1, NVARCHAR = 2, BIT = 3, RadioBox = 4
     }
 }

@@ -91,7 +91,7 @@ namespace AutomationEngine.Controllers// Replace with your actual namespace
         }
 
         // POST: api/entity/{entityName}/peroperty/edit  
-        [HttpPost("{entityName}/peroperty/edit")]
+        [HttpPost("peroperty/edit")]
         public async Task<ResultViewModel> EditperopertyInEntity([FromBody] Peroperty peroperty)
         {
             if (peroperty == null)
