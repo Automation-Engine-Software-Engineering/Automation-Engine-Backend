@@ -79,13 +79,13 @@ namespace AutomationEngine.Controllers// Replace with your actual namespace
 
         // POST: api/entity/{entityName}/peroperty/add  
         [HttpPost("{entityId}/peroperty/add")]
-        public async Task<ResultViewModel> AddPeropertyToEntity(int entityId, [FromBody] List<Peroperty> peroperties)
+        public async Task<ResultViewModel> AddPeropertyToEntity(int entityId, [FromBody] Peroperty peropertغ)
         {
-            if (entityId == null || peroperties == null)
+            if (entityId == null || peropertغ == null)
                 throw new ArgumentNullException("عنصر یافت نشد");
 
             var result = await _entityService.GetEntitiesByIdAsync(entityId);
-            await _entityService.AddColumnToTableAsync(result, peroperties);
+            await _entityService.AddColumnToTableAsync(result, peropertغ);
             await _entityService.SaveChangesAsync();
             return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد", Status = true });
         }

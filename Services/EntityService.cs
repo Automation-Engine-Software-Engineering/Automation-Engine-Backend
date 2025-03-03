@@ -22,7 +22,7 @@ namespace Services
         Task UpdateEntityAsync(Entity oldEntity);
         Task<List<Entity>> GetAllEntitiesAsync(int? formId);
         Task<Entity> GetEntitiesByIdAsync(int entityId);
-        Task AddColumnToTableAsync(Entity entity, List<Peroperty> columns);
+        Task AddColumnToTableAsync(Entity entity, Peroperty column);
         Task UpdatePeropertyInTableAsync(Peroperty peroperty);
         Task<List<Peroperty>> GetAllColumnsAsync();
         Task<List<Peroperty>> GetAllColumnValuesAsync(int entityId);
@@ -105,30 +105,22 @@ namespace Services
             return result;
         }
 
-        public async Task AddColumnToTableAsync(Entity entity, List<Peroperty> columns)
+        public async Task AddColumnToTableAsync(Entity entity, Peroperty column)
         {
             using (var command = _dynamicDbContext.Database.GetDbConnection().CreateCommand())
             {
                 command.CommandText = $"ALTER TABLE @TableName ADD ";
-                for (int i = 0; i < columns.Count; i++)
-                {
-                    command.CommandText += "@Entity" + i + " " + "@Type" + i;
-                    if (i != columns.Count-1)
-                        command.CommandText += " , ";
-                };
-
+                    command.CommandText += "@Entity" + " " + "@Type";
+                
                 var parameters = new List<SqlParameter>();
-                for (int i = 0; i < columns.Count; i++)
-                {
-                    parameters.Add(new SqlParameter("@Entity"+i, columns[i].PeropertyName));
-                    parameters.Add(new SqlParameter("@Type" + i, columns[i].Type));
-                    columns[i].EntityId = entity.Id;
-                    columns[i].Entity = null;
-                }
+                    parameters.Add(new SqlParameter("@Entity", column.PeropertyName));
+                    parameters.Add(new SqlParameter("@Type", column.Type));
+                    column.EntityId = entity.Id;
+                    column.Entity = null;
                 parameters.Add(new SqlParameter("@TableName", entity.TableName));
                 await _dynamicDbContext.ExecuteSqlRawAsync(command, parameters);
             }
-            await _context.Peroperty.AddRangeAsync(columns);
+            await _context.Peroperty.AddAsync(column);
             await _context.SaveChangesAsync();
         }
 
