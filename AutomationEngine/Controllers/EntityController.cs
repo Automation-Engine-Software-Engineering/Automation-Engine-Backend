@@ -1,7 +1,9 @@
 ﻿using DataLayer.Models.FormBuilder;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration.Json;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.SqlServer.Server;
+using Newtonsoft.Json;
 using Services;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -117,9 +119,41 @@ namespace AutomationEngine.Controllers// Replace with your actual namespace
             if (entityId == null)
                 throw new ArgumentNullException("عنصر یافت نشد");
 
+            var columns = await _entityService.GetAllColumnAsync(entityId);
+            return (new ResultViewModel { Data = columns, Message = "عملیات با موفقیت انجام شد", Status = true });
+        }
+
+        [HttpGet("{entityId}/value")]
+        public async Task<ResultViewModel> GetAllperopertiesValueFromEntity(int entityId)
+        {
+            if (entityId == null)
+                throw new ArgumentNullException("عنصر یافت نشد");
+
             var columns = await _entityService.GetAllColumnValuesAsync(entityId);
             return (new ResultViewModel { Data = columns, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
+        //[HttpGet("{entityId}/cloumn")]
+        //public async Task<object> GetAllCloumnValueFromEntity(int entityId)
+        //{
+        //    if (entityId == null)
+        //        throw new ArgumentNullException("عنصر یافت نشد");
+
+        //    var columns = await _entityService.GetEntitiesClumnsNameByIdAsync(entityId);
+        //    var query = "{";
+        //    var i = 0;
+        //    columns.ForEach(x =>
+        //    {
+        //        if (i != 0)
+        //            query += " , ";
+        //        query += "\"" + x.Item1.ToString() + "\"" + " : " + "\"" + x.Item2.ToString() + "\"";
+        //        i++;
+        //    });
+        //    query += "}";
+
+        //    object dynamic = JsonConvert.DeserializeObject(query);
+
+        //    return dynamic;
+        //}
 
         // GET: api/entity/{entityName}/peroperty  
         [HttpGet("peroperty/{peropertyId}")]

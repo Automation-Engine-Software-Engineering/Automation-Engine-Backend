@@ -78,7 +78,7 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/{formId}/updateBody  
         [HttpPost("{formId}/insertHtmlContent")]
-        public async Task<ResultViewModel> InsertHtmlContent( int formId,string htmlContent)
+        public async Task<ResultViewModel> InsertHtmlContent( int formId, [FromBody]string htmlContent)
         {
             if (formId == null)
                 throw new ArgumentNullException("فرم یافت نشد");

@@ -4,6 +4,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Reflection.PortableExecutable;
@@ -25,8 +26,10 @@ namespace Services
         Task AddColumnToTableAsync(Entity entity, Peroperty column);
         Task UpdatePeropertyInTableAsync(Peroperty peroperty);
         Task<List<Peroperty>> GetAllColumnsAsync();
-        Task<List<Peroperty>> GetAllColumnValuesAsync(int entityId);
+        Task<List<Dictionary<string, object>>> GetAllColumnValuesAsync(int entityId);
+        Task<List<Peroperty>> GetAllColumnAsync(int entityId);
         Task<Peroperty> GetColumnValuesAsync(int PeropertyId);
+        //Task<List<(string, string)>> GetEntitiesClumnsNameByIdAsync(int entityId);
         Task SaveChangesAsync();
     }
 
@@ -152,10 +155,30 @@ namespace Services
             return await _context.Peroperty.ToListAsync();
         }
 
-        public async Task<List<Peroperty>> GetAllColumnValuesAsync(int entityId)
+        public async Task<List<Peroperty>> GetAllColumnAsync(int entityId)
         {
             return await _context.Peroperty.Where(x => x.EntityId == entityId).ToListAsync();
         }
+
+        public async Task<List<Dictionary<string, object>>> GetAllColumnValuesAsync(int entityId)
+        {
+            var feachmodel =  await _context.Entity.FirstOrDefaultAsync(x => x.Id == entityId);
+            using (var command = _dynamicDbContext.Database.GetDbConnection().CreateCommand())
+            {
+                command.CommandText = "select * from @TableName";
+                command.CommandText = command.CommandText.Replace("@TableName", feachmodel.TableName);
+         //       command.Parameters.Add(new SqlParameter("@TableName", feachmodel.TableName));
+               return await _dynamicDbContext.ExecuteReaderAsync(command);
+            }
+        }
+
+        //public async Task<List<(string, string)>> GetEntitiesClumnsNameByIdAsync(int entityId)
+        //{
+        //    var result = (await _context.Entity.Include(x => x.Peroperties)
+        //        .FirstOrDefaultAsync(x => x.Id == entityId)).Peroperties.Select(x =>(x.PeropertyName , x.PreviewName).ToList();
+
+        //    return result;
+        //}
 
         public async Task<Peroperty> GetColumnValuesAsync(int peropertyId)
         {
