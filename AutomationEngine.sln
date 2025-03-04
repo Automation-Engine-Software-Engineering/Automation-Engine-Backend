@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tools", "Tools\Tools.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutomationEngine", "AutomationEngine\AutomationEngine.csproj", "{F2074603-7F0B-4436-99D1-7F7D9183EFD5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrameWork", "FrameWork\FrameWork.csproj", "{F7CC8A58-F15F-4774-99F7-C6F4884AE1EB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{F2074603-7F0B-4436-99D1-7F7D9183EFD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F2074603-7F0B-4436-99D1-7F7D9183EFD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F2074603-7F0B-4436-99D1-7F7D9183EFD5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7CC8A58-F15F-4774-99F7-C6F4884AE1EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7CC8A58-F15F-4774-99F7-C6F4884AE1EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7CC8A58-F15F-4774-99F7-C6F4884AE1EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7CC8A58-F15F-4774-99F7-C6F4884AE1EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

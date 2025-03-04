@@ -1,4 +1,5 @@
 ﻿using DataLayer.Models.FormBuilder;
+using DataLayer.Models.TableBuilder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration.Json;
 using Microsoft.IdentityModel.Tokens;
@@ -9,8 +10,9 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ViewModels;
+using ViewModels.ViewModels.Entity;
 
-namespace AutomationEngine.Controllers// Replace with your actual namespace  
+namespace AutomationEngine.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -25,24 +27,40 @@ namespace AutomationEngine.Controllers// Replace with your actual namespace
 
         // POST: api/entity/create  
         [HttpPost("create")]
-        public async Task<ResultViewModel> CreateEntity(int? formId ,[FromBody] Entity entity)
+        public async Task<ResultViewModel> CreateEntity(int? formId, [FromBody] EntityDto entity)
         {
-            if (entity == null)
-                throw new ArgumentNullException("عنصر یافت نشد");
+            var result = new Entity()
+            {
+                PreviewName = entity.PreviewName,
+                TableName = entity.TableName,
+                Description = entity.Description
+            };
 
-            await _entityService.CreateEntityAsync(formId , entity);
+            if (formId == null)
+            {
+                await _entityService.CreateEntityAsync(result);
+            }
+            else
+            {
+                await _entityService.CreateEntityAsync(formId.Value, result);
+            }
             await _entityService.SaveChangesAsync();
             return (new ResultViewModel { Data = entity, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
 
-        // POST: api/entity/edit  
+        // POST: api/entity/update  
         [HttpPost("update")]
-        public async Task<ResultViewModel> UpdateEntity([FromBody] Entity entity)
+        public async Task<ResultViewModel> UpdateEntity([FromBody] EntityDto entity)
         {
-            if (entity == null)
-                throw new ArgumentNullException("عنصر یافت نشد");
+            var result = new Entity()
+            {
+                Id = entity.Id,
+                PreviewName = entity.PreviewName,
+                TableName = entity.TableName,
+                Description = entity.Description
+            };
 
-            await _entityService.UpdateEntityAsync(entity);
+            await _entityService.UpdateEntityAsync(result);
             await _entityService.SaveChangesAsync();
             return (new ResultViewModel { Data = entity, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
@@ -51,13 +69,9 @@ namespace AutomationEngine.Controllers// Replace with your actual namespace
         [HttpPost("remove")]
         public async Task<ResultViewModel> RemoveEntity(int entityId)
         {
-            if (entityId == null)
-                throw new ArgumentNullException("عنصر یافت نشد");
-
-            var result = await _entityService.GetEntitiesByIdAsync(entityId);
-            await _entityService.RemoveEntityAsync(result);
+            await _entityService.RemoveEntityAsync(entityId);
             await _entityService.SaveChangesAsync();
-            return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد", Status = true });
+            return (new ResultViewModel { Data = null , Message = "عملیات با موفقیت انجام شد", Status = true });
         }
 
         // GET: api/entity/all  
@@ -72,98 +86,8 @@ namespace AutomationEngine.Controllers// Replace with your actual namespace
         [HttpGet("{enntityId}")]
         public async Task<ResultViewModel> GetEntity(int enntityId)
         {
-            if (enntityId == null)
-                throw new ArgumentNullException("فرم یافت نشد");
-
             var entities = await _entityService.GetEntitiesByIdAsync(enntityId);
             return (new ResultViewModel { Data = entities, Message = "عملیات با موفقیت انجام شد", Status = true });
-        }
-
-        // POST: api/entity/{entityName}/peroperty/add  
-        [HttpPost("{entityId}/peroperty/add")]
-        public async Task<ResultViewModel> AddPeropertyToEntity(int entityId, [FromBody] Peroperty peropertغ)
-        {
-            if (entityId == null || peropertغ == null)
-                throw new ArgumentNullException("عنصر یافت نشد");
-
-            var result = await _entityService.GetEntitiesByIdAsync(entityId);
-            await _entityService.AddColumnToTableAsync(result, peropertغ);
-            await _entityService.SaveChangesAsync();
-            return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد", Status = true });
-        }
-
-        // POST: api/entity/{entityName}/peroperty/edit  
-        [HttpPost("peroperty/edit")]
-        public async Task<ResultViewModel> EditperopertyInEntity([FromBody] Peroperty peroperty)
-        {
-            if (peroperty == null)
-                throw new ArgumentNullException("عنصر یافت نشد");
-
-            await _entityService.UpdatePeropertyInTableAsync(peroperty);
-            await _entityService.SaveChangesAsync();
-            return (new ResultViewModel { Data = peroperty, Message = "عملیات با موفقیت انجام شد", Status = true });
-        }
-
-        // POST: api/entity/{entityName}/peroperty/delete  
-        //[HttpPost("{entityName}/peroperty/remove")]
-        //public async Task<ResultViewModel> removeperopertyFromEntity(string entityName, [FromBody] string columnName)
-        //{
-        //    await _entityService.();
-        //    return (new ResultViewModel { Data = peroperty, Message = "عملیات با موفقیت انجام شد", Status = true });
-        //}
-
-        // GET: api/entity/{entityName}/peroperty  
-        [HttpGet("{entityId}/peroperty")]
-        public async Task<ResultViewModel> GetAllperopertiesFromEntity(int entityId)
-        {
-            if (entityId == null)
-                throw new ArgumentNullException("عنصر یافت نشد");
-
-            var columns = await _entityService.GetAllColumnAsync(entityId);
-            return (new ResultViewModel { Data = columns, Message = "عملیات با موفقیت انجام شد", Status = true });
-        }
-
-        [HttpGet("{entityId}/value")]
-        public async Task<ResultViewModel> GetAllperopertiesValueFromEntity(int entityId)
-        {
-            if (entityId == null)
-                throw new ArgumentNullException("عنصر یافت نشد");
-
-            var columns = await _entityService.GetAllColumnValuesAsync(entityId);
-            return (new ResultViewModel { Data = columns, Message = "عملیات با موفقیت انجام شد", Status = true });
-        }
-        //[HttpGet("{entityId}/cloumn")]
-        //public async Task<object> GetAllCloumnValueFromEntity(int entityId)
-        //{
-        //    if (entityId == null)
-        //        throw new ArgumentNullException("عنصر یافت نشد");
-
-        //    var columns = await _entityService.GetEntitiesClumnsNameByIdAsync(entityId);
-        //    var query = "{";
-        //    var i = 0;
-        //    columns.ForEach(x =>
-        //    {
-        //        if (i != 0)
-        //            query += " , ";
-        //        query += "\"" + x.Item1.ToString() + "\"" + " : " + "\"" + x.Item2.ToString() + "\"";
-        //        i++;
-        //    });
-        //    query += "}";
-
-        //    object dynamic = JsonConvert.DeserializeObject(query);
-
-        //    return dynamic;
-        //}
-
-        // GET: api/entity/{entityName}/peroperty  
-        [HttpGet("peroperty/{peropertyId}")]
-        public async Task<ResultViewModel> GetAllperopertiesFromEntityById(int peropertyId)
-        {
-            if (peropertyId == null)
-                throw new ArgumentNullException("عنصر یافت نشد");
-
-            var columns = await _entityService.GetColumnValuesAsync(peropertyId);
-            return (new ResultViewModel { Data = columns, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
     }
 }

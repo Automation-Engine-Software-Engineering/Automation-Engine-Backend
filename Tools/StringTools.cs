@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using System.Text.RegularExpressions;
+using FrameWork.ExeptionHandler.ExeptionModel;
 
 namespace Tools
 {
@@ -13,7 +9,7 @@ namespace Tools
         {
             string pattern = @"^[A-Za-z_][A-Za-z0-9_]*$";
             return Regex.IsMatch(input, pattern) ? Regex.IsMatch(input, pattern) :
-                throw new Exception("the input not define");
+                throw new CostumExeption("خظا در نوشتار وجود دارد");
         }
     }
 }

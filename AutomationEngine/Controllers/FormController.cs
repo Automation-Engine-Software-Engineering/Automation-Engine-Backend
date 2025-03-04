@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.SqlServer.Server;
 using ViewModels;
 using Microsoft.IdentityModel.Tokens;
+using ViewModels.ViewModels.FormBuilder;
 
 namespace AutomationEngine.Controllers
 {
@@ -22,39 +23,52 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/create  
         [HttpPost("create")]
-        public async Task<ResultViewModel> CreateForm([FromBody] Form form)
+        public async Task<ResultViewModel> CreateForm([FromBody] FormDto form)
         {
-            if (form == null)
-                throw new ArgumentNullException("فرم یافت نشد");
+            var result = new Form()
+            {
+                Name = form.Name,
+                BackgroundColor = form.BackgroundColor,
+                Description = form.Description,
+                BackgroundImgPath = form.BackgroundImgPath,
+                HtmlFormBody = form.HtmlFormBody,
+                SizeHeight = form.SizeHeight,
+                SizeWidth = form.SizeHeight
+            };
 
-            await _formService.CreateFormAsync(form);
+            await _formService.CreateFormAsync(result);
             await _formService.SaveChangesAsync();
-            return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد", Status = true });
+            return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
 
         // POST: api/form/update  
         [HttpPost("update")]
-        public async Task<ResultViewModel> UpdateForm([FromBody] Form form)
+        public async Task<ResultViewModel> UpdateForm([FromBody] FormDto form)
         {
-            if (form == null)
-                throw new ArgumentNullException("فرم یافت نشد");
+            var result = new Form()
+            {
+                Id = form.Id,
+                Name = form.Name,
+                BackgroundColor = form.BackgroundColor,
+                Description = form.Description,
+                BackgroundImgPath = form.BackgroundImgPath,
+                HtmlFormBody = form.HtmlFormBody,
+                SizeHeight = form.SizeHeight,
+                SizeWidth = form.SizeHeight
+            };
 
-            await _formService.UpdateFormAsync(form);
+            await _formService.UpdateFormAsync(result);
             await _formService.SaveChangesAsync();
             return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
 
         // POST: api/form/delete  
         [HttpPost("remove")]
-        public async Task<ResultViewModel> RemoveForm(int formId)
+        public async Task<ResultViewModel> RemoveForm([FromBody] int formId)
         {
-            if (formId == null)
-                throw new ArgumentNullException("فرم یافت نشد");
-
-            var form = await _formService.GetFormAsync(formId);
-            await _formService.RemoveFormAsync(form);
+            await _formService.RemoveFormAsync(formId);
             _formService.SaveChangesAsync();
-            return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد", Status = true });
+            return (new ResultViewModel { Data = null, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
 
         // GET: api/form/all  
@@ -69,9 +83,6 @@ namespace AutomationEngine.Controllers
         [HttpGet("{formId}")]
         public async Task<ResultViewModel> GetForm(int formId)
         {
-            if (formId == null)
-                throw new ArgumentNullException("فرم یافت نشد");
-
             var form = await _formService.GetFormAsync(formId);
             return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
@@ -80,40 +91,9 @@ namespace AutomationEngine.Controllers
         [HttpPost("{formId}/insertHtmlContent")]
         public async Task<ResultViewModel> InsertHtmlContent( int formId, [FromBody]string htmlContent)
         {
-            if (formId == null)
-                throw new ArgumentNullException("فرم یافت نشد");
-
-            if (htmlContent.IsNullOrEmpty())
-                throw new ArgumentNullException("فرم یافت نشد");
-
             await _formService.UpdateFormBodyAsync(formId, htmlContent);
             _formService.SaveChangesAsync();
             return (new ResultViewModel { Message = "عملیات با موفقیت انجام شد", Status = true });
         }
-
-        //// POST: api/formbuilder/submit  
-        //[HttpPost("submit")]
-        //public async Task<ResultViewModel> SubmitForm([FromBody] FormData formData)
-        //{
-        //    if (formData == null || formData.Fields == null || formData.Fields.Count == 0)
-        //    {
-        //        return BadRequest("Invalid form data.");
-        //    }
-
-        //    try
-        //    {
-        //        foreach (var field in formData.Fields)
-        //        {
-        //            // Assuming the service method is responsible for determining which DB operation to perform  
-        //            await _formService.InsertFieldValueAsync(field.TableName, field.FieldName, field.Value);
-        //        }
-
-        //        return Ok("Form data submitted successfully.");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, $"Internal server error: {ex.Message}");
-        //    }
-        //}
     }
 }

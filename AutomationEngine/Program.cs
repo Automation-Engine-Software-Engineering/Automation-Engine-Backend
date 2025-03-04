@@ -32,10 +32,12 @@ builder.Services.AddScoped<Context>();
 builder.Services.AddScoped<DynamicDbContext>();
 builder.Services.AddScoped<IFormService, FormService>();
 builder.Services.AddScoped<IEntityService, EntityService>();
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-});
+builder.Services.AddScoped<IPropertyService, PropertyService>();
+
+//builder.Services.AddControllers().AddJsonOptions(options =>
+//{
+//    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+//});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

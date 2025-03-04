@@ -11,47 +11,44 @@ namespace DataLayer.Context
         public DynamicDbContext(DbContextOptions<DynamicDbContext> options) : base(options) { }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         { }
-        public async Task ExecuteSqlRawAsync(DbCommand command, List<SqlParameter>? parameters = null)
+        public async Task ExecuteSqlRawAsync(string command, List<(string ParameterName, string ParameterValue)>? parameters = null)
         {
             parameters.ForEach(x =>
             {
-                x.Value.ToString().IsValidateString();
+                x.ParameterValue.ToString().IsValidateString();
             });
 
-            var query = command.CommandText;
+            var query = command;
             parameters.ForEach(x =>
             {
-              query =  query.Replace(x.ParameterName.ToString() , x.Value.ToString());
+                query = query.Replace(x.ParameterName.ToString(), x.ParameterValue.ToString());
             });
 
             Database.ExecuteSqlRawAsync(query);
-            //using (var connection = Database.GetDbConnection())
-            //{
-            //    command.Parameters.Clear();
-            //    parameters.ForEach(x => command.Parameters.Add(x));
-            //    await connection.OpenAsync();
-            //    command.ExecuteScalarAsync();
-            //    await connection.CloseAsync();
-            //}
-
         }
 
-        public async Task<List<Dictionary<string , object>>> ExecuteReaderAsync(DbCommand command, List<SqlParameter>? parameters = null)
+        public async Task<List<Dictionary<string, object>>> ExecuteReaderAsync(string Query)
         {
-
-            parameters.ForEach(x =>
+            var resultList = new List<Dictionary<string, object>>();
+            using (var connecction = this.Database.GetDbConnection())
             {
-                x.Value.ToString().IsValidateString();
-            });
-
-            var query = command.CommandText;
-            parameters.ForEach(x =>
-            {
-                query = query.Replace(x.ParameterName.ToString(), x.Value.ToString());
-            });
-
-            var result = await this.Set<Dictionary<string, object>>().FromSqlRaw(query).ToListAsync();
-            return result;
+                connecction.OpenAsync();
+                var command = connecction.CreateCommand();
+                command.CommandText = Query;
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        var row = new Dictionary<string, object>();
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+                            row.Add(reader.GetName(i), reader.GetValue(i));
+                        }
+                        resultList.Add(row);
+                    }
+                }
+            }
+            return resultList;
         }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using DataLayer.Models.FormBuilder;
+using DataLayer.Models.TableBuilder;
+using DataLayer.Models.WorkFlow;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -13,7 +15,11 @@ namespace DataLayer.Context
         public Context(DbContextOptions<Context> options): base(options){}
         public DbSet<Form> Form { get; set; }
         public DbSet<Entity> Entity { get; set; }
-        public DbSet<Peroperty> Peroperty { get; set; }
+        public DbSet<EntityProperty> Property { get; set; }
+        public DbSet<WorkFlow> WorkFlow { get; set; }
+        public DbSet<Edge> Edge { get; set; }
+        public DbSet<Node> Node { get; set; }
+        public DbSet<WorkFlow_User> WorkFlow_User { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {}
