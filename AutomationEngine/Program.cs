@@ -33,6 +33,9 @@ builder.Services.AddScoped<DynamicDbContext>();
 builder.Services.AddScoped<IFormService, FormService>();
 builder.Services.AddScoped<IEntityService, EntityService>();
 builder.Services.AddScoped<IPropertyService, PropertyService>();
+builder.Services.AddScoped<IWorkFlowService, WorkFlowService>();
+builder.Services.AddScoped<IWorkFlowUserService, WorkFlowUserService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 
 //builder.Services.AddControllers().AddJsonOptions(options =>
 //{

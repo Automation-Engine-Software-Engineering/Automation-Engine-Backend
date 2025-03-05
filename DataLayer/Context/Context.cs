@@ -1,4 +1,5 @@
 ﻿using DataLayer.Models.FormBuilder;
+using DataLayer.Models.MainEngine;
 using DataLayer.Models.TableBuilder;
 using DataLayer.Models.WorkFlow;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,10 @@ namespace DataLayer.Context
         public DbSet<Edge> Edge { get; set; }
         public DbSet<Node> Node { get; set; }
         public DbSet<WorkFlow_User> WorkFlow_User { get; set; }
+        public DbSet<User> User { get; set; }
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<Role_User> Role_Users { get; set; }
+        public DbSet<Role_WorkFlow> role_WorkFlows { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {}

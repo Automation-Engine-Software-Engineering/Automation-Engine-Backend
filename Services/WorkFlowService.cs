@@ -24,11 +24,12 @@ namespace Services
         Task<UnknownDto> GetWorFlowValueById(int id);
         Task<UnknownDto> GetNextWorFlowValueById(int id);
         Task<UnknownDto> GetLastWorFlowValueById(int id);
+        Task SaveChangesAsync();
     }
     public class WorkFlowService : IWorkFlowService
     {
         private readonly Context _context;
-        WorkFlowService(Context context)
+        public WorkFlowService(Context context)
         {
             _context = context;
         }
@@ -152,9 +153,9 @@ namespace Services
 
             var feachModel = new WorkFlow()
             {
-                Nodes = result.Nodes,
-                Edges = result.Edges,
-                Id = workFlow.Id
+                Nodes = workFlow.Nodes,
+                Edges = workFlow.Edges,
+                Id = result.Id
             };
             _context.Update(feachModel);
         }

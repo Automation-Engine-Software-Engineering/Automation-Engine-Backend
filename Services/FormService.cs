@@ -1,5 +1,6 @@
 ﻿using DataLayer.Context;
 using DataLayer.Models.FormBuilder;
+using DataLayer.Models.TableBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -16,16 +17,18 @@ namespace Services
         Task<Form> GetFormAsync(int formId);
         Task<List<Form>> GetAllFormsAsync();
         Task UpdateFormBodyAsync(int formId, string htmlContent);
+        Task GiveTheParameter(List<(int entityId, int propertyId, object value)> data);
         Task SaveChangesAsync();
     }
 
     public class FormService : IFormService
     {
         private readonly Context _context;
-
-        public FormService(Context context)
+        private readonly DynamicDbContext _dynamicDbContext;
+        public FormService(Context context, DynamicDbContext dynamicDbContext)
         {
             _context = context;
+            _dynamicDbContext = dynamicDbContext;
         }
 
         public async Task CreateFormAsync(Form form)
@@ -66,7 +69,7 @@ namespace Services
         {
             if (formId == null) throw new CostumExeption("فرم معتبر نمی باشد");
 
-            var feachModel =  await _context.Form.FirstOrDefaultAsync(x => x.Id == formId)
+            var feachModel = await _context.Form.FirstOrDefaultAsync(x => x.Id == formId)
                   ?? throw new CostumExeption("فرم یافت نشد.");
 
             return feachModel;
@@ -117,5 +120,45 @@ namespace Services
             }
         }
 
+        public async Task GiveTheParameter(List<(int entityId, int propertyId, object value)> data)
+        {
+            var entityIds = new List<int>();
+            data.Select(x => x.entityId).ToList().ForEach(x =>
+            {
+                if (entityIds.Any(xx => xx == x))
+                {
+                    entityIds.Add(x);
+                }
+            });
+
+            entityIds.ForEach(x =>
+            {
+                var entity = _context.Entity.FirstOrDefaultAsync(xx => xx.Id == x)
+                       ?? throw new CostumExeption("موجودیت یافت نشد.");
+
+                var properties = data.Where(x => x.entityId == entity.Id).ToList();
+                var propertiesValues = properties.Select(x => _context.Property.FirstOrDefaultAsync(xx => xx.Id == x.propertyId)).ToList();
+                var propertiesQuery = "";
+                propertiesValues.ForEach(x =>
+                {
+                    propertiesQuery += x.Result.PropertyName + " ,";
+                });
+                propertiesQuery += ".";
+                propertiesQuery.Replace(",.", "");
+
+                var propertiesQueryValue = "";
+                data.Where(x => x.entityId == x.entityId).ToList().ForEach(xx =>
+                {
+                    propertiesQueryValue += xx.value.ToString() + " ,";
+                });
+                propertiesQueryValue += ".";
+                propertiesQueryValue.Replace(",.", "");
+
+                var query = $"INSERT INTO {entity.Result.TableName} ({propertiesQuery})" +
+            $" VALUES ({propertiesQueryValue});";
+
+                _dynamicDbContext.ExecuteSqlRawAsync(query);
+            });
+        }
     }
 }
