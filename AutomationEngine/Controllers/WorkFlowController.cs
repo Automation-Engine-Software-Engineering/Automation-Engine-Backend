@@ -26,8 +26,11 @@ namespace AutomationEngine.Controllers
         {
             var result = new WorkFlow()
             {
+                Name = workFlow.Name,
+                Description = workFlow.Description,
                 Nodes = workFlow.Nodes.Select(x => new Node()
                 {
+                    Id = "" ,
                     entityId = x.entityId,
                     formId = x.formId,
                     Icon = x.Icon,
@@ -38,6 +41,7 @@ namespace AutomationEngine.Controllers
                 }).ToList(),
                 Edges = workFlow.Edges.Select(x => new Edge()
                 {
+                    Id = "",
                     Source = x.Source,
                     SourceHandle = x.SourceHandle,
                     Target = x.Target,
@@ -57,6 +61,8 @@ namespace AutomationEngine.Controllers
             var result = new WorkFlow()
             {
                 Id = workFlow.Id,
+                Name = workFlow.Name,
+                Description = workFlow.Description,
                 Nodes = workFlow.Nodes.Select(x => new Node()
                 {
                     entityId = x.entityId,

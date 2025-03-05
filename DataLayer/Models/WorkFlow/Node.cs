@@ -12,21 +12,21 @@ namespace DataLayer.Models.WorkFlow
     public class Node
     {
         public string Id { get; set; }
-        public UnknownDtoType Type { get; set; }
+        public UnknownType Type { get; set; }
         public int Icon { get; set; }
         public string Name { get; set; }
         public float X { get; set; }
         public float Y { get; set; }
 
-        public int formId { get; set; }
+        public int? formId { get; set; }
         [ForeignKey(nameof(formId))]
         public Form form { get; set; }
 
-        public int entityId { get; set; }
+        public int? entityId { get; set; }
         [ForeignKey(nameof(entityId))]
         public Entity entity { get; set; }
     }
-    public enum UnknownDtoType
+    public enum UnknownType
     {
         table = 1, form = 2, noDynamic = 3
     }

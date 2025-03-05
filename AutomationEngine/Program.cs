@@ -1,4 +1,5 @@
 using DataLayer.Context;
+using FrameWork.ExeptionHandler.CustomMiddleware;
 using Microsoft.EntityFrameworkCore;
 using Services;
 
@@ -49,6 +50,7 @@ if (app.Environment.IsDevelopment())
 }
 app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().SetIsOriginAllowed(x=>true));
 app.UseCors("MyPolicy");
+app.UseMiddleware<CustomMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI();
 

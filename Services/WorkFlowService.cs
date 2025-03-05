@@ -72,8 +72,8 @@ namespace Services
             return new UnknownDto()
             {
                 Type = LastNode.Type,
-                formId = LastNode.Type == UnknownDtoType.form ? LastNode.formId :
-                result.Type == UnknownDtoType.table ? result.entityId : 0
+                formId = LastNode.Type == UnknownType.form ? LastNode.formId :
+                result.Type == UnknownType.table ? result.entityId : 0
             };
         }
         public async Task<UnknownDto> GetWorFlowValueById(int idWorkflowUser)
@@ -93,8 +93,8 @@ namespace Services
             return new UnknownDto()
             {
                 Type = result.Type,
-                formId = result.Type == UnknownDtoType.form ? result.formId :
-                result.Type == UnknownDtoType.table ? result.entityId : 0
+                formId = result.Type == UnknownType.form ? result.formId :
+                result.Type == UnknownType.table ? result.entityId : 0
             };
         }
 
@@ -121,8 +121,8 @@ namespace Services
             return new UnknownDto()
             {
                 Type = NextNode.Type,
-                formId = NextNode.Type == UnknownDtoType.form ? NextNode.formId :
-                NextNode.Type == UnknownDtoType.table ? NextNode.entityId : 0
+                formId = NextNode.Type == UnknownType.form ? NextNode.formId :
+                NextNode.Type == UnknownType.table ? NextNode.entityId : 0
             };
         }
 
@@ -165,7 +165,7 @@ namespace Services
             if (workFlow == null) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
             if (workFlow.Nodes == null) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
             if (workFlow.Edges == null) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlow.Nodes.Any(x => x.Name.IsValidateString() || x.Type == null || x.Icon == null || x.X == null || x.X == 0 || x.Y == null || x.Y == 0)) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
+            if (workFlow.Nodes.Any(x => !x.Name.IsValidateString() || x.Type == null || x.Icon == null || x.X == null || x.X == 0 || x.Y == null || x.Y == 0)) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
             if (workFlow.Edges.Any(x => x.Source == null || x.Target == null || x.SourceHandle == null || x.TargetHandle == null)) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
 
             var isRotate = false;

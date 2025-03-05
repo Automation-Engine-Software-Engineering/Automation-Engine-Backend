@@ -9,6 +9,8 @@ namespace DataLayer.Models.WorkFlow
     public class WorkFlow
     {
         public int Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
         public List<Node> Nodes { get; set; }
         public List<Edge> Edges { get; set; }
 

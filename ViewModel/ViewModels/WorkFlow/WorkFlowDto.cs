@@ -10,12 +10,15 @@ namespace ViewModels.ViewModels.WorkFlow
     public class WorkFlowDto
     {
         public int Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+
         public List<NodeDto> Nodes { get; set; }
         public List<EdgeDto> Edges { get; set; }
     }
     public class NodeDto
     {
-        public UnknownDtoType Type { get; set; }
+        public UnknownType Type { get; set; }
         public int Icon { get; set; }
         public string Name { get; set; }
         public float X { get; set; }
@@ -30,4 +33,5 @@ namespace ViewModels.ViewModels.WorkFlow
         public string Target { get; set; }
         public string TargetHandle { get; set; }
     }
+
 }

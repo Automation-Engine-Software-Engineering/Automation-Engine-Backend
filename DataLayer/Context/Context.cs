@@ -24,7 +24,7 @@ namespace DataLayer.Context
         public DbSet<User> User { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Role_User> Role_Users { get; set; }
-        public DbSet<Role_WorkFlow> role_WorkFlows { get; set; }
+        public DbSet<Role_WorkFlow> Role_WorkFlows { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {}

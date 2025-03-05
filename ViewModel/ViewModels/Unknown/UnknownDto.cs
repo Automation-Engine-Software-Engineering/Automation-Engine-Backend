@@ -9,7 +9,7 @@ namespace ViewModels.ViewModels.Unknown
 {
     public class UnknownDto
     {
-        public UnknownDtoType Type { get; set; }
+        public UnknownType Type { get; set; }
         public int? formId { get; set; }
     }
 }
