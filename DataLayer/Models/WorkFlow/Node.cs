@@ -2,6 +2,7 @@
 using DataLayer.Models.TableBuilder;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,7 @@ namespace DataLayer.Models.WorkFlow
 {
     public class Node
     {
+        [Key]
         public string Id { get; set; }
         public UnknownType Type { get; set; }
         public int Icon { get; set; }
@@ -20,11 +22,11 @@ namespace DataLayer.Models.WorkFlow
 
         public int? formId { get; set; }
         [ForeignKey(nameof(formId))]
-        public Form form { get; set; }
+        public Form? form { get; set; }
 
         public int? entityId { get; set; }
         [ForeignKey(nameof(entityId))]
-        public Entity entity { get; set; }
+        public Entity? entity { get; set; }
     }
     public enum UnknownType
     {

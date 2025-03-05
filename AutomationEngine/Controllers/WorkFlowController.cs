@@ -31,8 +31,8 @@ namespace AutomationEngine.Controllers
                 Nodes = workFlow.Nodes.Select(x => new Node()
                 {
                     Id = "" ,
-                    entityId = x.entityId,
-                    formId = x.formId,
+                    entityId = x.entityId == 0 ? null : x.entityId,
+                    formId = x.formId == 0 ? null : x.formId,
                     Icon = x.Icon,
                     Name = x.Name,
                     Type = x.Type,
@@ -114,9 +114,9 @@ namespace AutomationEngine.Controllers
 
         // GET: api/form/{id}  
         [HttpGet("{workFlowId}/value")]
-        public async Task<ResultViewModel> GetWorkflowValueById(int workFlowId)
+        public async Task<ResultViewModel> GetWorkflowValueById(int workFlowId, int userId)
         {
-            var form = await _workFlowService.GetWorFlowValueById(workFlowId);
+            var form = await _workFlowService.GetWorFlowValueById(workFlowId , userId);
             return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
 

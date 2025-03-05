@@ -10,7 +10,6 @@ namespace ViewModels.ViewModels.WorkFlow
     public class WorkFlowUserDto
     {
         public int Id { get; set; }
-        public string WorkFlowState { get; set; }
         public int UserId { get; set; }
         public int WorkFlowId { get; set; }
     }

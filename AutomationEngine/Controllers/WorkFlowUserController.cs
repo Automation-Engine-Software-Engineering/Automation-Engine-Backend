@@ -13,20 +13,23 @@ namespace AutomationEngine.Controllers
     public class WorkFlowUserController : Controller
     {
         private readonly IWorkFlowUserService _WorkFlowUserService;
+        private readonly IWorkFlowService _workFlowService;
 
-        public WorkFlowUserController(IWorkFlowUserService WorkFlowUserService)
+        public WorkFlowUserController(IWorkFlowUserService WorkFlowUserService , IWorkFlowService workFlowService)
         {
             _WorkFlowUserService = WorkFlowUserService;
+            _workFlowService = workFlowService;
         }
         // POST: api/form/create  
         [HttpPost("create")]
         public async Task<ResultViewModel> CreateWorkFlowUser([FromBody] WorkFlowUserDto WorkFlowUser)
         {
+            var WorkFlow =await _workFlowService.GetWorFlowById(WorkFlowUser.WorkFlowId);
             var result = new WorkFlow_User()
             {
                 UserId = WorkFlowUser.UserId,
-                WorkFlowId = WorkFlowUser.Id,
-                WorkFlowState = WorkFlowUser.WorkFlowState
+                WorkFlowId = WorkFlowUser.WorkFlowId,
+                WorkFlowState = WorkFlow.Nodes.FirstOrDefault().Id
             };
 
             await _WorkFlowUserService.InsertWorFlowUser(result);
@@ -38,12 +41,13 @@ namespace AutomationEngine.Controllers
         [HttpPost("update")]
         public async Task<ResultViewModel> UpdateWorkFlowUser([FromBody] WorkFlowUserDto WorkFlowUser)
         {
+            var WorkFlow = await _workFlowService.GetWorFlowById(WorkFlowUser.WorkFlowId);
             var result = new WorkFlow_User()
             {
                 Id = WorkFlowUser.Id,
                 UserId = WorkFlowUser.UserId,
-                WorkFlowId = WorkFlowUser.Id,
-                WorkFlowState = WorkFlowUser.WorkFlowState
+                WorkFlowId = WorkFlowUser.WorkFlowId,
+                WorkFlowState = WorkFlow.Nodes.FirstOrDefault().Id
             };
 
             await _WorkFlowUserService.UpdateWorFlowUser(result);

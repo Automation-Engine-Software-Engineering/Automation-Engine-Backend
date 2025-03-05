@@ -21,7 +21,7 @@ namespace Services
         Task DeleteWorFlow(int id);
         Task<WorkFlow> GetWorFlowById(int id);
         Task<List<WorkFlow>> GetAllWorFlows();
-        Task<UnknownDto> GetWorFlowValueById(int id);
+        Task<UnknownDto> GetWorFlowValueById(int id , int userId);
         Task<UnknownDto> GetNextWorFlowValueById(int id);
         Task<UnknownDto> GetLastWorFlowValueById(int id);
         Task SaveChangesAsync();
@@ -45,15 +45,15 @@ namespace Services
 
         public async Task<List<WorkFlow>> GetAllWorFlows()
         {
-            var result = _context.WorkFlow.ToList();
+            var result = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges).ToList();
             return result;
         }
 
-        public async Task<UnknownDto> GetLastWorFlowValueById(int idWorkflowUser)
+        public async Task<UnknownDto> GetLastWorFlowValueById(int idWorkflowUser, int userId)
         {
             if (idWorkflowUser == null) throw new CostumExeption("گردشکار معتبر نمی باشد");
 
-            var userWorkFlow = _context.WorkFlow_User.FirstOrDefault(x => x.Id == idWorkflowUser)
+            var userWorkFlow = _context.WorkFlow_User.FirstOrDefault(x => x.Id == idWorkflowUser && x.UserId == userId)
                ?? throw new CostumExeption("گردشکار یافت نشد.");
 
             var workflow = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges)
@@ -72,15 +72,15 @@ namespace Services
             return new UnknownDto()
             {
                 Type = LastNode.Type,
-                formId = LastNode.Type == UnknownType.form ? LastNode.formId :
+                DataId = LastNode.Type == UnknownType.form ? LastNode.formId :
                 result.Type == UnknownType.table ? result.entityId : 0
             };
         }
-        public async Task<UnknownDto> GetWorFlowValueById(int idWorkflowUser)
+        public async Task<UnknownDto> GetWorFlowValueById(int idWorkflowUser , int userId)
         {
             if (idWorkflowUser == null) throw new CostumExeption("گردشکار معتبر نمی باشد");
 
-            var userWorkFlow = _context.WorkFlow_User.FirstOrDefault(x => x.Id == idWorkflowUser)
+            var userWorkFlow = _context.WorkFlow_User.FirstOrDefault(x => x.Id == idWorkflowUser && x.UserId == userId)
                ?? throw new CostumExeption("گردشکار یافت نشد.");
 
             var workflow = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges)
@@ -93,16 +93,16 @@ namespace Services
             return new UnknownDto()
             {
                 Type = result.Type,
-                formId = result.Type == UnknownType.form ? result.formId :
+                DataId = result.Type == UnknownType.form ? result.formId :
                 result.Type == UnknownType.table ? result.entityId : 0
             };
         }
 
-        public async Task<UnknownDto> GetNextWorFlowValueById(int idWorkflowUser)
+        public async Task<UnknownDto> GetNextWorFlowValueById(int idWorkflowUser, int userId)
         {
             if (idWorkflowUser == null) throw new CostumExeption("گردشکار معتبر نمی باشد");
 
-            var userWorkFlow = _context.WorkFlow_User.FirstOrDefault(x => x.Id == idWorkflowUser)
+            var userWorkFlow = _context.WorkFlow_User.FirstOrDefault(x => x.Id == idWorkflowUser && x.UserId == userId)
                ?? throw new CostumExeption("گردشکار یافت نشد.");
 
             var workflow = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges)
@@ -121,7 +121,7 @@ namespace Services
             return new UnknownDto()
             {
                 Type = NextNode.Type,
-                formId = NextNode.Type == UnknownType.form ? NextNode.formId :
+                DataId = NextNode.Type == UnknownType.form ? NextNode.formId :
                 NextNode.Type == UnknownType.table ? NextNode.entityId : 0
             };
         }
@@ -129,7 +129,7 @@ namespace Services
         public async Task<WorkFlow> GetWorFlowById(int id)
         {
             if (id == null) throw new CostumExeption("گردشکار معتبر نمی باشد");
-            var result = _context.WorkFlow.FirstOrDefault(x => x.Id == id)
+            var result = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges).FirstOrDefault(x => x.Id == id)
                ?? throw new CostumExeption("گردشکار یافت نشد.");
 
             return result;
@@ -165,7 +165,7 @@ namespace Services
             if (workFlow == null) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
             if (workFlow.Nodes == null) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
             if (workFlow.Edges == null) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlow.Nodes.Any(x => !x.Name.IsValidateString() || x.Type == null || x.Icon == null || x.X == null || x.X == 0 || x.Y == null || x.Y == 0)) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
+            if (workFlow.Nodes.Any(x => !x.Name.IsValidateString() || x.Type == null || x.Icon == null || x.X == null || x.Y == null)) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
             if (workFlow.Edges.Any(x => x.Source == null || x.Target == null || x.SourceHandle == null || x.TargetHandle == null)) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
 
             var isRotate = false;

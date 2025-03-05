@@ -10,6 +10,6 @@ namespace ViewModels.ViewModels.Unknown
     public class UnknownDto
     {
         public UnknownType Type { get; set; }
-        public int? formId { get; set; }
+        public int? DataId { get; set; }
     }
 }
