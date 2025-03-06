@@ -137,8 +137,8 @@ namespace Services
         public async Task<string> EntityValidation(Entity entity)
         {
             if (entity == null) throw new CostumExeption("اطلاعات جدول معتبر نمی باشد");
-            if (entity.PreviewName == null || entity.PreviewName.IsValidateString()) throw new CostumExeption("نام جدول معتبر نمی باشد.");
-            if (entity.TableName == null || entity.TableName.IsValidateString()) throw new CostumExeption(".نام جدول معتبر نمی باشد");
+            if (entity.PreviewName == null || !entity.PreviewName.IsValidateString()) throw new CostumExeption("نام جدول معتبر نمی باشد.");
+            if (entity.TableName == null || !entity.TableName.IsValidateString()) throw new CostumExeption(".نام جدول معتبر نمی باشد");
             return "";
         }
 

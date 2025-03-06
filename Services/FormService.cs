@@ -101,7 +101,7 @@ namespace Services
         public async Task<string> FormValidation(Form form)
         {
             if (form == null) throw new CostumExeption("اطلاعات فرم ناقص می باشد(فرم معتبر نمی باشد(");
-            if (form.Name == null || form.Name.IsValidateString()) throw new CostumExeption("نام فرم معتبر نمی باشد.");
+            if (form.Name == null || !form.Name.IsValidateString()) throw new CostumExeption("نام فرم معتبر نمی باشد.");
             if (form.SizeWidth == null || form.SizeWidth == 0) throw new CostumExeption(".ابعاد فرم معتبر نمی باشد");
             if (form.SizeHeight == null || form.SizeHeight == 0) throw new CostumExeption("ابعاد فرم معتبر نمی باشد.");
             if (form.BackgroundColor == null) throw new CostumExeption("رنگ فرم معتبر نمی باشد.");

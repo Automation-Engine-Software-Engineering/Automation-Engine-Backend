@@ -135,8 +135,8 @@ namespace Services
         public async Task<string> PropertyValidation(EntityProperty property)
         {
             if (property == null) throw new CostumExeption("اطلاعات عنصر معتبر نمی باشد");
-            if (property.PreviewName == null || property.PreviewName.IsValidateString()) throw new CostumExeption("نام عنصر معتبر نمی باشد.");
-            if (property.PropertyName == null || property.PropertyName.IsValidateString()) throw new CostumExeption(".نام عنصر معتبر نمی باشد");
+            if (property.PreviewName == null || !property.PreviewName.IsValidateString()) throw new CostumExeption("نام عنصر معتبر نمی باشد.");
+            if (property.PropertyName == null || !property.PropertyName.IsValidateString()) throw new CostumExeption(".نام عنصر معتبر نمی باشد");
             if (property.Type == null) throw new CostumExeption("نوع عنصر معتبر نمی باشد.");
             if (property.AllowNull == null) throw new CostumExeption(".وضعیت خالی بودن عنصر معتبر نمی باشد");
             if (property.SizeWidth == null || property.SizeWidth == 0) throw new CostumExeption("ابعاد عنصر معتبر نمی باشد.");
