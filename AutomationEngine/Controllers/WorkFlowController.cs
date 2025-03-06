@@ -122,17 +122,17 @@ namespace AutomationEngine.Controllers
 
         // GET: api/form/{id}  
         [HttpGet("{workFlowId}/next/value")]
-        public async Task<ResultViewModel> GetNextWorkflowValueById(int workFlowId)
+        public async Task<ResultViewModel> GetNextWorkflowValueById(int workFlowId, int userId)
         {
-            var form = await _workFlowService.GetNextWorFlowValueById(workFlowId);
+            var form = await _workFlowService.GetNextWorFlowValueById(workFlowId,  userId);
             return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
 
         // GET: api/form/{id}  
         [HttpGet("{workFlowId}/last/value")]
-        public async Task<ResultViewModel> GetLastWorkflowValueById(int workFlowId)
+        public async Task<ResultViewModel> GetLastWorkflowValueById(int workFlowId, int userId)
         {
-            var form = await _workFlowService.GetLastWorFlowValueById(workFlowId);
+            var form = await _workFlowService.GetLastWorFlowValueById(workFlowId,  userId);
             return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
     }

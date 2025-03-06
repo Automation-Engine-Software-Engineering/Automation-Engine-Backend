@@ -22,8 +22,8 @@ namespace Services
         Task<WorkFlow> GetWorFlowById(int id);
         Task<List<WorkFlow>> GetAllWorFlows();
         Task<UnknownDto> GetWorFlowValueById(int id , int userId);
-        Task<UnknownDto> GetNextWorFlowValueById(int id);
-        Task<UnknownDto> GetLastWorFlowValueById(int id);
+        Task<UnknownDto> GetNextWorFlowValueById(int id, int userId);
+        Task<UnknownDto> GetLastWorFlowValueById(int id, int userId);
         Task SaveChangesAsync();
     }
     public class WorkFlowService : IWorkFlowService
