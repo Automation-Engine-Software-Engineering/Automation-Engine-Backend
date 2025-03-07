@@ -30,18 +30,18 @@ namespace AutomationEngine.Controllers
                 Description = workFlow.Description,
                 Nodes = workFlow.Nodes.Select(x => new Node()
                 {
-                    Id = "" ,
-                    entityId = x.entityId == 0 ? null : x.entityId,
-                    formId = x.formId == 0 ? null : x.formId,
-                    Icon = x.Icon,
-                    Name = x.Name,
-                    Type = x.Type,
-                    X = x.X,
-                    Y = x.Y
+                    Id = x.id ,
+                    entityId = x.data.Type  == "table" ? null : x.data.TypeId,
+                    formId = x.data.Type == "form" ? null : x.data.TypeId,
+                    Icon = x.data.Icon,
+                    Name = x.data.Name,
+                    Type = x.data.Type == "form" ? UnknownType.form : UnknownType.table,
+                    X = x.position.X,
+                    Y = x.data.TypeId
                 }).ToList(),
                 Edges = workFlow.Edges.Select(x => new Edge()
                 {
-                    Id = "",
+                    Id = 0 ,
                     Source = x.Source,
                     SourceHandle = x.SourceHandle,
                     Target = x.Target,
@@ -65,13 +65,14 @@ namespace AutomationEngine.Controllers
                 Description = workFlow.Description,
                 Nodes = workFlow.Nodes.Select(x => new Node()
                 {
-                    entityId = x.entityId,
-                    formId = x.formId,
-                    Icon = x.Icon,
-                    Name = x.Name,
-                    Type = x.Type,
-                    X = x.X,
-                    Y = x.Y
+                    Id = x.id,
+                    entityId = x.data.Type == "table" ? null : x.data.TypeId,
+                    formId = x.data.Type == "form" ? null : x.data.TypeId,
+                    Icon = x.data.Icon,
+                    Name = x.data.Name,
+                    Type = x.data.Type == "form" ? UnknownType.form : UnknownType.table,
+                    X = x.position.X,
+                    Y = x.data.TypeId
                 }).ToList(),
                 Edges = workFlow.Edges.Select(x => new Edge()
                 {

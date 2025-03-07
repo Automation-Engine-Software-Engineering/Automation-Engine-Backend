@@ -18,13 +18,25 @@ namespace ViewModels.ViewModels.WorkFlow
     }
     public class NodeDto
     {
-        public UnknownType Type { get; set; }
+        public string id { get; set; }
+        public position position { get; set; }
+        public Data data { get; set; }
+        public string Type { get; set; }
+    }
+    public class Data
+    {
         public int Icon { get; set; }
         public string Name { get; set; }
+        public string Type { get; set; }
+        public int TypeId { get; set; }
+
+    }
+
+    public class position
+    {
         public float X { get; set; }
         public float Y { get; set; }
-        public int formId { get; set; }
-        public int entityId { get; set; }
+
     }
     public class EdgeDto
     {

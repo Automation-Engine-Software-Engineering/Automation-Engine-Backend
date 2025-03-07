@@ -8,7 +8,7 @@ namespace DataLayer.Models.WorkFlow
 {
     public class Edge
     {
-        public string Id { get; set; }
+        public int Id { get; set; }
         public string Source { get; set; }
         public string SourceHandle { get; set; }
         public string Target { get; set; }

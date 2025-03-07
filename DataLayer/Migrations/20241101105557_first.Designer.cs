@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(Context.Context))]
-    [Migration("20241027214101_add name to workflow")]
-    partial class addnametoworkflow
+    [Migration("20241101105557_first")]
+    partial class first
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -215,8 +215,11 @@ namespace DataLayer.Migrations
 
             modelBuilder.Entity("DataLayer.Models.WorkFlow.Edge", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Source")
                         .IsRequired()
@@ -268,10 +271,10 @@ namespace DataLayer.Migrations
                     b.Property<float>("Y")
                         .HasColumnType("real");
 
-                    b.Property<int>("entityId")
+                    b.Property<int?>("entityId")
                         .HasColumnType("int");
 
-                    b.Property<int>("formId")
+                    b.Property<int?>("formId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -374,15 +377,11 @@ namespace DataLayer.Migrations
 
                     b.HasOne("DataLayer.Models.TableBuilder.Entity", "entity")
                         .WithMany("nodes")
-                        .HasForeignKey("entityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("entityId");
 
                     b.HasOne("DataLayer.Models.FormBuilder.Form", "form")
                         .WithMany("nodes")
-                        .HasForeignKey("formId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("formId");
 
                     b.Navigation("entity");
 
