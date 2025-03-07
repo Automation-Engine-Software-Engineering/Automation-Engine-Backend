@@ -170,8 +170,7 @@ namespace DataLayer.Migrations
                 name: "Edge",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Source = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SourceHandle = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Target = table.Column<string>(type: "nvarchar(max)", nullable: false),

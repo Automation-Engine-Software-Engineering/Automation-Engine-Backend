@@ -41,7 +41,7 @@ namespace AutomationEngine.Controllers
                 }).ToList(),
                 Edges = workFlow.Edges.Select(x => new Edge()
                 {
-                    Id = 0 ,
+                    Id =  x.id,
                     Source = x.Source,
                     SourceHandle = x.SourceHandle,
                     Target = x.Target,

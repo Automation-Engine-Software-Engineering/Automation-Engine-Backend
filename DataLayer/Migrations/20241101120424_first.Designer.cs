@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(Context.Context))]
-    [Migration("20241101105557_first")]
+    [Migration("20241101120424_first")]
     partial class first
     {
         /// <inheritdoc />
@@ -215,11 +215,8 @@ namespace DataLayer.Migrations
 
             modelBuilder.Entity("DataLayer.Models.WorkFlow.Edge", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Source")
                         .IsRequired()

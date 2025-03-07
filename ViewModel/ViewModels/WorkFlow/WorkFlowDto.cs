@@ -40,6 +40,7 @@ namespace ViewModels.ViewModels.WorkFlow
     }
     public class EdgeDto
     {
+        public string id { get; set; }
         public string Source { get; set; }
         public string SourceHandle { get; set; }
         public string Target { get; set; }
