@@ -72,8 +72,8 @@ namespace Services
             return new UnknownDto()
             {
                 Type = LastNode.Type,
-                DataId = LastNode.Type == UnknownType.form ? result.entityId:
-                result.Type == UnknownType.table ? LastNode.formId : 0
+                DataId = LastNode.Type == UnknownType.form ? LastNode.formId :
+                result.Type == UnknownType.table ?  result.entityId: 0
             };
         }
         public async Task<UnknownDto> GetWorFlowValueById(int idWorkflowUser , int userId)
@@ -93,8 +93,8 @@ namespace Services
             return new UnknownDto()
             {
                 Type = result.Type,
-                DataId = result.Type == UnknownType.form ? result.entityId :
-                result.Type == UnknownType.table ? result.formId: 0
+                DataId = result.Type == UnknownType.form ?  result.formId:
+                result.Type == UnknownType.table ? result.entityId : 0
             };
         }
 
@@ -121,8 +121,8 @@ namespace Services
             return new UnknownDto()
             {
                 Type = NextNode.Type,
-                DataId = NextNode.Type == UnknownType.form ? NextNode.entityId :
-                NextNode.Type == UnknownType.table ?  NextNode.formId : 0
+                DataId = NextNode.Type == UnknownType.form ?  NextNode.formId:
+                NextNode.Type == UnknownType.table ? NextNode.entityId : 0
             };
         }
 
