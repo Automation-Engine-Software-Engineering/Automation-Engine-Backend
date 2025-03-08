@@ -78,7 +78,7 @@ namespace AutomationEngine.Controllers
         [HttpGet("all")]
         public async Task<ResultViewModel> GetAllEntities(int? formId)
         {
-            var entities = await _entityService.GetAllEntitiesAsync(formId);
+            var entities = await _entityService.GetAllEntitiesAsync();
             return (new ResultViewModel { Data = entities, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
 

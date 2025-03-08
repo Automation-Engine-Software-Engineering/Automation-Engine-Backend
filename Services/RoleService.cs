@@ -43,11 +43,14 @@ namespace Services
         {
             if (roleId == null || roleId == 0) throw new CostumExeption("نقش یافت نشد.");
 
-            var RoleWorkFlow =  _context.Role_WorkFlows.FirstOrDefault(x => x.RoleId == roleId)
+            var RoleWorkFlow = await _context.Role_WorkFlows.Where(x => x.RoleId == roleId).ToListAsync()
                 ?? throw new CostumExeption("نقش یافت نشد.");
+            var WorkFlows = new List<WorkFlow>();
+            RoleWorkFlow.ForEach(x =>
+            {
+                WorkFlows.Add(_context.WorkFlow.FirstOrDefault(xx => x.WorkFlowId == xx.Id));
+            });
 
-            var WorkFlows =  _context.WorkFlow.Where(x => x.Id == RoleWorkFlow.WorkFlowId).ToList()
-                ?? throw new CostumExeption("نقش یافت نشد.");
 
             return WorkFlows;
         }
@@ -65,13 +68,13 @@ namespace Services
         {
             if (userName.IsNullOrEmpty() || password.IsNullOrEmpty()) throw new CostumExeption("اشتباه در تکمیل اطلاعات.");
 
-            var result =  _context.User.FirstOrDefault(x => x.UserName == userName && x.Password == password)
-                   ?? throw new CostumExeption("نام کاربری یا رمز عبور اشتباه است."); 
+            var result = _context.User.FirstOrDefault(x => x.UserName == userName && x.Password == password)
+                   ?? throw new CostumExeption("نام کاربری یا رمز عبور اشتباه است.");
 
-            var roleUser =  _context.Role_Users.FirstOrDefault(x => x.UserId == result.Id)
+            var roleUser = _context.Role_Users.FirstOrDefault(x => x.UserId == result.Id)
                   ?? throw new CostumExeption("نقش مورد نظر یافت نشد.");
 
-            var role =  _context.Roles.FirstOrDefault(x => x.Id == roleUser.Id)
+            var role = _context.Roles.FirstOrDefault(x => x.Id == roleUser.Id)
                   ?? throw new CostumExeption("نقش مورد نظر یافت نشد.");
 
             return (result.Id, role.Id);

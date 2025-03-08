@@ -7,7 +7,7 @@ namespace Tools
     {
         public static bool IsValidateString(this string input)
         {
-            string pattern = @"^[A-Za-z_][A-Za-z0-9_]*$";
+            string pattern = @"^[A-Za-z_آ-ی][A-Za-z0-9_آ-ی]*$";
             return Regex.IsMatch(input, pattern) ? Regex.IsMatch(input, pattern) :
                 throw new CostumExeption("خظا در نوشتار وجود دارد");
         }
