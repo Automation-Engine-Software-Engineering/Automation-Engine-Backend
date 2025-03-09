@@ -33,7 +33,7 @@ namespace AutomationEngine.Controllers
                 BackgroundImgPath = form.BackgroundImgPath,
                 HtmlFormBody = form.HtmlFormBody,
                 SizeHeight = form.SizeHeight,
-                SizeWidth = form.SizeHeight
+                SizeWidth = form.SizeWidth
             };
 
             await _formService.CreateFormAsync(result);

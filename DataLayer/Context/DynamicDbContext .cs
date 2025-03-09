@@ -30,10 +30,10 @@ namespace DataLayer.Context
         public async Task<List<Dictionary<string, object>>> ExecuteReaderAsync(string Query)
         {
             var resultList = new List<Dictionary<string, object>>();
-            using (var connecction = this.Database.GetDbConnection())
+            using (var connection = this.Database.GetDbConnection())
             {
-                connecction.OpenAsync();
-                var command = connecction.CreateCommand();
+                await connection.OpenAsync();
+                var command = connection.CreateCommand();
                 command.CommandText = Query;
                 using (var reader = await command.ExecuteReaderAsync())
                 {
