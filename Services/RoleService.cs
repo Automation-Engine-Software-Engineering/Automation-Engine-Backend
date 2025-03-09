@@ -43,10 +43,10 @@ namespace Services
         {
             if (roleId == null || roleId == 0) throw new CostumExeption("نقش یافت نشد.");
 
-            var RoleWorkFlow =  _context.Role_WorkFlows.FirstOrDefault(x => x.RoleId == roleId)
+            var RoleWorkFlow = await _context.Role_WorkFlows.Where(x => x.RoleId == roleId).ToListAsync()
                 ?? throw new CostumExeption("نقش یافت نشد.");
 
-            var WorkFlows =  _context.WorkFlow.Where(x => x.Id == RoleWorkFlow.WorkFlowId).ToList()
+            var WorkFlows = _context.WorkFlow.Where(x => RoleWorkFlow.Any(xx => xx.WorkFlowId == x.Id)).ToList()
                 ?? throw new CostumExeption("نقش یافت نشد.");
 
             return WorkFlows;

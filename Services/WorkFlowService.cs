@@ -80,7 +80,7 @@ namespace Services
         {
             if (idWorkflowUser == null) throw new CostumExeption("گردشکار معتبر نمی باشد");
 
-            var userWorkFlow = _context.WorkFlow_User.FirstOrDefault(x => x.Id == idWorkflowUser && x.UserId == userId)
+            var userWorkFlow = _context.WorkFlow_User.FirstOrDefault(x => x.WorkFlowId == idWorkflowUser && x.UserId == userId)
                ?? throw new CostumExeption("گردشکار یافت نشد.");
 
             var workflow = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges)
@@ -93,8 +93,8 @@ namespace Services
             return new UnknownDto()
             {
                 Type = result.Type,
-                DataId = result.Type == UnknownType.form ? result.formId :
-                result.Type == UnknownType.table ? result.entityId : 0
+                DataId = result.Type == UnknownType.form ?  result.entityId:
+                result.Type == UnknownType.table ? result.formId : 0
             };
         }
 
