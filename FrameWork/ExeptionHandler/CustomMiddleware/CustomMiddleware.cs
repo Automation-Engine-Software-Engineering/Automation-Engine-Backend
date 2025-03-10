@@ -30,7 +30,7 @@ namespace FrameWork.ExeptionHandler.CustomMiddleware
             }
             catch (CostumExeption ex)
             {
-                object outPut = new ResultViewModel() { Message = ex.Message, Status = false, Data = ex };
+                object outPut = new ResultViewModel() { message = ex.Message, status = false, data = ex };
                 string jsonString = JsonConvert.SerializeObject(outPut);
 
                 // Convert JSON string to byte array  
@@ -42,7 +42,7 @@ namespace FrameWork.ExeptionHandler.CustomMiddleware
             }
             catch (Exception ex)
             {
-                object outPut = new ResultViewModel() { Message = "خطایی در عملیات رخ داده است (درصورت اطمینان از صحت داده های خود و تکرار مجدد با پشتیبانی تماس حاصل نمایید)" , Status = false , Data = ex };
+                object outPut = new ResultViewModel() { message = "خطایی در عملیات رخ داده است (درصورت اطمینان از صحت داده های خود و تکرار مجدد با پشتیبانی تماس حاصل نمایید)" , status = false , data = ex };
                 string jsonString = JsonConvert.SerializeObject(outPut);
 
                 // Convert JSON string to byte array  
