@@ -1,18 +1,18 @@
 ﻿namespace FrameWork.ExeptionHandler.ExeptionModel
 {
-    public class CostumExeption : Exception
+    public class CustomExeption : Exception
     {
         public string Message { get; set; }
 
-        public CostumExeption(string Message)
+        public CustomExeption(string Message)
         {
             this.Message = Message;
         }
-        public CostumExeption()
+        public CustomExeption()
         {
             this.Message = "خطایی در سامانه رخ داده است";
         }
-        public CostumExeption(Exception ex)
+        public CustomExeption(Exception ex)
         {
             Console.WriteLine(ex);
             this.Message = "خطایی در سامانه رخ داده است";
