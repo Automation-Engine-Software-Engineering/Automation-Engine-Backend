@@ -51,6 +51,8 @@ namespace Services
                 WorkFlows.Add(_context.WorkFlow.FirstOrDefault(xx => x.WorkFlowId == xx.Id));
             });
 
+            var WorkFlows = _context.WorkFlow.Where(x => RoleWorkFlow.Any(xx => xx.WorkFlowId == x.Id)).ToList()
+                ?? throw new CostumExeption("نقش یافت نشد.");
 
             return WorkFlows;
         }

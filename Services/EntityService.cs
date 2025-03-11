@@ -129,7 +129,7 @@ namespace Services
         {
             if (entityId == null) throw new CostumExeption("جدول معتبر نمی باشد");
 
-            var result = await _context.Entity.FirstOrDefaultAsync(x => x.Id == entityId)
+            var result = await _context.Entity.Include(x => x.Properties).FirstOrDefaultAsync(x => x.Id == entityId)
                           ?? throw new CostumExeption("حدول یافت نشد.");
             return result;
         }

@@ -19,10 +19,12 @@ namespace AutomationEngine.Controllers
     public class EntityController : ControllerBase
     {
         private readonly IEntityService _entityService;
+        private readonly IPropertyService _propertyService;
 
-        public EntityController(IEntityService entityService)
+        public EntityController(IEntityService entityService , IPropertyService propertyService)
         {
             _entityService = entityService;
+            _propertyService = propertyService;
         }
 
         // POST: api/entity/create  
@@ -88,6 +90,18 @@ namespace AutomationEngine.Controllers
         {
             var entities = await _entityService.GetEntitiesByIdAsync(enntityId);
             return (new ResultViewModel { Data = entities, Message = "عملیات با موفقیت انجام شد", Status = true });
+        }
+
+
+        // GET: api/entity/{id}/value  
+        [HttpGet("entity/{enntityId}/value")]
+        public async Task<ResultViewModel> GetEntityValue(int enntityId)
+        {
+            var entities = await _entityService.GetEntitiesByIdAsync(enntityId);
+            var result = new EntityValueDto(); 
+            result.Header = entities.Properties.Select(x => x.PreviewName).ToList();
+            result.Body = await _propertyService.GetColumnValuesAsyncById(enntityId);
+            return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد", Status = true });
         }
     }
 }

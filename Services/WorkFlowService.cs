@@ -93,8 +93,8 @@ namespace Services
             return new UnknownDto()
             {
                 Type = result.Type,
-                DataId = result.Type == UnknownType.form ? result.entityId :
-                result.Type == UnknownType.table ? result.formId: 0
+                DataId = result.Type == UnknownType.form ? result.formId :
+                result.Type == UnknownType.table ? result.entityId : 0
             };
         }
 
