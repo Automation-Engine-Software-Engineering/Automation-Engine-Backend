@@ -33,7 +33,7 @@ namespace Services
             var roleUser = _context.Role_Users.FirstOrDefault(x => x.UserId == userId)
               ?? throw new CostumExeption("نقش مورد نظر یافت نشد.");
 
-            var role = _context.Roles.FirstOrDefault(x => x.Id == roleUser.Id)
+            var role = _context.Roles.FirstOrDefault(x => x.Id == roleUser.RoleId)
               ?? throw new CostumExeption("نقش مورد نظر یافت نشد.");
 
             return role;
@@ -74,7 +74,7 @@ namespace Services
             var roleUser = _context.Role_Users.FirstOrDefault(x => x.UserId == result.Id)
                   ?? throw new CostumExeption("نقش مورد نظر یافت نشد.");
 
-            var role = _context.Roles.FirstOrDefault(x => x.Id == roleUser.Id)
+            var role = _context.Roles.FirstOrDefault(x => x.Id == roleUser.RoleId)
                   ?? throw new CostumExeption("نقش مورد نظر یافت نشد.");
 
             return (result.Id, role.Id);

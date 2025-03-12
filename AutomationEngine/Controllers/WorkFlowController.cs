@@ -35,7 +35,7 @@ namespace AutomationEngine.Controllers
                     formId = x.data.Type != "form" ? null : x.data.TypeId,
                     Icon = x.data.Icon,
                     Name = x.data.Name,
-                    Type = x.data.Type != "form" ? UnknownType.form : UnknownType.table,
+                    Type = x.data.Type != "form" ? UnknownType.table : UnknownType.form ,
                     X = x.position.X,
                     Y = x.data.TypeId
                 }).ToList(),
@@ -70,7 +70,7 @@ namespace AutomationEngine.Controllers
                     formId = x.data.Type != "form" ? null : x.data.TypeId,
                     Icon = x.data.Icon,
                     Name = x.data.Name,
-                    Type = x.data.Type != "form" ? UnknownType.form : UnknownType.table,
+                    Type = x.data.Type != "form" ?  UnknownType.table : UnknownType.form,
                     X = x.position.X,
                     Y = x.data.TypeId
                 }).ToList(),

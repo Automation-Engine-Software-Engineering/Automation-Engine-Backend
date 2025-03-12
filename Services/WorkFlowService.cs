@@ -69,6 +69,10 @@ namespace Services
             var LastNode = workflow.Nodes.FirstOrDefault(x => x.Id == lastEdge.Source)
                 ?? throw new CostumExeption("گردشکار با خطا مواجه شد.");
 
+            userWorkFlow.WorkFlowState = LastNode.Id;
+            _context.WorkFlow_User.Update(userWorkFlow);
+            _context.SaveChanges();
+
             return new UnknownDto()
             {
                 Type = LastNode.Type,
@@ -112,11 +116,15 @@ namespace Services
             var result = workflow.Nodes.FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowState)
                 ?? throw new CostumExeption("گردشکار با خطا مواجه شد.");
 
-            var NextEdge = workflow.Edges.FirstOrDefault(x => x.Source == result.Id)
+            var NextEdge = workflow.Edges.FirstOrDefault(x => x.Target == result.Id)
                 ?? throw new CostumExeption("گردشکار با خطا مواجه شد.");
 
             var NextNode = workflow.Nodes.FirstOrDefault(x => x.Id == NextEdge.Target)
                 ?? throw new CostumExeption("گردشکار با خطا مواجه شد.");
+
+            userWorkFlow.WorkFlowState = NextNode.Id;
+            _context.WorkFlow_User.Update(userWorkFlow);
+            _context.SaveChanges();
 
             return new UnknownDto()
             {
