@@ -42,9 +42,9 @@ namespace Services
         {
             await FormValidation(form);
 
-            if (form.Id == null) throw new CostumExeption("فرم معتبر نمی باشد");
+            if (form.Id == null) throw new CustomExeption("فرم معتبر نمی باشد");
             var feachModel = await _context.Form.FirstOrDefaultAsync(x => x.Id == form.Id)
-                   ?? throw new CostumExeption("فرم یافت نشد.");
+                   ?? throw new CustomExeption("فرم یافت نشد.");
 
             feachModel.Name = form.Name;
             feachModel.SizeHeight = form.SizeHeight;
@@ -58,19 +58,19 @@ namespace Services
 
         public async Task RemoveFormAsync(int formId)
         {
-            if (formId == null) throw new CostumExeption("فرم معتبر نمی باشد");
+            if (formId == null) throw new CustomExeption("فرم معتبر نمی باشد");
             var feachModel = await _context.Form.FirstOrDefaultAsync(x => x.Id == formId)
-             ?? throw new CostumExeption("فرم یافت نشد.");
+             ?? throw new CustomExeption("فرم یافت نشد.");
 
             _context.Form.Remove(feachModel);
         }
 
         public async Task<Form> GetFormAsync(int formId)
         {
-            if (formId == null) throw new CostumExeption("فرم معتبر نمی باشد");
+            if (formId == null) throw new CustomExeption("فرم معتبر نمی باشد");
 
             var feachModel = await _context.Form.FirstOrDefaultAsync(x => x.Id == formId)
-                  ?? throw new CostumExeption("فرم یافت نشد.");
+                  ?? throw new CustomExeption("فرم یافت نشد.");
 
             return feachModel;
         }
@@ -78,7 +78,7 @@ namespace Services
         public async Task<List<Form>> GetAllFormsAsync()
         {
             var feachModel = await _context.Form.ToListAsync()
-                       ?? throw new CostumExeption("هیچ فرمی یافت نشد.");
+                       ?? throw new CustomExeption("هیچ فرمی یافت نشد.");
 
             return feachModel;
         }
@@ -86,12 +86,12 @@ namespace Services
         public async Task UpdateFormBodyAsync(int formId, string htmlContent)
         {
 
-            if (formId == null) throw new CostumExeption("فرم معتبر نمی باشد");
+            if (formId == null) throw new CustomExeption("فرم معتبر نمی باشد");
 
-            if (htmlContent == null) throw new CostumExeption("اطلاعات فرم معتبر نمی باشد");
+            if (htmlContent == null) throw new CustomExeption("اطلاعات فرم معتبر نمی باشد");
 
             var feachModel = await _context.Form.FirstOrDefaultAsync(x => x.Id == formId)
-                     ?? throw new CostumExeption("فرم یافت نشد.");
+                     ?? throw new CustomExeption("فرم یافت نشد.");
 
             feachModel.HtmlFormBody = htmlContent;
 
@@ -100,11 +100,11 @@ namespace Services
 
         public async Task<string> FormValidation(Form form)
         {
-            if (form == null) throw new CostumExeption("اطلاعات فرم ناقص می باشد(فرم معتبر نمی باشد(");
-            if (form.Name == null || !form.Name.IsValidateString()) throw new CostumExeption("نام فرم معتبر نمی باشد.");
-            if (form.SizeWidth == null || form.SizeWidth == 0) throw new CostumExeption(".ابعاد فرم معتبر نمی باشد");
-            if (form.SizeHeight == null || form.SizeHeight == 0) throw new CostumExeption("ابعاد فرم معتبر نمی باشد.");
-            if (form.BackgroundColor == null) throw new CostumExeption("رنگ فرم معتبر نمی باشد.");
+            if (form == null) throw new CustomExeption("اطلاعات فرم ناقص می باشد(فرم معتبر نمی باشد(");
+            if (form.Name == null || !form.Name.IsValidateString()) throw new CustomExeption("نام فرم معتبر نمی باشد.");
+            if (form.SizeWidth == null || form.SizeWidth == 0) throw new CustomExeption(".ابعاد فرم معتبر نمی باشد");
+            if (form.SizeHeight == null || form.SizeHeight == 0) throw new CustomExeption("ابعاد فرم معتبر نمی باشد.");
+            if (form.BackgroundColor == null) throw new CustomExeption("رنگ فرم معتبر نمی باشد.");
             return "";
         }
 
@@ -116,7 +116,7 @@ namespace Services
             }
             catch (Exception ex)
             {
-                throw new CostumExeption();
+                throw new CustomExeption();
             }
         }
 
@@ -134,7 +134,7 @@ namespace Services
             entityIds.ForEach(x =>
             {
                 var entity = _context.Entity.FirstOrDefaultAsync(xx => xx.Id == x)
-                       ?? throw new CostumExeption("موجودیت یافت نشد.");
+                       ?? throw new CustomExeption("موجودیت یافت نشد.");
 
                 var properties = data.Where(x => x.entityId == entity.Id).ToList();
                 var propertiesValues = properties.Select(x => _context.Property.FirstOrDefaultAsync(xx => xx.Id == x.propertyId)).ToList();

@@ -28,7 +28,7 @@ namespace FrameWork.ExeptionHandler.CustomMiddleware
                 // Call the next middleware in the pipeline
                 await _next(context);
             }
-            catch (CostumExeption ex)
+            catch (CustomExeption ex)
             {
                 object outPut = new ResultViewModel() { message = ex.Message, status = false, data = ex };
                 string jsonString = JsonConvert.SerializeObject(outPut);

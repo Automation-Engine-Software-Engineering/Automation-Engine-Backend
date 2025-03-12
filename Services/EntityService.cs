@@ -56,7 +56,7 @@ namespace Services
         public async Task CreateEntityAsync(int formId, Entity entity)
         {
             await EntityValidation(entity);
-            if (formId == null) throw new CostumExeption("فرم معتبر نمی باشد");
+            if (formId == null) throw new CustomExeption("فرم معتبر نمی باشد");
 
             var columnDefinitions = "Id INT PRIMARY KEY";
             var CommandText = $"CREATE TABLE @TableName ({columnDefinitions})";
@@ -64,7 +64,7 @@ namespace Services
             await _dynamicDbContext.ExecuteSqlRawAsync(CommandText, parameters);
 
             var feachModel = await _context.Form.FirstOrDefaultAsync(x => x.Id == formId)
-              ?? throw new CostumExeption("فرم یافت نشد.");
+              ?? throw new CustomExeption("فرم یافت نشد.");
 
             entity.Forms = new List<Form>() { feachModel };
 
@@ -73,7 +73,7 @@ namespace Services
         public async Task RemoveEntityAsync(int entityId)
         {
             var result = await _context.Entity.FirstOrDefaultAsync(x => x.Id == entityId)
-                 ?? throw new CostumExeption("حدول یافت نشد.");
+                 ?? throw new CustomExeption("حدول یافت نشد.");
 
             await EntityValidation(result);
 
@@ -81,16 +81,16 @@ namespace Services
             var parameters = new List<(string ParameterName, string ParameterValue)>() { ("@TableName", result.TableName) };
             await _dynamicDbContext.ExecuteSqlRawAsync(CommandText, parameters);
 
-            if (result.Id == null) throw new CostumExeption("جدول معتبر نمی باشد");
+            if (result.Id == null) throw new CustomExeption("جدول معتبر نمی باشد");
             _context.Entity.Remove(result);
         }
         public async Task UpdateEntityAsync(Entity entity)
         {
             await EntityValidation(entity);
 
-            if (entity.Id == null) throw new CostumExeption("جدول معتبر نمی باشد");
+            if (entity.Id == null) throw new CustomExeption("جدول معتبر نمی باشد");
             var feachModel = await _context.Entity.FirstOrDefaultAsync(x => x.Id == entity.Id)
-                 ?? throw new CostumExeption("حدول یافت نشد.");
+                 ?? throw new CustomExeption("حدول یافت نشد.");
 
             var CommandText = "ALTER TABLE @OldTableName RENAME TO @NewTableName";
             var parameters = new List<(string ParameterName, string ParameterValue)>() { ("@TableName", entity.TableName), ("@NewTableName", entity.TableName) };
@@ -113,10 +113,10 @@ namespace Services
         public async Task<List<Entity>> GetAllEntitiesAsync(int? formId)
         {
             var result = new List<Entity>();
-            if (formId == null) throw new CostumExeption("فرم معتبر نمی باشد");
+            if (formId == null) throw new CustomExeption("فرم معتبر نمی باشد");
 
             var feachModel = await _context.Form.FirstOrDefaultAsync(x => x.Id == formId)
-                      ?? throw new CostumExeption("فرم یافت نشد.");
+                      ?? throw new CustomExeption("فرم یافت نشد.");
 
             result = await _context.Entity.Include(x => x.Forms)
                     .Where(x => x.Forms.Any(x => x.Id == feachModel.Id)).ToListAsync();
@@ -127,18 +127,18 @@ namespace Services
 
         public async Task<Entity> GetEntitiesByIdAsync(int entityId)
         {
-            if (entityId == null) throw new CostumExeption("جدول معتبر نمی باشد");
+            if (entityId == null) throw new CustomExeption("جدول معتبر نمی باشد");
 
             var result = await _context.Entity.Include(x => x.Properties).FirstOrDefaultAsync(x => x.Id == entityId)
-                          ?? throw new CostumExeption("حدول یافت نشد.");
+                          ?? throw new CustomExeption("حدول یافت نشد.");
             return result;
         }
 
         public async Task<string> EntityValidation(Entity entity)
         {
-            if (entity == null) throw new CostumExeption("اطلاعات جدول معتبر نمی باشد");
-            if (entity.PreviewName == null || !entity.PreviewName.IsValidateString()) throw new CostumExeption("نام جدول معتبر نمی باشد.");
-            if (entity.TableName == null || !entity.TableName.IsValidateString()) throw new CostumExeption(".نام جدول معتبر نمی باشد");
+            if (entity == null) throw new CustomExeption("اطلاعات جدول معتبر نمی باشد");
+            if (entity.PreviewName == null || !entity.PreviewName.IsValidateString()) throw new CustomExeption("نام جدول معتبر نمی باشد.");
+            if (entity.TableName == null || !entity.TableName.IsValidateString()) throw new CustomExeption(".نام جدول معتبر نمی باشد");
             return "";
         }
 
@@ -150,7 +150,7 @@ namespace Services
             }
             catch (Exception ex)
             {
-                throw new CostumExeption();
+                throw new CustomExeption();
             }
         }
     }

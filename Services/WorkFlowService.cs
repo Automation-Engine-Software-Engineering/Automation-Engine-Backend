@@ -35,10 +35,10 @@ namespace Services
         }
         public async Task DeleteWorFlow(int id)
         {
-            if (id == null) throw new CostumExeption("گردشکار معتبر نمی باشد");
+            if (id == null) throw new CustomExeption("گردشکار معتبر نمی باشد");
 
             var result = _context.WorkFlow.FirstOrDefault(x => x.Id == id)
-                  ?? throw new CostumExeption("گردشکار یافت نشد.");
+                  ?? throw new CustomExeption("گردشکار یافت نشد.");
 
             _context.Remove(result);
         }
@@ -51,23 +51,23 @@ namespace Services
 
         public async Task<UnknownDto> GetLastWorFlowValueById(int idWorkflowUser, int userId)
         {
-            if (idWorkflowUser == null) throw new CostumExeption("گردشکار معتبر نمی باشد");
+            if (idWorkflowUser == null) throw new CustomExeption("گردشکار معتبر نمی باشد");
 
             var userWorkFlow = _context.WorkFlow_User.FirstOrDefault(x => x.WorkFlowId == idWorkflowUser && x.UserId == userId)
-               ?? throw new CostumExeption("گردشکار یافت نشد.");
+               ?? throw new CustomExeption("گردشکار یافت نشد.");
 
             var workflow = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges)
                 .FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowId)
-               ?? throw new CostumExeption("گردشکار با خطا مواجه شد.");
+               ?? throw new CustomExeption("گردشکار با خطا مواجه شد.");
 
             var result = workflow.Nodes.FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowState)
-                ?? throw new CostumExeption("گردشکار با خطا مواجه شد.");
+                ?? throw new CustomExeption("گردشکار با خطا مواجه شد.");
 
             var lastEdge = workflow.Edges.FirstOrDefault(x => x.Target == result.Id)
-                ?? throw new CostumExeption("گردشکار با خطا مواجه شد.");
+                ?? throw new CustomExeption("گردشکار با خطا مواجه شد.");
 
             var LastNode = workflow.Nodes.FirstOrDefault(x => x.Id == lastEdge.Source)
-                ?? throw new CostumExeption("گردشکار با خطا مواجه شد.");
+                ?? throw new CustomExeption("گردشکار با خطا مواجه شد.");
 
             userWorkFlow.WorkFlowState = LastNode.Id;
             _context.WorkFlow_User.Update(userWorkFlow);
@@ -82,17 +82,17 @@ namespace Services
         }
         public async Task<UnknownDto> GetWorFlowValueById(int idWorkflowUser , int userId)
         {
-            if (idWorkflowUser == null) throw new CostumExeption("گردشکار معتبر نمی باشد");
+            if (idWorkflowUser == null) throw new CustomExeption("گردشکار معتبر نمی باشد");
 
             var userWorkFlow = _context.WorkFlow_User.FirstOrDefault(x => x.WorkFlowId == idWorkflowUser && x.UserId == userId)
-               ?? throw new CostumExeption("گردشکار یافت نشد.");
+               ?? throw new CustomExeption("گردشکار یافت نشد.");
 
             var workflow = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges)
                 .FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowId)
-               ?? throw new CostumExeption("گردشکار یافت نشد.");
+               ?? throw new CustomExeption("گردشکار یافت نشد.");
 
             var result = workflow.Nodes.FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowState)
-                ?? throw new CostumExeption("گردشکار یافت نشد.");
+                ?? throw new CustomExeption("گردشکار یافت نشد.");
 
             return new UnknownDto()
             {
@@ -104,23 +104,23 @@ namespace Services
 
         public async Task<UnknownDto> GetNextWorFlowValueById(int idWorkflowUser, int userId)
         {
-            if (idWorkflowUser == null) throw new CostumExeption("گردشکار معتبر نمی باشد");
+            if (idWorkflowUser == null) throw new CustomExeption("گردشکار معتبر نمی باشد");
 
             var userWorkFlow = _context.WorkFlow_User.FirstOrDefault(x => x.WorkFlowId == idWorkflowUser && x.UserId == userId)
-               ?? throw new CostumExeption("گردشکار یافت نشد.");
+               ?? throw new CustomExeption("گردشکار یافت نشد.");
 
             var workflow = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges)
                 .FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowId)
-               ?? throw new CostumExeption("گردشکار با خطا مواجه شد.");
+               ?? throw new CustomExeption("گردشکار با خطا مواجه شد.");
 
             var result = workflow.Nodes.FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowState)
-                ?? throw new CostumExeption("گردشکار با خطا مواجه شد.");
+                ?? throw new CustomExeption("گردشکار با خطا مواجه شد.");
 
             var NextEdge = workflow.Edges.FirstOrDefault(x => x.Target == result.Id)
-                ?? throw new CostumExeption("گردشکار با خطا مواجه شد.");
+                ?? throw new CustomExeption("گردشکار با خطا مواجه شد.");
 
             var NextNode = workflow.Nodes.FirstOrDefault(x => x.Id == NextEdge.Target)
-                ?? throw new CostumExeption("گردشکار با خطا مواجه شد.");
+                ?? throw new CustomExeption("گردشکار با خطا مواجه شد.");
 
             userWorkFlow.WorkFlowState = NextNode.Id;
             _context.WorkFlow_User.Update(userWorkFlow);
@@ -136,9 +136,9 @@ namespace Services
 
         public async Task<WorkFlow> GetWorFlowById(int id)
         {
-            if (id == null) throw new CostumExeption("گردشکار معتبر نمی باشد");
+            if (id == null) throw new CustomExeption("گردشکار معتبر نمی باشد");
             var result = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges).FirstOrDefault(x => x.Id == id)
-               ?? throw new CostumExeption("گردشکار یافت نشد.");
+               ?? throw new CustomExeption("گردشکار یافت نشد.");
 
             return result;
         }
@@ -154,10 +154,10 @@ namespace Services
         public async Task UpdateWorFlow(WorkFlow workFlow)
         {
             await WorkFlowValidation(workFlow);
-            if (workFlow.Id == null) throw new CostumExeption("گردشکار معتبر نمی باشد");
+            if (workFlow.Id == null) throw new CustomExeption("گردشکار معتبر نمی باشد");
 
             var result = _context.WorkFlow.FirstOrDefault(x => x.Id == workFlow.Id)
-               ?? throw new CostumExeption("گردشکار یافت نشد.");
+               ?? throw new CustomExeption("گردشکار یافت نشد.");
 
             var feachModel = new WorkFlow()
             {
@@ -170,11 +170,11 @@ namespace Services
 
         public async Task<string> WorkFlowValidation(WorkFlow workFlow)
         {
-            if (workFlow == null) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlow.Nodes == null) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlow.Edges == null) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlow.Nodes.Any(x => !x.Name.IsValidateString() || x.Type == null || x.Icon == null || x.X == null || x.Y == null)) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlow.Edges.Any(x => x.Source == null || x.Target == null || x.SourceHandle == null || x.TargetHandle == null)) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
+            if (workFlow == null) throw new CustomExeption("اطلاعات گردشکار معتبر نمی باشد");
+            if (workFlow.Nodes == null) throw new CustomExeption("اطلاعات گردشکار معتبر نمی باشد");
+            if (workFlow.Edges == null) throw new CustomExeption("اطلاعات گردشکار معتبر نمی باشد");
+            if (workFlow.Nodes.Any(x => !x.Name.IsValidateString() || x.Type == null || x.Icon == null || x.X == null || x.Y == null)) throw new CustomExeption("اطلاعات گردشکار معتبر نمی باشد");
+            if (workFlow.Edges.Any(x => x.Source == null || x.Target == null || x.SourceHandle == null || x.TargetHandle == null)) throw new CustomExeption("اطلاعات گردشکار معتبر نمی باشد");
 
             var isRotate = false;
             workFlow.Edges.ForEach(x =>
@@ -189,7 +189,7 @@ namespace Services
                 }
             });
 
-            if (isRotate) throw new CostumExeption("تمامی مراحل تنها باید دارای یک خروجی و یک ورودی باشند");
+            if (isRotate) throw new CustomExeption("تمامی مراحل تنها باید دارای یک خروجی و یک ورودی باشند");
             return "";
         }
 
@@ -201,7 +201,7 @@ namespace Services
             }
             catch (Exception ex)
             {
-                throw new CostumExeption();
+                throw new CustomExeption();
             }
         }
     }
