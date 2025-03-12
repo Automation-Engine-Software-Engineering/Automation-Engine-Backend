@@ -28,9 +28,9 @@ namespace FrameWork.ExeptionHandler.CustomMiddleware
                 // Call the next middleware in the pipeline
                 await _next(context);
             }
-            catch (CostumExeption ex)
+            catch (CustomException ex)
             {
-                object outPut = new ResultViewModel() { Message = ex.Message, Status = false, Data = ex };
+                object outPut = new ResultViewModel() { Message = ex.Message, Status = false, Data = ex, StatusCode = ex.StatusId };
                 string jsonString = JsonConvert.SerializeObject(outPut);
 
                 // Convert JSON string to byte array  
@@ -42,7 +42,7 @@ namespace FrameWork.ExeptionHandler.CustomMiddleware
             }
             catch (Exception ex)
             {
-                object outPut = new ResultViewModel() { Message = "خطایی در عملیات رخ داده است (درصورت اطمینان از صحت داده های خود و تکرار مجدد با پشتیبانی تماس حاصل نمایید)" , Status = false , Data = ex };
+                object outPut = new ResultViewModel() { Message = "خطایی در عملیات رخ داده است (درصورت اطمینان از صحت داده های خود و تکرار مجدد با پشتیبانی تماس حاصل نمایید)", Status = false, StatusCode = 503, Data = ex };
                 string jsonString = JsonConvert.SerializeObject(outPut);
 
                 // Convert JSON string to byte array  

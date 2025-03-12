@@ -1,54 +1,79 @@
-﻿using DataLayer.Models.FormBuilder;
-using Microsoft.Data.SqlClient;
+﻿using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
 using Tools;
-using System.Data.Common;
 
 namespace DataLayer.Context
 {
     public class DynamicDbContext : DbContext
     {
         public DynamicDbContext(DbContextOptions<DynamicDbContext> options) : base(options) { }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         { }
-        public async Task ExecuteSqlRawAsync(string command, List<(string ParameterName, string ParameterValue)>? parameters = null)
+
+        public async Task ExecuteSqlRawAsync(string inputCommand, List<(string ParameterName, string ParameterValue)>? parameters = null)
         {
-            parameters.ForEach(x =>
+            parameters.ForEach(x => x.ParameterValue.IsValidateStringCommand());
+            using (var connection = Database.GetDbConnection())
             {
-                x.ParameterValue.ToString().IsValidateString();
-            });
+                await connection.OpenAsync();
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = inputCommand;
 
-            var query = command;
-            parameters.ForEach(x =>
-            {
-                query = query.Replace(x.ParameterName.ToString(), x.ParameterValue.ToString());
-            });
+                    // Add parameters to the command
+                    if (parameters != null)
+                    {
+                        foreach (var param in parameters)
+                        {
+                            var parameter = command.CreateParameter();
+                            parameter.ParameterName = param.ParameterName;
+                            command.Parameters.Add(parameter);
+                        }
+                    }
 
-            Database.ExecuteSqlRawAsync(query);
+                    await command.ExecuteNonQueryAsync(); // Execute the command
+                }
+            }
         }
 
-        public async Task<List<Dictionary<string, object>>> ExecuteReaderAsync(string Query)
+        public async Task<ListDto<Dictionary<string, object>>> ExecuteReaderAsync(string query, List<(string ParameterName, object ParameterValue)>? parameters = null)
         {
             var resultList = new List<Dictionary<string, object>>();
-            using (var connecction = this.Database.GetDbConnection())
+
+            using (var connection = Database.GetDbConnection())
             {
-                connecction.OpenAsync();
-                var command = connecction.CreateCommand();
-                command.CommandText = Query;
-                using (var reader = await command.ExecuteReaderAsync())
+                await connection.OpenAsync();
+                using (var command = connection.CreateCommand())
                 {
-                    while (await reader.ReadAsync())
+                    command.CommandText = query;
+                    // Add parameters to the command
+                    if (parameters != null)
                     {
-                        var row = new Dictionary<string, object>();
-                        for (int i = 0; i < reader.FieldCount; i++)
+                        foreach (var param in parameters)
                         {
-                            row.Add(reader.GetName(i), reader.GetValue(i));
+                            var parameter = command.CreateParameter();
+                            parameter.ParameterName = param.ParameterName;
+                            parameter.Value = param.ParameterValue ?? DBNull.Value; // Handle null values
+                            command.Parameters.Add(parameter);
                         }
-                        resultList.Add(row);
+                    }
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var row = new Dictionary<string, object>();
+                            for (int i = 0; i < reader.FieldCount; i++)
+                            {
+                                row.Add(reader.GetName(i), reader.GetValue(i));
+                            }
+                            resultList.Add(row);
+                        }
                     }
                 }
             }
-            return resultList;
+            return new ListDto<Dictionary<string, object>>(resultList, resultList.Count, resultList.Count, 1);
         }
     }
 }

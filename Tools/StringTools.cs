@@ -5,11 +5,19 @@ namespace Tools
 {
     public static class StringTools
     {
+        public static bool IsValidateStringCommand(this string input)
+        {
+            string pattern = @"^(?![0-9])[a-zA-Z][a-zA-Z0-9]*$";
+            return Regex.IsMatch(input, pattern) ? Regex.IsMatch(input, pattern) :
+                throw new CustomException("خظا در نوشتار دستور وجود دارد");
+        }
+
+        
         public static bool IsValidateString(this string input)
         {
-            string pattern = @"^[A-Za-z_][A-Za-z0-9_]*$";
+            string pattern = @"(?<![-_])([a-zA-Z\u0600-\u06FF]+(?:[ _-][a-zA-Z\u0600-\u06FF]+)*)?(?![-_])";
             return Regex.IsMatch(input, pattern) ? Regex.IsMatch(input, pattern) :
-                throw new CostumExeption("خظا در نوشتار وجود دارد");
+                throw new CustomException("خظا در نوشتار وجود دارد");
         }
     }
 }

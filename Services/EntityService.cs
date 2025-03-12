@@ -2,20 +2,10 @@
 using DataLayer.Models.FormBuilder;
 using DataLayer.Models.TableBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
-using Microsoft.Data.SqlClient;
+using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
-using System.Reflection.PortableExecutable;
-using System.Text;
-using System.Text.RegularExpressions;
 using Tools;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
-using static System.Runtime.InteropServices.Marshalling.IIUnknownCacheStrategy;
-
 namespace Services
 {
     public interface IEntityService
@@ -24,8 +14,8 @@ namespace Services
         Task CreateEntityAsync(int formId, Entity entity);
         Task RemoveEntityAsync(int entityId);
         Task UpdateEntityAsync(Entity entity);
-        Task<List<Entity>> GetAllEntitiesAsync();
-        Task<List<Entity>> GetAllEntitiesAsync(int? formId);
+        Task<ListDto<Entity>> GetAllEntitiesAsync(int pageSize, int pageNumber);
+        Task<ListDto<Entity>> GetAllEntitiesAsync(int? formId, int pageSize, int pageNumber);
         Task<Entity> GetEntitiesByIdAsync(int entityId);
         Task<string> EntityValidation(Entity entity);
         Task SaveChangesAsync();
@@ -53,45 +43,32 @@ namespace Services
 
             _context.Entity.Add(entity);
         }
+
         public async Task CreateEntityAsync(int formId, Entity entity)
         {
             await EntityValidation(entity);
-            if (formId == null) throw new CostumExeption("فرم معتبر نمی باشد");
+            var fetchModel = await _context.Form.FirstAsync(x => x.Id == formId);
+            entity.Forms = new List<Form>() { fetchModel };
+            await CreateEntityAsync(entity);
+        }
 
-            var columnDefinitions = "Id INT PRIMARY KEY";
-            var CommandText = $"CREATE TABLE @TableName ({columnDefinitions})";
-            var parameters = new List<(string ParameterName, string ParameterValue)>() { ("@TableName", entity.TableName) };
-            await _dynamicDbContext.ExecuteSqlRawAsync(CommandText, parameters);
-
-            var feachModel = await _context.Form.FirstOrDefaultAsync(x => x.Id == formId)
-              ?? throw new CostumExeption("فرم یافت نشد.");
-
-            entity.Forms = new List<Form>() { feachModel };
-
-            _context.Entity.Add(entity);
-        }                         
         public async Task RemoveEntityAsync(int entityId)
         {
-            var result = await _context.Entity.FirstOrDefaultAsync(x => x.Id == entityId)
-                 ?? throw new CostumExeption("حدول یافت نشد.");
-
+            var result = await _context.Entity.FirstAsync(x => x.Id == entityId);
             await EntityValidation(result);
 
             var CommandText = "DROP TABLE IF EXISTS @TableName";
             var parameters = new List<(string ParameterName, string ParameterValue)>() { ("@TableName", result.TableName) };
             await _dynamicDbContext.ExecuteSqlRawAsync(CommandText, parameters);
 
-            if (result.Id == null) throw new CostumExeption("جدول معتبر نمی باشد");
             _context.Entity.Remove(result);
         }
+
         public async Task UpdateEntityAsync(Entity entity)
         {
             await EntityValidation(entity);
 
-            if (entity.Id == null) throw new CostumExeption("جدول معتبر نمی باشد");
-            var feachModel = await _context.Entity.FirstOrDefaultAsync(x => x.Id == entity.Id)
-                 ?? throw new CostumExeption("حدول یافت نشد.");
-
+            var feachModel = await _context.Entity.FirstAsync(x => x.Id == entity.Id);
             var CommandText = "ALTER TABLE @OldTableName RENAME TO @NewTableName";
             var parameters = new List<(string ParameterName, string ParameterValue)>() { ("@TableName", entity.TableName), ("@NewTableName", entity.TableName) };
             await _dynamicDbContext.ExecuteSqlRawAsync(CommandText, parameters);
@@ -104,41 +81,33 @@ namespace Services
             _context.Entity.Update(feachModel);
         }
 
-        public async Task<List<Entity>> GetAllEntitiesAsync()
+        public async Task<ListDto<Entity>> GetAllEntitiesAsync(int pageSize, int pageNumber)
         {
-            var result = new List<Entity>();
-            result = await _context.Entity.ToListAsync();
-            return result;
+            var query = _context.Entity;
+            var count = query.Count();
+            var result = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            return new ListDto<Entity>(result, count, pageSize, pageNumber);
         }
-        public async Task<List<Entity>> GetAllEntitiesAsync(int? formId)
+
+        public async Task<ListDto<Entity>> GetAllEntitiesAsync(int? formId, int pageSize, int pageNumber)
         {
-            var result = new List<Entity>();
-            if (formId == null) throw new CostumExeption("فرم معتبر نمی باشد");
-
-            var feachModel = await _context.Form.FirstOrDefaultAsync(x => x.Id == formId)
-                      ?? throw new CostumExeption("فرم یافت نشد.");
-
-            result = await _context.Entity.Include(x => x.Forms)
-                    .Where(x => x.Forms.Any(x => x.Id == feachModel.Id)).ToListAsync();
-
-            return result;
+            var result = await _context.Form.Include(x => x.Entities).FirstAsync(x => x.Id == formId);
+            var entResult = result.Entities.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            return new ListDto<Entity>(entResult, result.Entities.Count, pageSize, pageNumber);
 
         }
 
         public async Task<Entity> GetEntitiesByIdAsync(int entityId)
         {
-            if (entityId == null) throw new CostumExeption("جدول معتبر نمی باشد");
-
-            var result = await _context.Entity.Include(x => x.Properties).FirstOrDefaultAsync(x => x.Id == entityId)
-                          ?? throw new CostumExeption("حدول یافت نشد.");
+            var result = await _context.Entity.Include(x => x.Properties).FirstAsync(x => x.Id == entityId);
             return result;
         }
 
         public async Task<string> EntityValidation(Entity entity)
         {
-            if (entity == null) throw new CostumExeption("اطلاعات جدول معتبر نمی باشد");
-            if (entity.PreviewName == null || !entity.PreviewName.IsValidateString()) throw new CostumExeption("نام جدول معتبر نمی باشد.");
-            if (entity.TableName == null || !entity.TableName.IsValidateString()) throw new CostumExeption(".نام جدول معتبر نمی باشد");
+            if (entity == null) throw new CustomException("اطلاعات جدول معتبر نمی باشد");
+            if (entity.PreviewName == null || !entity.PreviewName.IsValidateString()) throw new CustomException("نام جدول معتبر نمی باشد.");
+            if (entity.TableName == null || !entity.TableName.IsValidateString()) throw new CustomException(".نام جدول معتبر نمی باشد");
             return "";
         }
 
@@ -150,7 +119,7 @@ namespace Services
             }
             catch (Exception ex)
             {
-                throw new CostumExeption();
+                throw new CustomException();
             }
         }
     }

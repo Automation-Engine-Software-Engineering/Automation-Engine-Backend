@@ -1,27 +1,23 @@
 ﻿using DataLayer.Context;
-using DataLayer.Models.FormBuilder;
 using DataLayer.Models.TableBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
-using Microsoft.Data.SqlClient;
+using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.IdentityModel.Tokens;
 using Tools;
 
 namespace Services
 {
     public interface IPropertyService
     {
-        Task AddColumnToTableAsync(int entityId, EntityProperty property);
+        Task AddColumnToTableAsync(EntityProperty property);
         Task UpdatePeropertyInTableAsync(EntityProperty property);
-        Task<List<EntityProperty>> GetAllColumnsAsync();
-        Task<EntityProperty> GetColumnAsyncById(int propertyId);
-        Task<List<EntityProperty>> GetAllColumnAsyncByEntityId(int entityId);
-        Task<List<Dictionary<string, object>>> GetColumnValuesAsyncById(int entityId);
+        Task<ListDto<EntityProperty>> GetAllColumnsAsync(int pageSize, int pageNumber);
+        Task<EntityProperty?> GetColumnByIdAsync(int propertyId);
+        Task<ListDto<Dictionary<string, object>>> GetColumnValuesByIdAsync(int propertyId, int pageSize, int pageNumber);
+        Task<ListDto<EntityProperty>> GetAllColumnByEntityIdAsync(int entityId, int pageSize, int pageNumber);
+        Task<ListDto<Dictionary<string, object>>> GetColumnValuesByEntityIdAsync(int entityId, int pageSize, int pageNumber);
         Task<string> PropertyValidation(EntityProperty property);
         Task SaveChangesAsync();
     }
@@ -35,114 +31,126 @@ namespace Services
             _context = context;
             _dynamicDbContext = dynamicDbContext;
         }
-        public async Task AddColumnToTableAsync(int entityId, EntityProperty property)
-        {
-            if (entityId == null) throw new CostumExeption("جدول معتبر نمی باشد.");
 
+        public async Task AddColumnToTableAsync(EntityProperty property)
+        {
             await PropertyValidation(property);
 
             var CommandText = $"ALTER TABLE @TableName ADD ";
             CommandText += "@Entity" + " " + "@Type";
+            CommandText += "COMMENT" + " " + "@DescriptionValue";
+            CommandText += "SET DEFAULT" + " " + "@DEFAULTValue";
+            CommandText += "NullAble" + " " + "@NullAbleValue";
 
             var parameters = new List<(string ParameterName, string ParameterValue)>();
-
             parameters.Add(("@Entity", property.PropertyName));
+            parameters.Add(("@Type", property.Type.ToString().Replace("Short", "(50)")
+                               .Replace("Long", "(max)")));
+            parameters.Add(("@DescriptionValue", property.Description));
+            parameters.Add(("@DEFAULTValue", property.DefaultValue));
 
-            if (property.Type == PropertyTypes.ShortNVARCHAR)
-            {
-                parameters.Add(("@Type", "nvarchar(250)"));
-            }
-            else if (property.Type == PropertyTypes.LongNVARCHAR)
-            {
-                parameters.Add(("@Type", "nvarchar(500)"));
-            }
+            if (property.AllowNull)
+                parameters.Add(("@NullAbleValue", "Null"));
             else
-            {
-                parameters.Add(("@Type", property.Type.ToString()));
-            }
+                parameters.Add(("@NullAbleValue", "NOT NULL"));
 
-            var entity = await _context.Entity.FirstOrDefaultAsync(x => x.Id == entityId)
-                 ?? throw new CostumExeption("جدول یافت نشد."); ;
+            var entity = await _context.Entity.FirstAsync(x => x.Id == property.EntityId);
 
             parameters.Add(("@TableName", entity.TableName));
-            await _dynamicDbContext.ExecuteSqlRawAsync(CommandText, parameters);
 
-            property.EntityId = entity.Id;
-            property.Entity = null;
+            await _dynamicDbContext.ExecuteSqlRawAsync(CommandText, parameters);
             await _context.Property.AddAsync(property);
         }
 
         public async Task UpdatePeropertyInTableAsync(EntityProperty property)
         {
             await PropertyValidation(property);
-            if (property.Id == null) throw new CostumExeption("عنصر معتبر نمی باشد");
-            var feachModel = await _context.Property.Include(x => x.Entity).FirstOrDefaultAsync(x => x.Id == property.Id)
-                           ?? throw new CostumExeption("عنصر یافت نشد."); ;
 
+            var fetchModel = await _context.Property.Include(x => x.Entity).FirstAsync(x => x.Id == property.Id);
             var CommandText = "ALTER TABLE @TableName ALTER COLUMN @ColumnName @ColumnType;";
-            var parameters = new List<(string ParameterName, string ParameterValue)>() { ("@TableName", feachModel.Entity.TableName),
-               ("@ColumnName", feachModel.PropertyName) , ("@ColumnType", feachModel.Type.ToString())};
+            CommandText += "COMMENT" + " " + "@DescriptionValue";
+            CommandText += "DEFAULT" + " " + "@DEFAULTValue";
+            CommandText += "NullAble" + " " + "@NullAbleValue";
+
+            var parameters = new List<(string ParameterName, string ParameterValue)>() {
+                ("@TableName", fetchModel.Entity?.TableName ?? throw new CustomException()),
+               ("@ColumnName", fetchModel.PropertyName) ,
+               ("@ColumnType", fetchModel.Type.ToString().Replace("Short", "(50)")
+                               .Replace("Long", "(max)"))};
+
+            parameters.Add(("@DescriptionValue", property.Description));
+            parameters.Add(("@DEFAULTValue", property.DefaultValue));
+
+            if (property.AllowNull)
+                parameters.Add(("@NullAbleValue", "Null"));
+            else
+                parameters.Add(("@NullAbleValue", "NOT NULL"));
+
 
             await _dynamicDbContext.ExecuteSqlRawAsync(CommandText, parameters);
 
-            feachModel.PreviewName = property.PreviewName;
-            feachModel.PropertyName = property.PropertyName;
-            feachModel.DefaultValue = property.DefaultValue;
-            feachModel.AllowNull = property.AllowNull;
-            _context.AddAsync(feachModel);
+            fetchModel.PreviewName = property.PreviewName;
+            fetchModel.PropertyName = property.PropertyName;
+            fetchModel.DefaultValue = property.DefaultValue;
+            fetchModel.AllowNull = property.AllowNull;
+            _context.Property.Update(fetchModel);
         }
 
-        public async Task<List<EntityProperty>> GetAllColumnsAsync()
+        public async Task<ListDto<EntityProperty>> GetAllColumnsAsync(int pageSize, int pageNumber)
         {
-            var result = new List<EntityProperty>();
-            result = await _context.Property.ToListAsync();
+            IQueryable<EntityProperty> query = _context.Property;
+            var data = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            var totalCount = await query.CountAsync();
+            return new ListDto<EntityProperty>(data, totalCount, pageSize, pageNumber);
+        }
+
+        public async Task<EntityProperty?> GetColumnByIdAsync(int propertyId)
+        {
+            var result = await _context.Property.FirstOrDefaultAsync(x => x.Id == propertyId);
             return result;
         }
 
-        public async Task<EntityProperty> GetColumnAsyncById(int propertyId)
+        public async Task<ListDto<Dictionary<string, object>>> GetColumnValuesByIdAsync(int propertyId, int pageSize, int pageNumber)
         {
-            if (propertyId == null) throw new CostumExeption("عنصر معتبر نمی باشد");
+            var result = await _context.Property.Include(x => x.Entity).FirstAsync(x => x.Id == propertyId);
+            int offset = (pageNumber - 1) * pageSize;
+            var commandText = $"SELECT {result.PropertyName} FROM {result.Entity.TableName} ORDER BY [SomeColumn] OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+            commandText = commandText.Replace("@TableName", result.Entity.TableName);
 
-            var result = await _context.Property.FirstOrDefaultAsync(x => x.Id == propertyId)
-                          ?? throw new CostumExeption("عنصر یافت نشد.");
-
-            return await _context.Property.FirstOrDefaultAsync(x => x.EntityId == propertyId);
+            return await _dynamicDbContext.ExecuteReaderAsync(commandText);
         }
 
-        public async Task<List<EntityProperty>> GetAllColumnAsyncByEntityId(int entityId)
+        public async Task<ListDto<EntityProperty>> GetAllColumnByEntityIdAsync(int entityId, int pageSize, int pageNumber)
         {
-            if (entityId == null) throw new CostumExeption("جدول معتبر نمی باشد");
+            var result = await _context.Entity.Include(x => x.Properties).FirstAsync(x => x.Id == entityId);
+            var count = result.Properties.Count;
+            var prresult = result.Properties.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
 
-            var result = await _context.Entity.Include(x => x.Properties).FirstOrDefaultAsync(x => x.Id == entityId)
-                          ?? throw new CostumExeption("جدول یافت نشد.");
-
-            return result.Properties.ToList();
+            return new ListDto<EntityProperty>(prresult, count, pageSize, pageNumber);
         }
 
-        public async Task<List<Dictionary<string, object>>> GetColumnValuesAsyncById(int entityId)
+        public async Task<ListDto<Dictionary<string, object>>> GetColumnValuesByEntityIdAsync(int entityId, int pageSize, int pageNumber)
         {
-            if (entityId == null) throw new CostumExeption("جدول معتبر نمی باشد");
+            var result = await _context.Entity.FirstAsync(x => x.Id == entityId);
+            int offset = (pageNumber - 1) * pageSize;
+            var commandText = $"SELECT * FROM {result.TableName} ORDER BY [SomeColumn] OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+            commandText = commandText.Replace("@TableName", result.TableName);
 
-            var result = await _context.Entity.FirstOrDefaultAsync(x => x.Id == entityId)
-                          ?? throw new CostumExeption("جدول یافت نشد.");
-
-            var CommandText = "select * from @TableName";
-            CommandText = CommandText.Replace("@TableName", result.TableName);
-
-            return await _dynamicDbContext.ExecuteReaderAsync(CommandText);
+            return await _dynamicDbContext.ExecuteReaderAsync(commandText);
         }
 
         public async Task<string> PropertyValidation(EntityProperty property)
         {
-            if (property == null) throw new CostumExeption("اطلاعات عنصر معتبر نمی باشد");
-            if (property.PreviewName == null || !property.PreviewName.IsValidateString()) throw new CostumExeption("نام عنصر معتبر نمی باشد.");
-            if (property.PropertyName == null || !property.PropertyName.IsValidateString()) throw new CostumExeption(".نام عنصر معتبر نمی باشد");
-            if (property.Type == null) throw new CostumExeption("نوع عنصر معتبر نمی باشد.");
-            if (property.AllowNull == null) throw new CostumExeption(".وضعیت خالی بودن عنصر معتبر نمی باشد");
-            if (property.SizeWidth == null || property.SizeWidth == 0) throw new CostumExeption("ابعاد عنصر معتبر نمی باشد.");
-            if (property.SizeHeight == null || property.SizeHeight == 0) throw new CostumExeption(".ابعاد عنصر معتبر نمی باشد");
+            if (property == null) throw new CustomException("اطلاعات عنصر معتبر نمی باشد (نقص در ورود اطلاعات)");
+            if (property.EntityId == 0) throw new CustomException("اطلاعات جدول معتبر نمی باشد (از وجود جدول مذکور اطمینان حاصل کنید)");
+            if (property.PreviewName.IsNullOrEmpty() || !property.PreviewName.IsValidateString()) throw new CustomException("نام نمایشی عنصر معتبر نمی باشد.");
+            if (property.PropertyName.IsNullOrEmpty() || !property.PropertyName.IsValidateStringCommand()) throw new CustomException("نام عنصر معتبر نمی باشد");
+            if (property.Type == null || property.Type.GetType() != new PropertyTypes().GetType()) throw new CustomException("نوع عنصر معتبر نمی باشد.");
+            if (property.AllowNull == null) throw new CustomException("وضعیت خالی بودن عنصر معتبر نمی باشد");
             return "";
         }
+
+//creat save chenges
         public async Task SaveChangesAsync()
         {
             try
@@ -151,8 +159,9 @@ namespace Services
             }
             catch (Exception ex)
             {
-                throw new CostumExeption(ex);
+                throw new CustomException(ex);
             }
         }
+
     }
 }

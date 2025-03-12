@@ -31,9 +31,9 @@ namespace Services
         }
         public async Task DeleteWorFlowUser(int id)
         {
-            if (id == null) throw new CostumExeption("گردشکار معتبر نمی باشد");
+            if (id == null) throw new CustomException("گردشکار معتبر نمی باشد");
             var feachModel = await _context.WorkFlow_User.FirstOrDefaultAsync(x => x.Id == id)
-             ?? throw new CostumExeption("گردشکار معتبر نمی باشد.");
+             ?? throw new CustomException("گردشکار معتبر نمی باشد.");
 
             _context.WorkFlow_User.Remove(feachModel);
         }
@@ -41,17 +41,17 @@ namespace Services
         public async Task<List<WorkFlow_User>> GetAllWorFlowUsers()
         {
             var feachModel = await _context.WorkFlow_User.ToListAsync()
-                       ?? throw new CostumExeption("هیچ گردشکار یافت نشد.");
+                       ?? throw new CustomException("هیچ گردشکار یافت نشد.");
 
             return feachModel;
         }
 
         public async Task<WorkFlow_User> GetWorFlowUserById(int id)
         {
-            if (id == null) throw new CostumExeption("گردشکار معتبر نمی باشد");
+            if (id == null) throw new CustomException("گردشکار معتبر نمی باشد");
 
             var feachModel = await _context.WorkFlow_User.FirstOrDefaultAsync(x => x.Id == id)
-                  ?? throw new CostumExeption("گردشکار معتبر نمی باشد");
+                  ?? throw new CustomException("گردشکار معتبر نمی باشد");
 
             return feachModel;
         }
@@ -65,10 +65,10 @@ namespace Services
         public async Task UpdateWorFlowUser(WorkFlow_User workFlow)
         {
             await WorkFlowValidation(workFlow);
-            if (workFlow.Id == null) throw new CostumExeption("گردشکار معتبر نمی باشد");
+            if (workFlow.Id == null) throw new CustomException("گردشکار معتبر نمی باشد");
 
             var result = _context.WorkFlow_User.FirstOrDefault(x => x.Id == workFlow.Id)
-             ?? throw new CostumExeption("گردشکار یافت نشد.");
+             ?? throw new CustomException("گردشکار یافت نشد.");
 
             var feachModel = new WorkFlow_User()
             {
@@ -81,10 +81,10 @@ namespace Services
 
         public async Task<string> WorkFlowValidation(WorkFlow_User workFlowUser)
         {
-            if (workFlowUser == null) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlowUser.WorkFlowState.IsNullOrEmpty()) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlowUser.WorkFlowId == null || workFlowUser.WorkFlowId == 0) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlowUser.UserId == null || workFlowUser.UserId == 0) throw new CostumExeption("اطلاعات گردشکار معتبر نمی باشد");
+            if (workFlowUser == null) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
+            if (workFlowUser.WorkFlowState.IsNullOrEmpty()) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
+            if (workFlowUser.WorkFlowId == null || workFlowUser.WorkFlowId == 0) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
+            if (workFlowUser.UserId == null || workFlowUser.UserId == 0) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
 
             return "";
         }
@@ -96,7 +96,7 @@ namespace Services
             }
             catch (Exception ex)
             {
-                throw new CostumExeption();
+                throw new CustomException();
             }
         }
     }
