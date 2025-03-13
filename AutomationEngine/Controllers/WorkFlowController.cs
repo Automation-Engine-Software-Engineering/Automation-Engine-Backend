@@ -31,11 +31,11 @@ namespace AutomationEngine.Controllers
                 Nodes = workFlow.Nodes.Select(x => new Node()
                 {
                     Id = x.id ,
-                    entityId = x.data.Type  == "table" ? null : x.data.TypeId,
-                    formId = x.data.Type == "form" ? null : x.data.TypeId,
+                    entityId = x.data.Type  != "table" ? null : x.data.TypeId,
+                    formId = x.data.Type != "form" ? null : x.data.TypeId,
                     Icon = x.data.Icon,
                     Name = x.data.Name,
-                    Type = x.data.Type == "form" ? UnknownType.form : UnknownType.table,
+                    Type = x.data.Type != "form" ? UnknownType.table : UnknownType.form ,
                     X = x.position.X,
                     Y = x.data.TypeId
                 }).ToList(),
@@ -66,11 +66,11 @@ namespace AutomationEngine.Controllers
                 Nodes = workFlow.Nodes.Select(x => new Node()
                 {
                     Id = x.id,
-                    entityId = x.data.Type == "table" ? null : x.data.TypeId,
-                    formId = x.data.Type == "form" ? null : x.data.TypeId,
+                    entityId = x.data.Type != "table" ? null : x.data.TypeId,
+                    formId = x.data.Type != "form" ? null : x.data.TypeId,
                     Icon = x.data.Icon,
                     Name = x.data.Name,
-                    Type = x.data.Type == "form" ? UnknownType.form : UnknownType.table,
+                    Type = x.data.Type != "form" ?  UnknownType.table : UnknownType.form,
                     X = x.position.X,
                     Y = x.data.TypeId
                 }).ToList(),

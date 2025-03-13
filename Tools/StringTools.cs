@@ -19,5 +19,6 @@ namespace Tools
             return Regex.IsMatch(input, pattern) ? Regex.IsMatch(input, pattern) :
                 throw new CustomException("خظا در نوشتار وجود دارد");
         }
+
     }
 }

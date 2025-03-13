@@ -8,9 +8,9 @@ namespace FrameWork
 {
     public class ResultViewModel
     {
-        public string Message { get; set; }
-        public bool Status { get; set; }
-        public int StatusCode { get; set; }
-        public object Data { get; set; }
+        public string message { get; set; }
+        public bool status { get; set; }
+        public int statusCode { get; set; }
+        public object data { get; set; }
     }
 }
