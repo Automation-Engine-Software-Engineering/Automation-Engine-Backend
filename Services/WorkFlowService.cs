@@ -193,7 +193,7 @@ namespace Services
             }
             catch (Exception ex)
             {
-                throw new CustomException();
+           //     throw new CustomException();
             }
         }
     }

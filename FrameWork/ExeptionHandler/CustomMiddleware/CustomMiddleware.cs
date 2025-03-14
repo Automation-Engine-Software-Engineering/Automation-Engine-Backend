@@ -38,7 +38,6 @@ namespace FrameWork.ExeptionHandler.CustomMiddleware
                 context.Response.ContentType = "application/json"; // set content type
                 context.Response.StatusCode = (int)HttpStatusCode.Accepted; // status code you want to return
                 await context.Response.Body.WriteAsync(byteArray, 0, byteArray.Length, CancellationToken.None);
-
             }
             catch (Exception ex)
             {
@@ -50,7 +49,6 @@ namespace FrameWork.ExeptionHandler.CustomMiddleware
                 context.Response.ContentType = "application/json"; // set content type
                 context.Response.StatusCode = (int)HttpStatusCode.Accepted; // status code you want to return
                 await context.Response.Body.WriteAsync(byteArray, 0, byteArray.Length, CancellationToken.None);
-
             }
         }
     }

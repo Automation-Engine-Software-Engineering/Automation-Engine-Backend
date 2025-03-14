@@ -21,18 +21,18 @@ namespace AutomationEngine.Controllers
             _properptyService = tableService;
         }
 
-        [HttpGet(nameof(GetTable))]
-        public async Task<ResultViewModel> GetTable([FromQuery]TableInputDto tableInput)
-        {
-            var properties = await _properptyService.GetColumnValuesAsyncById(tableInput.Id);
+        // [HttpGet(nameof(GetTable))]
+        // public async Task<ResultViewModel> GetTable([FromQuery]TableInputDto tableInput)
+        // {
+        //     var properties = await _properptyService.GetColumnValuesAsyncById(tableInput.Id);
             
-            var result = new TableDto()
-            {
+        //     var result = new TableDto()
+        //     {
                
-            };
+        //     };
 
-            await _properptyService.SaveChangesAsync();
-            return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد", Status = true });
-        }
+        //     await _properptyService.SaveChangesAsync();
+        //     return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
+        // }
     }
 }

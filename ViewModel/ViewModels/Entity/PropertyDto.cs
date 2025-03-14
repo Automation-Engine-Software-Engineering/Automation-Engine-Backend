@@ -12,10 +12,10 @@ namespace ViewModels.ViewModels.Entity
         public int Id { get; set; } = 0;
         public string? PreviewName { get; set; }
         public string? PropertyName { get; set; }
-        public PropertyTypes Type { get; set; } = PropertyTypes.INT;
+        public string? Description { get; set; }
+        public PropertyType Type { get; set; } = PropertyType.INT;
         public bool AllowNull { get; set; } = true;
         public string? DefaultValue { get; set; } = "مقدار فیلد را وارد کنید";
-        public double SizeWidth { get; set; } = 10 ;
-        public double SizeHeight { get; set; } = 10 ;
+        public int? EntityId { get; set; }
     }
 }

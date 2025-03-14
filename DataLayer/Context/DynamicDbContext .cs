@@ -1,5 +1,7 @@
 ﻿using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
+using System.Data.Common;
 using Tools;
 
 namespace DataLayer.Context
@@ -13,7 +15,8 @@ namespace DataLayer.Context
 
         public async Task ExecuteSqlRawAsync(string inputCommand, List<(string ParameterName, string ParameterValue)>? parameters = null)
         {
-            parameters.ForEach(x => x.ParameterValue.IsValidateStringCommand());
+            if (parameters != null)
+                parameters.ForEach(x => x.ParameterValue.IsValidateStringCommand());
             using (var connection = Database.GetDbConnection())
             {
                 await connection.OpenAsync();
@@ -26,9 +29,14 @@ namespace DataLayer.Context
                     {
                         foreach (var param in parameters)
                         {
-                            var parameter = command.CreateParameter();
-                            parameter.ParameterName = param.ParameterName;
-                            command.Parameters.Add(parameter);
+                            //var parameter = command.CreateParameter();
+
+                            //parameter.ParameterName = param.ParameterName;
+                            //parameter.DbType = DbType.String;
+                            //parameter.Value = param.ParameterValue;
+                            //command.Parameters.Add(parameter);
+
+                           command.CommandText = command.CommandText.Replace(param.ParameterName, param.ParameterValue);
                         }
                     }
 
@@ -37,7 +45,7 @@ namespace DataLayer.Context
             }
         }
 
-        public async Task<ListDto<Dictionary<string, object>>> ExecuteReaderAsync(string query, List<(string ParameterName, object ParameterValue)>? parameters = null)
+        public async Task<ListDto<Dictionary<string, object>>> ExecuteReaderAsync(string query, List<(string ParameterName, string ParameterValue)>? parameters = null)
         {
             var resultList = new List<Dictionary<string, object>>();
 
@@ -54,7 +62,7 @@ namespace DataLayer.Context
                         {
                             var parameter = command.CreateParameter();
                             parameter.ParameterName = param.ParameterName;
-                            parameter.Value = param.ParameterValue ?? DBNull.Value; // Handle null values
+                            parameter.Value = param.ParameterValue; // Handle null values
                             command.Parameters.Add(parameter);
                         }
                     }

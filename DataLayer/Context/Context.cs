@@ -26,23 +26,23 @@ namespace DataLayer.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Entity>().HasData(
-                new Entity { PreviewName = "کاربران", Description = "اطلاعات اولیه کاربران  (رمز و پسوردها)", TableName = "User" },
-                new Entity { PreviewName = "نقش ها", Description = "اطلاعات اولیه نفش ها", TableName = "Role" }
-            );
+            //     modelBuilder.Entity<Entity>().HasData(
+            //         new Entity { PreviewName = "کاربران", Description = "اطلاعات اولیه کاربران  (رمز و پسوردها)", TableName = "User" },
+            //         new Entity { PreviewName = "نقش ها", Description = "اطلاعات اولیه نفش ها", TableName = "Role" }
+            //     );
 
-            modelBuilder.Entity<EntityProperty>().HasData(
-           new EntityProperty { PreviewName = "Id", PropertyName = "Id", AllowNull = false, DefaultValue = null, Type = PropertyTypes.INT, EntityId = 1 },
-           new EntityProperty { PreviewName = "Name", PropertyName = "Name", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 1 },
-           new EntityProperty { PreviewName = "UserName", PropertyName = "UserName", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 1 },
-           new EntityProperty { PreviewName = "Password", PropertyName = "Password", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 1 }
-            );
+            //     modelBuilder.Entity<EntityProperty>().HasData(
+            //    new EntityProperty { PreviewName = "Id", PropertyName = "Id", AllowNull = false, DefaultValue = null, Type = PropertyTypes.INT, EntityId = 1 },
+            //    new EntityProperty { PreviewName = "Name", PropertyName = "Name", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 1 },
+            //    new EntityProperty { PreviewName = "UserName", PropertyName = "UserName", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 1 },
+            //    new EntityProperty { PreviewName = "Password", PropertyName = "Password", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 1 }
+            //     );
 
-            modelBuilder.Entity<EntityProperty>().HasData(
-          new EntityProperty { PreviewName = "Id", PropertyName = "Id", AllowNull = false, DefaultValue = null, Type = PropertyTypes.INT, EntityId = 2 },
-          new EntityProperty { PreviewName = "Name", PropertyName = "Name", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 2 },
-          new EntityProperty { PreviewName = "Description", PropertyName = "Description", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 1 }
-           );
+            //     modelBuilder.Entity<EntityProperty>().HasData(
+            //   new EntityProperty { PreviewName = "Id", PropertyName = "Id", AllowNull = false, DefaultValue = null, Type = PropertyTypes.INT, EntityId = 2 },
+            //   new EntityProperty { PreviewName = "Name", PropertyName = "Name", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 2 },
+            //   new EntityProperty { PreviewName = "Description", PropertyName = "Description", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 1 }
+            //    );
         }
     }
 }

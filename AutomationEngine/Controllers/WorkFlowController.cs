@@ -51,7 +51,7 @@ namespace AutomationEngine.Controllers
 
             await _workFlowService.InsertWorFlow(result);
             await _workFlowService.SaveChangesAsync();
-            return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد", Status = true });
+            return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 
         // POST: api/form/update  
@@ -85,7 +85,7 @@ namespace AutomationEngine.Controllers
 
             await _workFlowService.UpdateWorFlow(result);
             await _workFlowService.SaveChangesAsync();
-            return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد", Status = true });
+            return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 
         // POST: api/form/delete  
@@ -94,7 +94,7 @@ namespace AutomationEngine.Controllers
         {
             await _workFlowService.DeleteWorFlow(workFlowId);
             _workFlowService.SaveChangesAsync();
-            return (new ResultViewModel { Data = null, Message = "عملیات با موفقیت انجام شد", Status = true });
+            return (new ResultViewModel { Data = null, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/all  
@@ -102,7 +102,7 @@ namespace AutomationEngine.Controllers
         public async Task<ResultViewModel> GetAllForms()
         {
             var forms = await _workFlowService.GetAllWorFlows();
-            return (new ResultViewModel { Data = forms, Message = "عملیات با موفقیت انجام شد", Status = true });
+            return (new ResultViewModel { Data = forms, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/{id}  
@@ -110,7 +110,7 @@ namespace AutomationEngine.Controllers
         public async Task<ResultViewModel> GetForm(int workFlowId)
         {
             var form = await _workFlowService.GetWorFlowById(workFlowId);
-            return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد", Status = true });
+            return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/{id}  
@@ -118,7 +118,7 @@ namespace AutomationEngine.Controllers
         public async Task<ResultViewModel> GetWorkflowValueById(int workFlowId, int userId)
         {
             var form = await _workFlowService.GetWorFlowValueById(workFlowId , userId);
-            return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد", Status = true });
+            return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/{id}  
@@ -126,7 +126,7 @@ namespace AutomationEngine.Controllers
         public async Task<ResultViewModel> GetNextWorkflowValueById(int workFlowId, int userId)
         {
             var form = await _workFlowService.GetNextWorFlowValueById(workFlowId,  userId);
-            return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد", Status = true });
+            return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/{id}  
@@ -134,7 +134,7 @@ namespace AutomationEngine.Controllers
         public async Task<ResultViewModel> GetLastWorkflowValueById(int workFlowId, int userId)
         {
             var form = await _workFlowService.GetLastWorFlowValueById(workFlowId,  userId);
-            return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد", Status = true });
+            return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
     }
 }

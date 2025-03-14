@@ -34,7 +34,7 @@ namespace AutomationEngine.Controllers
 
             await _WorkFlowUserService.InsertWorFlowUser(result);
             await _WorkFlowUserService.SaveChangesAsync();
-            return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد", Status = true });
+            return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 
         // POST: api/form/update  
@@ -52,7 +52,7 @@ namespace AutomationEngine.Controllers
 
             await _WorkFlowUserService.UpdateWorFlowUser(result);
             await _WorkFlowUserService.SaveChangesAsync();
-            return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد", Status = true });
+            return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 
         // POST: api/form/delete  
@@ -61,7 +61,7 @@ namespace AutomationEngine.Controllers
         {
             await _WorkFlowUserService.DeleteWorFlowUser(WorkFlowUserId);
             _WorkFlowUserService.SaveChangesAsync();
-            return (new ResultViewModel { Data = null, Message = "عملیات با موفقیت انجام شد", Status = true });
+            return (new ResultViewModel { Data = null, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/all  
@@ -69,7 +69,7 @@ namespace AutomationEngine.Controllers
         public async Task<ResultViewModel> GetAllWorkFlowUser()
         {
             var forms = await _WorkFlowUserService.GetAllWorFlowUsers();
-            return (new ResultViewModel { Data = forms, Message = "عملیات با موفقیت انجام شد", Status = true });
+            return (new ResultViewModel { Data = forms, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/{id}  
@@ -77,7 +77,7 @@ namespace AutomationEngine.Controllers
         public async Task<ResultViewModel> GetWorkFlowUser(int WorkFlowUserId)
         {
             var form = await _WorkFlowUserService.GetWorFlowUserById(WorkFlowUserId);
-            return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد", Status = true });
+            return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
     }
 }

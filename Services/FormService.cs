@@ -1,10 +1,8 @@
 ﻿using DataLayer.Context;
 using DataLayer.Models.FormBuilder;
-using DataLayer.Models.TableBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
-using Microsoft.Data.SqlClient;
+using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.SqlServer.Server;
 using Tools;
 
 namespace Services
@@ -14,11 +12,12 @@ namespace Services
         Task CreateFormAsync(Form form);
         Task UpdateFormAsync(Form form);
         Task RemoveFormAsync(int formId);
-        Task<Form> GetFormAsync(int formId);
-        Task<List<Form>> GetAllFormsAsync();
+        Task<Form?> GetFormByIdAsync(int formId);
+        Task<ListDto<Form>> GetAllFormsAsync(int pageSize, int pageNumber);
         Task UpdateFormBodyAsync(int formId, string htmlContent);
-        Task GiveTheParameter(List<(int entityId, int propertyId, object value)> data);
-        Task SaveChangesAsync();
+        Task SetTheParameter(List<(int entityId, int propertyId, object value)> data);
+        Task<ValidationDto<Form>> FormValidationAsync(Form form);
+        Task<ValidationDto<string>> SaveChangesAsync();
     }
 
     public class FormService : IFormService
@@ -33,94 +32,68 @@ namespace Services
 
         public async Task CreateFormAsync(Form form)
         {
-            await FormValidation(form);
-
             await _context.Form.AddAsync(form);
         }
 
         public async Task UpdateFormAsync(Form form)
         {
-            await FormValidation(form);
+            //initialize model
+            var fetchModel = await _context.Form.FirstAsync(x => x.Id == form.Id);
 
-            if (form.Id == null) throw new CustomException("فرم معتبر نمی باشد");
-            var feachModel = await _context.Form.FirstOrDefaultAsync(x => x.Id == form.Id)
-                   ?? throw new CustomException("فرم یافت نشد.");
+            //transfer model
+            fetchModel.Name = form.Name;
+            fetchModel.SizeHeight = form.SizeHeight;
+            fetchModel.IsAutoHeight = form.IsAutoHeight;
+            fetchModel.SizeWidth = form.SizeWidth;
+            fetchModel.BackgroundImgPath = form.BackgroundImgPath;
+            fetchModel.BackgroundColor = form.BackgroundColor;
+            fetchModel.Description = form.Description;
 
-            feachModel.Name = form.Name;
-            feachModel.SizeHeight = form.SizeHeight;
-            feachModel.SizeWidth = form.SizeWidth;
-            feachModel.BackgroundImgPath = form.BackgroundImgPath;
-            feachModel.BackgroundColor = form.BackgroundColor;
-            feachModel.Description = form.Description;
-
-            _context.Form.Update(feachModel);
+            _context.Form.Update(fetchModel);
         }
 
         public async Task RemoveFormAsync(int formId)
         {
-            if (formId == null) throw new CustomException("فرم معتبر نمی باشد");
-            var feachModel = await _context.Form.FirstOrDefaultAsync(x => x.Id == formId)
-             ?? throw new CustomException("فرم یافت نشد.");
+            //initialize model
+            var fetchModel = await _context.Form.FirstAsync(x => x.Id == formId);
 
-            _context.Form.Remove(feachModel);
+            //remove form
+            _context.Form.Remove(fetchModel);
         }
 
-        public async Task<Form> GetFormAsync(int formId)
+        public async Task<Form?> GetFormByIdAsync(int formId)
         {
-            if (formId == null) throw new CustomException("فرم معتبر نمی باشد");
+            //initialize model
+            var fetchModel = await _context.Form.FirstOrDefaultAsync(x => x.Id == formId);
 
-            var feachModel = await _context.Form.FirstOrDefaultAsync(x => x.Id == formId)
-                  ?? throw new CustomException("فرم یافت نشد.");
-
-            return feachModel;
+            //return model
+            return fetchModel;
         }
 
-        public async Task<List<Form>> GetAllFormsAsync()
+        public async Task<ListDto<Form>> GetAllFormsAsync(int pageSize, int pageNumber)
         {
-            var feachModel = await _context.Form.ToListAsync()
-                       ?? throw new CustomException("هیچ فرمی یافت نشد.");
+            //create query
+            var query = _context.Form;
 
-            return feachModel;
+            //get Value and count
+            var count = query.Count();
+            var result = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return new ListDto<Form>(result, count, pageSize, pageNumber);
         }
 
         public async Task UpdateFormBodyAsync(int formId, string htmlContent)
         {
+            //initialize model
+            var fetchModel = await _context.Form.FirstAsync(x => x.Id == formId);
 
-            if (formId == null) throw new CustomException("فرم معتبر نمی باشد");
+            //transfer model
+            fetchModel.HtmlFormBody = htmlContent;
 
-            if (htmlContent == null) throw new CustomException("اطلاعات فرم معتبر نمی باشد");
-
-            var feachModel = await _context.Form.FirstOrDefaultAsync(x => x.Id == formId)
-                     ?? throw new CustomException("فرم یافت نشد.");
-
-            feachModel.HtmlFormBody = htmlContent;
-
-            await UpdateFormAsync(feachModel);
+            await UpdateFormAsync(fetchModel);
         }
 
-        public async Task<string> FormValidation(Form form)
-        {
-            if (form == null) throw new CustomException("اطلاعات فرم ناقص می باشد(فرم معتبر نمی باشد(");
-            if (form.Name == null || !form.Name.IsValidateString()) throw new CustomException("نام فرم معتبر نمی باشد.");
-            if (form.SizeWidth == null || form.SizeWidth == 0) throw new CustomException(".ابعاد فرم معتبر نمی باشد");
-            if (form.SizeHeight == null || form.SizeHeight == 0) throw new CustomException("ابعاد فرم معتبر نمی باشد.");
-            if (form.BackgroundColor == null) throw new CustomException("رنگ فرم معتبر نمی باشد.");
-            return "";
-        }
-
-        public async Task SaveChangesAsync()
-        {
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new CustomException();
-            }
-        }
-
-        public async Task GiveTheParameter(List<(int entityId, int propertyId, object value)> data)
+        public async Task SetTheParameter(List<(int entityId, int propertyId, object value)> data)
         {
             var entityIds = new List<int>();
             data.Select(x => x.entityId).ToList().ForEach(x =>
@@ -133,8 +106,7 @@ namespace Services
 
             entityIds.ForEach(x =>
             {
-                var entity = _context.Entity.FirstOrDefaultAsync(xx => xx.Id == x)
-                       ?? throw new CustomException("موجودیت یافت نشد.");
+                var entity = _context.Entity.FirstOrDefaultAsync(xx => xx.Id == x);
 
                 var properties = data.Where(x => x.entityId == entity.Id).ToList();
                 var propertiesValues = properties.Select(x => _context.Property.FirstOrDefaultAsync(xx => xx.Id == x.propertyId)).ToList();
@@ -155,10 +127,32 @@ namespace Services
                 propertiesQueryValue.Replace(",.", "");
 
                 var query = $"INSERT INTO {entity.Result.TableName} ({propertiesQuery})" +
-            $" VALUES ({propertiesQueryValue});";
+                $" VALUES ({propertiesQueryValue});";
 
                 _dynamicDbContext.ExecuteSqlRawAsync(query);
             });
+        }
+
+        public async Task<ValidationDto<Form>> FormValidationAsync(Form form)
+        {
+            if (form == null) return new ValidationDto<Form>(false, "Form", "CorruptedForm", form);
+            if (form.Name == null || !form.Name.IsValidateString()) return new ValidationDto<Form>(false, "Form", "CorruptedFormName", form);
+            if (form.SizeWidth == 0) return new ValidationDto<Form>(false, "Form", "CorruptedFormSize", form);
+            if (form.SizeHeight == 0 ^ form.IsAutoHeight) return new ValidationDto<Form>(false, "Form", "CorruptedFormSize", form);
+            return new ValidationDto<Form>(true, "Success", "Success", form);
+        }
+
+        public async Task<ValidationDto<string>> SaveChangesAsync()
+        {
+            try
+            {
+                await _context.SaveChangesAsync();
+                return new ValidationDto<string>(true, "Success", "Success", null);
+            }
+            catch (Exception ex)
+            {
+                return new ValidationDto<string>(false, "Form", "CorruptedForm", ex.Message);
+            }
         }
     }
 }

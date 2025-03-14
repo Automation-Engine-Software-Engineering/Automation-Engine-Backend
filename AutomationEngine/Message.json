@@ -1,0 +1,38 @@
+{
+  "fa": {
+    "Error": {
+      "Entity": {
+        "CorruptedEntity": "خطا در اطلاعات جدول وجود دارد",
+        "CorruptedEntityPreviewName": "نام نمایش جدول معتبر نمی باشد",
+        "CorruptedEntityTableName": "نام جدول معتبر نمی باشد",
+        "CorruptedEntityNotFound" : "جدول یافت نشد"
+      },
+      "Property": {
+        "CorruptedProperty": "خطا در اطلاعات عنصر وجود دارد",
+        "CorruptedPropertyPreviewName": "نام نمایشی عنصر معتبر نمی باشد",
+        "CorruptedPropertyPropertyName": "نام عنصر معتبر نمی باشد",
+        "CorruptedPropertyType": "نوع عنصر معتبر نمی باشد",
+        "CorruptedPropertyAllowNull": "وضعیت الزامی بودن عنصر معتبر نمی باشد",
+        "PropertyNotFound" : "عنصر یافت نشد"
+      },
+      "Form" :{
+        "CorruptedForm" : "خطا در اطلاعات فرم وجود دارد",
+        "CorruptedFOrmName" : "خطا در نام فرم وجود دارد",
+        "CorruptedFormSize" : "خطا در ابعاد فرم وجود دارد",
+        "CorruptedNotfound": "فرم یافت نشد",
+        "CorruptedInvalidPage": "تعداد صفحات نا معتبر",
+
+      },
+      "Defult" :{
+        "CorruptedStringCommand" : "خظا در نوشتار دستور وجود دارد",
+        "CorruptedString" : "خظا در نوشتار وجود دارد"
+      }
+    },
+    "Warning": {},
+    "Success": {
+      "Success": {
+        "Success": "عملیات با موفقیت انجام شد"
+      }
+    }
+  }
+}
