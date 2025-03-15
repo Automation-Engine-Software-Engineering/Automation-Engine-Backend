@@ -3,7 +3,7 @@ using DataLayer.Models.FormBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
-using Tools;
+using Tools.TextTools;
 
 namespace Services
 {
@@ -18,6 +18,7 @@ namespace Services
         Task SetTheParameter(List<(int entityId, int propertyId, object value)> data);
         Task<ValidationDto<Form>> FormValidationAsync(Form form);
         Task<ValidationDto<string>> SaveChangesAsync();
+        Task<bool> IsFormExistAsync(int formId);
     }
 
     public class FormService : IFormService
@@ -69,7 +70,14 @@ namespace Services
             //return model
             return fetchModel;
         }
+        public async Task<bool> IsFormExistAsync(int formId)
+        {
+            //check model exist
+            var isExist = await _context.Form.AnyAsync(x => x.Id == formId);
 
+            //return model
+            return isExist;
+        }
         public async Task<ListDto<Form>> GetAllFormsAsync(int pageSize, int pageNumber)
         {
             //create query
@@ -136,7 +144,7 @@ namespace Services
         public async Task<ValidationDto<Form>> FormValidationAsync(Form form)
         {
             if (form == null) return new ValidationDto<Form>(false, "Form", "CorruptedForm", form);
-            if (form.Name == null || !form.Name.IsValidateString()) return new ValidationDto<Form>(false, "Form", "CorruptedFormName", form);
+            if (form.Name == null || !form.Name.IsValidString()) return new ValidationDto<Form>(false, "Form", "CorruptedFormName", form);
             if (form.SizeWidth == 0) return new ValidationDto<Form>(false, "Form", "CorruptedFormSize", form);
             if (form.SizeHeight == 0 ^ form.IsAutoHeight) return new ValidationDto<Form>(false, "Form", "CorruptedFormSize", form);
             return new ValidationDto<Form>(true, "Success", "Success", form);

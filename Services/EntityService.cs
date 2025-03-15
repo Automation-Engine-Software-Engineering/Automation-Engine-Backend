@@ -4,7 +4,8 @@ using DataLayer.Models.TableBuilder;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Tools;
+using Microsoft.IdentityModel.Tokens;
+using Tools.TextTools;
 namespace Services
 {
     public interface IEntityService
@@ -13,7 +14,7 @@ namespace Services
         Task CreateEntityAsync(int formId, Entity entity);
         Task RemoveEntityAsync(int entityId);
         Task UpdateEntityAsync(Entity entity);
-        Task<ListDto<Entity>> GetAllEntitiesAsync(int pageSize, int pageNumber);
+        Task<ListDto<Entity>> GetAllEntitiesAsync(int pageSize, int pageNumber, string? search = null, int? formId = null);
         Task<ListDto<Entity>> GetAllEntitiesByFormIdAsync(int formId, int pageSize, int pageNumber);
         Task<Entity> GetEntitiesByIdAsync(int entityId);
         Task<ValidationDto<Entity>> EntityValidation(Entity entity);
@@ -90,10 +91,18 @@ namespace Services
             _context.Entity.Update(fetchModel);
         }
 
-        public async Task<ListDto<Entity>> GetAllEntitiesAsync(int pageSize, int pageNumber)
+        public async Task<ListDto<Entity>> GetAllEntitiesAsync(int pageSize, int pageNumber,string search = "",int? formId = null)
         {
             //create query
-            var query = _context.Entity;
+            var query = _context.Entity.AsQueryable();
+
+            //search on name if is not empty
+            if (!string.IsNullOrWhiteSpace(search))
+                query = query.Where(x => x.TableName.Contains(search) || x.PreviewName.Contains(search));
+
+            //only get items with this form
+            if (formId != null && formId != 0)
+                query = query.Include(x=>x.Forms).Where(x => x.Forms.Any(x=>x.Id == formId));
 
             //get Value and count
             var count = query.Count();
@@ -123,8 +132,8 @@ namespace Services
         public async Task<ValidationDto<Entity>> EntityValidation(Entity entity)
         {
             if (entity == null) return new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", entity);
-            if (entity.PreviewName == null || !entity.PreviewName.IsValidateString()) return new ValidationDto<Entity>(false, "Entity", "CorruptedEntityPreviewName", entity);
-            if (entity.TableName == null || !entity.TableName.IsValidateStringCommand()) return new ValidationDto<Entity>(false, "Entity", "CorruptedEntityTableName", entity);
+            if (entity.PreviewName == null || !entity.PreviewName.IsValidString()) return new ValidationDto<Entity>(false, "Entity", "CorruptedEntityPreviewName", entity);
+            if (entity.TableName == null || !entity.TableName.IsValidStringCommand()) return new ValidationDto<Entity>(false, "Entity", "CorruptedEntityTableName", entity);
             return new ValidationDto<Entity>(true, "Success", "Success", entity);
         }
 

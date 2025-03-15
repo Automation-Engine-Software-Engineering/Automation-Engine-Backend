@@ -4,7 +4,7 @@ using FrameWork.Model.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Services;
-using Tools;
+using Tools.TextTools;
 using ViewModels;
 using ViewModels.ViewModels.Entity;
 
@@ -50,9 +50,9 @@ namespace AutomationEngine.Controllers
             if (!validationModel.IsSuccess)
                 throw new CustomException<EntityProperty>(validationModel, 500);
 
-            result.PropertyName.IsValidateStringCommand();
-            result.Description.IsValidateString();
-            result.DefaultValue.IsValidateString();
+            result.PropertyName.IsValidStringCommand();
+            result.Description.IsValidString();
+            result.DefaultValue.IsValidString();
 
             //transfer model
             result.Entity = entity;
@@ -97,7 +97,7 @@ namespace AutomationEngine.Controllers
             if (fetchModel == null)
                 throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
 
-            result.PropertyName.IsValidateStringCommand();
+            result.PropertyName.IsValidStringCommand();
 
             //transfer moel
             fetchModel.PreviewName = result.PreviewName;
