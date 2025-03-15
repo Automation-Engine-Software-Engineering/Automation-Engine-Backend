@@ -13,7 +13,7 @@ namespace ViewModels.ViewModels.Entity
         public string? PreviewName { get; set; }
         public string? PropertyName { get; set; }
         public string? Description { get; set; }
-        public PropertyType Type { get; set; } = PropertyType.INT;
+        public string Type { get; set; } = "1";
         public bool AllowNull { get; set; } = true;
         public string? DefaultValue { get; set; } = "مقدار فیلد را وارد کنید";
         public int? EntityId { get; set; }

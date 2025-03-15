@@ -3,6 +3,7 @@ using DataLayer.Models.TableBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.SqlServer.Server;
 using Services;
 using Tools;
 using ViewModels;
@@ -133,8 +134,7 @@ namespace AutomationEngine.Controllers
 			//is valid data
 			if ((((pageSize * pageNumber) - entities.TotalCount) > pageSize) && (pageSize * pageNumber) > entities.TotalCount)
 				throw new CustomException<ListDto<Entity>>(new ValidationDto<ListDto<Entity>>(false, "Form", "CorruptedEntity", entities), 500);
-
-			return (new ResultViewModel { Data = entities, Message = new ValidationDto<ListDto<Entity>>(true, "Success", "Success", entities).GetMessage(200), Status = true, StatusCode = 200 });
+			return (new ResultViewModel { Data = entities.Data, ListNumber = entities.ListNumber, ListSize = entities.ListSize, TotalCount = entities.TotalCount, Message = new ValidationDto<ListDto<Entity>>(true, "Success", "Success", entities).GetMessage(200), Status = true, StatusCode = 200 });
 		}
 
 		// GET: api/entity/{id}  
@@ -147,11 +147,9 @@ namespace AutomationEngine.Controllers
 
 			//initial action
 			var entities = await _entityService.GetEntitiesByIdAsync(entityId);
-
 			var fetchEntity = await _entityService.GetEntitiesByIdAsync(entityId);
 			if (fetchEntity == null)
 				throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntityNotFound", null), 500);
-
 			var validationModel = await _entityService.EntityValidation(fetchEntity);
 			if (!validationModel.IsSuccess)
 				throw new CustomException<Entity>(validationModel, 500);
@@ -215,7 +213,7 @@ namespace AutomationEngine.Controllers
 			if ((((pageSize * pageNumber) - columns.TotalCount) > pageSize) && (pageSize * pageNumber) > columns.TotalCount)
 				throw new CustomException<ListDto<EntityProperty>>(new ValidationDto<ListDto<EntityProperty>>(false, "Property", "CorruptedProperty", columns), 500);
 
-			return (new ResultViewModel { Data = columns, Message = new ValidationDto<ListDto<EntityProperty>>(true, "Success", "Success", columns).GetMessage(200), Status = true, StatusCode = 200 });
+			return (new ResultViewModel { Data = columns.Data, ListNumber = columns.ListNumber, ListSize = columns.ListSize, TotalCount = columns.TotalCount, Message = new ValidationDto<ListDto<EntityProperty>>(true, "Success", "Success", columns).GetMessage(200), Status = true, StatusCode = 200 });
 		}
 
 		// GET: api/property/entityId/value

@@ -37,7 +37,11 @@ namespace AutomationEngine.Controllers
             if (entity == null)
                 throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
 
-            var result = new EntityProperty(property.PropertyName, property.PropertyName, property.Description, property.AllowNull, property.DefaultValue, property.Type, entity);
+			if (!Enum.TryParse(property.Type, true, out PropertyType propertyType))
+				throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
+
+
+			var result = new EntityProperty(property.PropertyName, property.PropertyName, property.Description, property.AllowNull, property.DefaultValue, propertyType, entity);
 
             if (result.Id != 0)
                 throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
@@ -75,7 +79,10 @@ namespace AutomationEngine.Controllers
             if (entity == null)
                 throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
 
-            var result = new EntityProperty(property.PropertyName, property.PropertyName, property.Description, property.AllowNull, property.DefaultValue, property.Type, entity);
+			if (!Enum.TryParse(property.Type, true, out PropertyType propertyType))
+				throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
+
+			var result = new EntityProperty(property.PropertyName, property.PropertyName, property.Description, property.AllowNull, property.DefaultValue, propertyType, entity);
 
             if (entity.Id == 0)
                 throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
