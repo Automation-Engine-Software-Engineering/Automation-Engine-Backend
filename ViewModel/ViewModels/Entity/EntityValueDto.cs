@@ -7,9 +7,9 @@ using FrameWork.Model.DTO;
 
 namespace ViewModels.ViewModels.Entity
 {
-    public  class EntityValueDto
-    {
-        public ListDto<string> Header { get; set; }
-        public ListDto<Dictionary<string , object>> Body { get; set; }
-    }
+	public class EntityValueDto
+	{
+		public IEnumerable<string>? Header { get; set; }
+		public IEnumerable<Dictionary<string, object>> Body { get; set; }
+	}
 }
