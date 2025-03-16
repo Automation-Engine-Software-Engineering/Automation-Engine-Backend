@@ -1,5 +1,6 @@
 ﻿using DataLayer.Context;
 using DataLayer.Models.FormBuilder;
+using DataLayer.Models.TableBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
@@ -13,12 +14,15 @@ namespace Services
         Task UpdateFormAsync(Form form);
         Task RemoveFormAsync(int formId);
         Task<Form?> GetFormByIdAsync(int formId);
+        Task<Form?> GetFormByIdIncEntityAsync(int formId);
+        Task<Form?> GetFormByIdIncEntityIncPropertyAsync(int formId);
         Task<ListDto<Form>> GetAllFormsAsync(int pageSize, int pageNumber);
         Task UpdateFormBodyAsync(int formId, string htmlContent);
         Task SetTheParameter(List<(int entityId, int propertyId, object value)> data);
         Task<ValidationDto<Form>> FormValidationAsync(Form form);
         Task<ValidationDto<string>> SaveChangesAsync();
         Task<bool> IsFormExistAsync(int formId);
+        Task AddEntitiesToFormAsync(int formId, List<int> entityIds);
     }
 
     public class FormService : IFormService
@@ -65,11 +69,57 @@ namespace Services
         public async Task<Form?> GetFormByIdAsync(int formId)
         {
             //initialize model
-            var fetchModel = await _context.Form.FirstOrDefaultAsync(x => x.Id == formId);
+            var fetchModel = await _context.Form.FindAsync(formId);
 
             //return model
             return fetchModel;
         }
+        public async Task<Form?> GetFormByIdIncEntityAsync(int formId)
+        {
+            //initialize model
+            var fetchModel = await _context.Form.Include(x => x.Entities).FirstOrDefaultAsync(x => x.Id == formId);
+
+            //return model
+            return fetchModel;
+        }
+        public async Task<Form?> GetFormByIdIncEntityIncPropertyAsync(int formId)
+        {
+            //initialize model
+            var fetchModel = await _context.Form.Include(x => x.Entities).ThenInclude(x => x.Properties).FirstOrDefaultAsync(x => x.Id == formId);
+
+            //return model
+            return fetchModel;
+        }
+        public async Task AddEntitiesToFormAsync(int formId, List<int> entityIds)
+        {
+            // Find the Form
+            var form = await _context.Form
+                .Include(f => f.Entities) // Load related entities
+                .FirstOrDefaultAsync(f => f.Id == formId);
+
+            if (form == null)
+                throw new CustomException<Form>(new ValidationDto<Form>(false, "Form", "FormNotFound", form), 404);
+
+            // Find the Entities based on the provided list of IDs
+            var entities = await _context.Entity
+                .Where(e => entityIds.Contains(e.Id))
+                .ToListAsync();
+
+            // Add new Entities that are not already in the form's entity list
+            var newEntities = entities
+                .Where(e => !form.Entities.Any(existing => existing.Id == e.Id))
+                .ToList();
+
+            if (newEntities.Any())
+                form.Entities.AddRange(newEntities); // Add the new entities
+
+            // Remove Entities that are not in the provided entityIds
+            form.Entities = form.Entities
+                .Where(e => entityIds.Contains(e.Id))
+                .ToList(); // Retain only entities matching the provided IDs
+
+        }
+
         public async Task<bool> IsFormExistAsync(int formId)
         {
             //check model exist

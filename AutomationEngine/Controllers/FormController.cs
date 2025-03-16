@@ -51,27 +51,43 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/update  
         [HttpPost("update")]
-        public async Task<ResultViewModel> UpdateForm([FromBody] FormDto form)
+        public async Task<ResultViewModel> UpdateForm([FromForm] UpdateFormInputModel form)
         {
             if (form == null)
-                throw new CustomException<Form>(new ValidationDto<Form>(false, "Form", "CorruptedForm", null), 500);
+                throw new CustomException<UpdateFormInputModel>(new ValidationDto<UpdateFormInputModel>(false, "Form", "CorruptedForm", form), 500);
 
-            //transfer model
-            var result = new Form(form.Name, form.Description, form.SizeHeight, form.BackgroundImgPath, form.SizeWidth
-            , form.HtmlFormBody, form.IsAutoHeight, form.BackgroundColor, form.IsRepeatedImage);
+            var fetchForm = await _formService.GetFormByIdIncEntityAsync(form.Id);
+            if (fetchForm == null)
+                throw new CustomException<UpdateFormInputModel>(new ValidationDto<UpdateFormInputModel>(false, "Form", "CorruptedNotfound", form), 500);
 
             //is validation model
             if (form.Id == 0)
-                throw new CustomException<Form>(new ValidationDto<Form>(false, "Form", "CorruptedForm", result), 500);
+                throw new CustomException<UpdateFormInputModel>(new ValidationDto<UpdateFormInputModel>(false, "Form", "CorruptedForm", form), 500);
 
+            //if (form.BackgroundImg != null)
+            //    RemoveFile.Remove(fetchForm.BackgroundImgPath);
+            //transfer model
+            var result = new Form(
+                form.Name ?? fetchForm.Name,
+                form.Description ?? fetchForm.Description,
+                form.SizeHeight ?? fetchForm.SizeHeight,
+                await UploadImage.UploadFormBackgroundImage(form.BackgroundImg) ?? fetchForm.BackgroundImgPath,
+                form.SizeWidth ?? fetchForm.SizeWidth,
+                form.HtmlFormBody ?? fetchForm.HtmlFormBody,
+                form.IsAutoHeight ?? fetchForm.IsAutoHeight,
+                form.BackgroundColor ?? fetchForm.BackgroundColor,
+                form.IsRepeatedImage ?? fetchForm.IsRepeatedImage
+            );
             result.Id = form.Id;
+            if(form.Entities != null)
+            {
+                await _formService.AddEntitiesToFormAsync(form.Id,form.Entities.ToList());
+            }
             var validationModel = await _formService.FormValidationAsync(result);
             if (!validationModel.IsSuccess)
                 throw new CustomException<Form>(validationModel, 500);
 
-            var fetchForm = await _formService.GetFormByIdAsync(form.Id);
-            if (fetchForm == null)
-                throw new CustomException<Form>(new ValidationDto<Form>(false, "Form", "CorruptedNotfound", result), 500);
+
 
             //initial action
             await _formService.UpdateFormAsync(result);
@@ -134,7 +150,7 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedForm", formId), 500);
 
             //initial action
-            var form = await _formService.GetFormByIdAsync(formId);
+            var form = await _formService.GetFormByIdIncEntityIncPropertyAsync(formId);
             if (form == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedNotfound", formId), 500);
 
@@ -146,17 +162,17 @@ namespace AutomationEngine.Controllers
         }
 
         // GET: api/form/uploadImage  
-        [HttpPost("{formId}/uploadImage")]
-        public async Task<ResultViewModel> UploadImageFormContent(int formId, IFormFile image)
+        [HttpPost("uploadImage")]
+        public async Task<ResultViewModel> UploadImageFormContent(IFormFile image)
         {
             //is validation model
-            if (formId == 0)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedForm", formId), 500);
+            //if (formId == 0)
+            //    throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedForm", formId), 500);
 
-            //initial action
-            var form = await _formService.IsFormExistAsync(formId);
-            if (!form)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedNotfound", formId), 500);
+            ////initial action
+            //var form = await _formService.IsFormExistAsync(formId);
+            //if (!form)
+            //    throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedNotfound", formId), 500);
 
             var imageUrl = await UploadImage.UploadFormMedia(image);
 

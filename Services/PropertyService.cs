@@ -112,7 +112,7 @@ namespace Services
         {
             var result = await _context.Property.Include(x => x.Entity).FirstAsync(x => x.Id == propertyId);
             int offset = (pageNumber - 1) * pageSize;
-            var commandText = $"SELECT {result.PropertyName} FROM {result.Entity.TableName} ORDER BY [SomeColumn] OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+            var commandText = $"SELECT {result.PropertyName} FROM {result.Entity.TableName} {/*ORDER BY [SomeColumn]*/""} OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             commandText = commandText.Replace("@TableName", result.Entity.TableName);
 
             return await _dynamicDbContext.ExecuteReaderAsync(commandText);

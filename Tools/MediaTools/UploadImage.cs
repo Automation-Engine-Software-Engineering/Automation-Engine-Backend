@@ -9,14 +9,23 @@ namespace Tools
 {
     public static class UploadImage
     {
-        public static async Task<string> UploadFormMedia(IFormFile file)
+        public static async Task<string?> UploadFormMedia(IFormFile? file)
         {
             if (file == null)
-                return "";
+                return null;
             ValidationFile.ValidateImageFile(file,20.ToMB());
             var fileName = await FileTool.UploadFileWithUniqueName(file,DirectoryTool.FormContentPath.GetFullPath());
 
             return Path.Combine(DirectoryTool.FormContentPath, fileName);
+        }
+        public static async Task<string?> UploadFormBackgroundImage(IFormFile? file)
+        {
+            if (file == null)
+                return null;
+            ValidationFile.ValidateImageFile(file, 20.ToMB());
+            var fileName = await FileTool.UploadFileWithUniqueName(file, DirectoryTool.FormBackgroundImagePath.GetFullPath());
+
+            return Path.Combine(DirectoryTool.FormBackgroundImagePath, fileName);
         }
     }
 }

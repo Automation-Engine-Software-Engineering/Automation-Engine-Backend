@@ -12,6 +12,7 @@ namespace DataLayer.Models.FormBuilder
             this.Name = name;
             this.Description = description;
             this.SizeHeight = sizeHeight;
+            this.IsAutoHeight = isAutoHeight;
             this.SizeWidth = sizeWidth;
             this.BackgroundColor = backgroundColor;
             this.BackgroundImgPath = backgroundImgPath;

@@ -10,7 +10,9 @@ namespace Tools.MediaTools
     public class DirectoryTool
     {
         public static string wwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-        public static string FormContentPath = Path.Combine("upload", "formcontent", "image");
+        private static string FormPath = Path.Combine("upload", "form");
+        public static string FormContentPath = Path.Combine(FormPath,"content", "image");
+        public static string FormBackgroundImagePath = Path.Combine(FormPath, "backgroundimage");
         public static void CreateDirectory(string path)
         {
             if (!Directory.Exists(path))

@@ -4,7 +4,7 @@ using FrameWork.Model.DTO;
 
 namespace Tools.TextTools
 {
-    public static class StringTools
+    public static class ValidationString
     {
         public static bool IsValidStringCommand(this string input)
         {

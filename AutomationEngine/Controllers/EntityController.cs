@@ -165,47 +165,47 @@ namespace AutomationEngine.Controllers
         }
 
 
-        // GET: api/entity/{id}/value  
-        [HttpGet("entity/{entityId}/value")]
-        public async Task<ResultViewModel> GetEntityValue(int entityId, int pageSize, int pageNumber)
-        {
-            if (pageSize > 100)
-                pageSize = 100;
-            if (pageNumber < 1)
-                pageNumber = 1;
+        //// GET: api/entity/{id}/value  
+        //[HttpGet("entity/{entityId}/value")]
+        //public async Task<ResultViewModel> GetEntityValue(int entityId, int pageSize, int pageNumber)
+        //{
+        //    if (pageSize > 100)
+        //        pageSize = 100;
+        //    if (pageNumber < 1)
+        //        pageNumber = 1;
 
-            //is validation model
-            if (entityId == 0)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntityNotFound", null), 500);
+        //    //is validation model
+        //    if (entityId == 0)
+        //        throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntityNotFound", null), 500);
 
-            var entities = await _entityService.GetEntitiesByIdAsync(entityId);
+        //    //var entities = await _entityService.GetEntitiesByIdAsync(entityId);
 
-            //initial action
-            var fetchEntity = await _entityService.GetEntitiesByIdAsync(entityId);
-            if (fetchEntity == null)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntityNotFound", null), 500);
+        //    //initial action
+        //    var fetchEntity = await _entityService.GetEntitiesByIdAsync(entityId);
+        //    if (fetchEntity == null)
+        //        throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntityNotFound", null), 500);
 
-            var validationModel = await _entityService.EntityValidation(fetchEntity);
-            if (!validationModel.IsSuccess)
-                throw new CustomException<Entity>(validationModel, 500);
+        //    var validationModel = await _entityService.EntityValidation(fetchEntity);
+        //    if (!validationModel.IsSuccess)
+        //        throw new CustomException<Entity>(validationModel, 500);
 
-            //initial action
-            var result = new EntityValueDto();
-            if (entities.Properties.Count == 0)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Property", "PropertyNotFound", null), 500);
+        //    //initial action
+        //    var result = new EntityValueDto();
+        //    if (fetchEntity.Properties.Count == 0)
+        //        throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Property", "PropertyNotFound", null), 500);
 
-            var header = entities.Properties.Select(x => x.PreviewName).ToList();
-            //var dtoListHeader = new ListDto<string>(header, header.Count, header.Count, 1);
-            result.Header = header;
-            var properties = await _propertyService.GetColumnValuesByIdAsync(entityId, pageSize, pageNumber);
+        //    var header = fetchEntity.Properties.Select(x => x.PreviewName).ToList();
+        //    //var dtoListHeader = new ListDto<string>(header, header.Count, header.Count, 1);
+        //    result.Header = header;
+        //    var properties = await _propertyService.GetColumnValuesByIdAsync(, pageSize, pageNumber);
 
-            //is valid data
-            if ((((pageSize * pageNumber) - properties.TotalCount) > pageSize) && (pageSize * pageNumber) > properties.TotalCount)
-                throw new CustomException<ListDto<Dictionary<string, object>>>(new ValidationDto<ListDto<Dictionary<string, object>>>(false, "Entity", "CorruptedEntity", properties), 500);
+        //    //is valid data
+        //    if ((((pageSize * pageNumber) - properties.TotalCount) > pageSize) && (pageSize * pageNumber) > properties.TotalCount)
+        //        throw new CustomException<ListDto<Dictionary<string, object>>>(new ValidationDto<ListDto<Dictionary<string, object>>>(false, "Entity", "CorruptedEntity", properties), 500);
 
-            result.Body = properties.Data;
-            return (new ResultViewModel { ListNumber = properties.ListNumber, ListSize = properties.ListSize, TotalCount = properties.TotalCount, Data = result, Message = new ValidationDto<EntityValueDto>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
-        }
+        //    result.Body = properties.Data;
+        //    return (new ResultViewModel { ListNumber = properties.ListNumber, ListSize = properties.ListSize, TotalCount = properties.TotalCount, Data = result, Message = new ValidationDto<EntityValueDto>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+        //}
 
 
         // GET: api/entity/{entityName}/property  
