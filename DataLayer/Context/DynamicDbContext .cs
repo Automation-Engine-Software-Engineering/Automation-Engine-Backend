@@ -17,6 +17,7 @@ namespace DataLayer.Context
         {
             if (parameters != null)
                 parameters.ForEach(x => x.ParameterValue.IsValidateStringCommand());
+                
             using (var connection = Database.GetDbConnection())
             {
                 await connection.OpenAsync();
@@ -36,10 +37,11 @@ namespace DataLayer.Context
                             //parameter.Value = param.ParameterValue;
                             //command.Parameters.Add(parameter);
 
-                           command.CommandText = command.CommandText.Replace(param.ParameterName, param.ParameterValue);
+                            command.CommandText = command.CommandText.Replace(param.ParameterName, param.ParameterValue);
                         }
                     }
 
+                    command.CommandText.IsValidateStringQuery();
                     await command.ExecuteNonQueryAsync(); // Execute the command
                 }
             }

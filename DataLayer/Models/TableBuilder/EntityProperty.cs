@@ -27,6 +27,10 @@ namespace DataLayer.Models.TableBuilder
         public string? Description { get; set; }
         public bool AllowNull { get; set; } = true;
         public string? DefaultValue { get; set; }
+        public string? IsRequiredErrorMessage { get; set; }
+        public string? DefaultErrorMessage { get; set; }
+        public string? ToolType { get; set; }
+        public string? IconClass { get; set; }
 
         #region Relations
         public PropertyType Type { get; set; }
@@ -44,6 +48,9 @@ namespace DataLayer.Models.TableBuilder
         NvarcharLong = 4,
         BIT = 5,
         Time = 6,
-        binaryLong = 7
+        binaryLong = 7,
+        Color = 8 ,
+        Email =9,
+        Password = 10 
     }
 }

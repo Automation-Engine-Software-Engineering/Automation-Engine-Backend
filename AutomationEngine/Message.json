@@ -20,10 +20,11 @@
         "CorruptedFOrmName" : "خطا در نام فرم وجود دارد",
         "CorruptedFormSize" : "خطا در ابعاد فرم وجود دارد",
         "CorruptedNotfound": "فرم یافت نشد",
-        "CorruptedInvalidPage": "تعداد صفحات نا معتبر",
+        "CorruptedInvalidPage": "تعداد صفحات نا معتبر"
 
       },
       "Defult" :{
+        "CorruptedStringQuery" : "خظا در نوشتار دستور وجود دارد",
         "CorruptedStringCommand" : "خظا در نوشتار دستور وجود دارد",
         "CorruptedString" : "خظا در نوشتار وجود دارد"
       }
