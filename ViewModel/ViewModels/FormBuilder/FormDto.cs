@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Http;
+using DataLayer.Models.TableBuilder;
+using ViewModels.ViewModels.Entity;
 
 namespace ViewModels.ViewModels.FormBuilder
 {
@@ -13,11 +10,25 @@ namespace ViewModels.ViewModels.FormBuilder
         public string Name { get; set; }
         public string? Description { get; set; }
         public double SizeWidth { get; set; } = 0;
-        public double SizeHeight { get; set; } = 0;
-        public bool IsAutoHeight { get; set; } = false;
+        public double SizeMinHeight { get; set; } = 0;
+        public bool IsAutoHeight { get; set; }
         public string BackgroundColor { get; set; } = "#ffffff";
         public string? BackgroundImgPath { get; set; }
-        public bool IsRepeatedImage { get; set; } = false;
-        public string HtmlFormBody { get; set; } = "<p>ساخته شده توسط شرکت نرم افزاری پارسه آذین مبین<p/>";
+        public bool IsRepeatedImage { get; set; }
+        public string HtmlFormBody { get; set; }
+    }
+    public class UpdateFormInputModel
+    {
+        public int Id { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public double? SizeWidth { get; set; }
+        public double? SizeMinHeight { get; set; }
+        public bool? IsAutoHeight { get; set; }
+        public string? BackgroundColor { get; set; }
+        public IFormFile? BackgroundImg { get; set; }
+        public bool? IsRepeatedImage { get; set; }
+        public string? HtmlFormBody { get; set; }
+        public IEnumerable<int>? Entities { get; set; }
     }
 }

@@ -27,7 +27,7 @@ builder.Services.AddDbContext<Context>(options =>
 //Add-Migration InitialCreate -Context DynamicDbContext
 //Update-Database InitialCreate -Context DynamicDbContext
 builder.Services.AddDbContext<DynamicDbContext>(options =>
-           options.UseSqlServer(builder.Configuration.GetConnectionString("dynamic")));
+           options.UseSqlServer(builder.Configuration.GetConnectionString("Dynamic")));
            
 builder.Services.AddScoped<Context>();
 builder.Services.AddScoped<DynamicDbContext>();
@@ -59,6 +59,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+app.UseStaticFiles();
 app.MapControllers();
 
 app.Run();

@@ -6,12 +6,13 @@ namespace DataLayer.Models.FormBuilder
     [Description("Each form that have entity and property")]
     public class Form
     {
-        public Form(string name, string? description, double? sizeHeight, string? backgroundImgPath, double sizeWidth ,
+        public Form(string name, string? description, double? SizeMinHeight, string? backgroundImgPath, double sizeWidth ,
         string? htmlFormBody, bool isAutoHeight = false, string backgroundColor = "#ffffff", bool isRepeatedImage = false)
         {
             this.Name = name;
             this.Description = description;
-            this.SizeHeight = sizeHeight;
+            this.SizeMinHeight = SizeMinHeight;
+            this.IsAutoHeight = isAutoHeight;
             this.SizeWidth = sizeWidth;
             this.BackgroundColor = backgroundColor;
             this.BackgroundImgPath = backgroundImgPath;
@@ -25,7 +26,7 @@ namespace DataLayer.Models.FormBuilder
         public string Name { get; set; }
         public string? Description { get; set; }
         public double SizeWidth { get; set; }
-        public double? SizeHeight { get; set; }
+        public double? SizeMinHeight { get; set; }
         public bool IsAutoHeight { get; set; } = false;
         public string BackgroundColor { get; set; } = "#ffffff";
         public string? BackgroundImgPath { get; set; }

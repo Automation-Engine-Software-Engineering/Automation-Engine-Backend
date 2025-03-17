@@ -2,11 +2,11 @@
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 
-namespace Tools
+namespace Tools.TextTools
 {
-    public static class StringTools
+    public static class ValidationString
     {
-        public static bool IsValidateStringCommand(this string input)
+        public static bool IsValidStringCommand(this string input)
         {
             string pattern = @"^(?![0-9])[\u0600-\u06FFa-zA-Z][\u0600-\u06FFa-zA-Z0-9 ()]*$";
             return Regex.IsMatch(input, pattern) ? Regex.IsMatch(input, pattern) :
@@ -21,7 +21,7 @@ namespace Tools
         }
 
 
-        public static bool IsValidateString(this string input)
+        public static bool IsValidString(this string input)
         {
             string pattern = @"(?<![-_])([a-zA-Z\u0600-\u06FF]+(?:[ _-][a-zA-Z\u0600-\u06FF]+)*)?(?![-_])";
             return Regex.IsMatch(input, pattern) ? Regex.IsMatch(input, pattern) :

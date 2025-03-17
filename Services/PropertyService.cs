@@ -4,7 +4,7 @@ using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Tools;
+using Tools.TextTools;
 
 namespace Services
 {
@@ -37,7 +37,7 @@ namespace Services
         {
             var entity = await _context.Entity.FirstAsync(x => x.Id == property.EntityId);
 
-            property.DefaultValue.IsValidateString();
+            property.DefaultValue.IsValidString();
             //create query             ALTER TABLE string ADD string2 INT  DEFAULT 1  Null
             var commandText = $"ALTER TABLE {entity.TableName} ADD ";
             commandText += property.PropertyName + " " + "@Type ";
@@ -103,7 +103,7 @@ namespace Services
 
         public async Task UpdateColumnInTableAsync(EntityProperty property)
         {
-            property.DefaultValue.IsValidateString();
+            property.DefaultValue.IsValidString();
 
             //create query
             var fetchModel = await _context.Property.Include(x => x.Entity).FirstAsync(x => x.Id == property.Id);
@@ -164,7 +164,7 @@ namespace Services
         {
             var result = await _context.Property.Include(x => x.Entity).FirstAsync(x => x.Id == propertyId);
             int offset = (pageNumber - 1) * pageSize;
-            var commandText = $"SELECT {result.PropertyName} FROM {result.Entity.TableName} ORDER BY [SomeColumn] OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+            var commandText = $"SELECT {result.PropertyName} FROM {result.Entity.TableName} {/*ORDER BY [SomeColumn]*/""} OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             commandText = commandText.Replace("@TableName", result.Entity.TableName);
 
             return await _dynamicDbContext.ExecuteReaderAsync(commandText);
@@ -192,8 +192,8 @@ namespace Services
         {
             if (property == null) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", property);
             if (property.EntityId == 0) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", property);
-            if (property.PreviewName.IsNullOrEmpty() || !property.PreviewName.IsValidateString()) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyPreviewName", property);
-            if (property.PropertyName.IsNullOrEmpty() || !property.PropertyName.IsValidateStringCommand()) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyPropertyName", property);
+            if (property.PreviewName.IsNullOrEmpty() || !property.PreviewName.IsValidString()) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyPreviewName", property);
+            if (property.PropertyName.IsNullOrEmpty() || !property.PropertyName.IsValidStringCommand()) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyPropertyName", property);
             if (property.Type == null || property.Type.GetType() != new PropertyType().GetType()) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyType", property);
             if (property.AllowNull == null) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyAllowNull", property);
             return new ValidationDto<EntityProperty>(true, "Success", "Success", property);

@@ -5,7 +5,7 @@
         "CorruptedEntity": "خطا در اطلاعات جدول وجود دارد",
         "CorruptedEntityPreviewName": "نام نمایش جدول معتبر نمی باشد",
         "CorruptedEntityTableName": "نام جدول معتبر نمی باشد",
-        "CorruptedEntityNotFound" : "جدول یافت نشد"
+        "CorruptedEntityNotFound": "جدول یافت نشد"
       },
       "Property": {
         "CorruptedProperty": "خطا در اطلاعات عنصر وجود دارد",
@@ -13,17 +13,22 @@
         "CorruptedPropertyPropertyName": "نام عنصر معتبر نمی باشد",
         "CorruptedPropertyType": "نوع عنصر معتبر نمی باشد",
         "CorruptedPropertyAllowNull": "وضعیت الزامی بودن عنصر معتبر نمی باشد",
-        "PropertyNotFound" : "عنصر یافت نشد"
+        "PropertyNotFound": "عنصر یافت نشد"
       },
-      "Form" :{
-        "CorruptedForm" : "خطا در اطلاعات فرم وجود دارد",
-        "CorruptedFOrmName" : "خطا در نام فرم وجود دارد",
-        "CorruptedFormSize" : "خطا در ابعاد فرم وجود دارد",
+      "Form": {
+        "CorruptedForm": "خطا در اطلاعات فرم وجود دارد",
+        "CorruptedFormName": "خطا در نام فرم وجود دارد",
+        "CorruptedFormSize": "خطا در ابعاد فرم وجود دارد",
         "CorruptedNotfound": "فرم یافت نشد",
         "CorruptedInvalidPage": "تعداد صفحات نا معتبر"
 
+      }, 
+      "File": {
+        "FileSize": "حجم فایل آپلود شده بیشتر از مقدار تعیین شده است",
+        "FileType": "پسوند فایل آپلود شده معتبر نمی باشد",
+        "CorruptedFile": "فایل آپلود شده معتبر نمی باشد"
       },
-      "Defult" :{
+      "Defult": {
         "CorruptedStringQuery" : "خظا در نوشتار دستور وجود دارد",
         "CorruptedStringCommand" : "خظا در نوشتار دستور وجود دارد",
         "CorruptedString" : "خظا در نوشتار وجود دارد"

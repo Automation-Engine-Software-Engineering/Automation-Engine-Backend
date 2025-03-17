@@ -4,7 +4,7 @@ using FrameWork.Model.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Services;
-using Tools;
+using Tools.TextTools;
 using ViewModels;
 using ViewModels.ViewModels.Entity;
 
@@ -37,14 +37,11 @@ namespace AutomationEngine.Controllers
             if (entity == null)
                 throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
 
-            PropertyType type;
-            if (!Enum.TryParse(property.Type, out type))
-            {
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
-            }
+			if (!Enum.TryParse(property.Type, true, out PropertyType propertyType))
+				throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
 
 
-            var result = new EntityProperty(property.PropertyName, property.PropertyName, property.Description, property.AllowNull, property.DefaultValue, type, entity);
+			var result = new EntityProperty(property.PropertyName, property.PropertyName, property.Description, property.AllowNull, property.DefaultValue, propertyType, entity);
 
             if (result.Id != 0)
                 throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
@@ -53,9 +50,9 @@ namespace AutomationEngine.Controllers
             if (!validationModel.IsSuccess)
                 throw new CustomException<EntityProperty>(validationModel, 500);
 
-            result.PropertyName.IsValidateStringCommand();
-            result.Description.IsValidateString();
-            result.DefaultValue.IsValidateString();
+            result.PropertyName.IsValidStringCommand();
+            result.Description.IsValidString();
+            result.DefaultValue.IsValidString();
 
             //transfer model
             result.Entity = entity;
@@ -82,13 +79,10 @@ namespace AutomationEngine.Controllers
             if (entity == null)
                 throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
 
-            PropertyType type;
-            if (!Enum.TryParse(property.Type, out type))
-            {
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
-            }
+			if (!Enum.TryParse(property.Type, true, out PropertyType propertyType))
+				throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
 
-            var result = new EntityProperty(property.PropertyName, property.PropertyName, property.Description, property.AllowNull, property.DefaultValue, type, entity);
+			var result = new EntityProperty(property.PropertyName, property.PropertyName, property.Description, property.AllowNull, property.DefaultValue, propertyType, entity);
 
             if (entity.Id == 0)
                 throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
@@ -103,7 +97,7 @@ namespace AutomationEngine.Controllers
             if (fetchModel == null)
                 throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
 
-            result.PropertyName.IsValidateStringCommand();
+            result.PropertyName.IsValidStringCommand();
 
             //transfer moel
             fetchModel.PreviewName = result.PreviewName;

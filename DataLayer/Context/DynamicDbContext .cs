@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Data.Common;
-using Tools;
+using Tools.TextTools;
 
 namespace DataLayer.Context
 {
@@ -16,8 +16,7 @@ namespace DataLayer.Context
         public async Task ExecuteSqlRawAsync(string inputCommand, List<(string ParameterName, string ParameterValue)>? parameters = null)
         {
             if (parameters != null)
-                parameters.ForEach(x => x.ParameterValue.IsValidateStringCommand());
-                
+                parameters.ForEach(x => x.ParameterValue.IsValidStringCommand());
             using (var connection = Database.GetDbConnection())
             {
                 await connection.OpenAsync();

@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Tools;
+using Tools.TextTools;
 using ViewModels.ViewModels.Unknown;
 
 namespace Services
@@ -165,7 +165,7 @@ namespace Services
             if (workFlow == null) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
             if (workFlow.Nodes == null) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
             if (workFlow.Edges == null) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlow.Nodes.Any(x => !x.Name.IsValidateString() || x.Type == null || x.Icon == null || x.X == null || x.Y == null)) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
+            if (workFlow.Nodes.Any(x => !x.Name.IsValidString() || x.Type == null || x.Icon == null || x.X == null || x.Y == null)) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
             if (workFlow.Edges.Any(x => x.Source == null || x.Target == null || x.SourceHandle == null || x.TargetHandle == null)) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
 
             var isRotate = false;
