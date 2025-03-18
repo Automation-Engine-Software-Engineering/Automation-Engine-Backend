@@ -50,18 +50,18 @@ namespace AutomationEngine.Controllers
         }
 
         // POST: api/form/update  
-        [HttpPost("update")]
-        public async Task<ResultViewModel> UpdateForm([FromForm] UpdateFormInputModel form)
+        [HttpPost("{formId}/update")]
+        public async Task<ResultViewModel> UpdateForm(int formId,[FromForm] UpdateFormInputModel form)
         {
             if (form == null)
                 throw new CustomException<UpdateFormInputModel>(new ValidationDto<UpdateFormInputModel>(false, "Form", "CorruptedForm", form), 500);
 
-            var fetchForm = await _formService.GetFormByIdIncEntityAsync(form.Id);
+            var fetchForm = await _formService.GetFormByIdIncEntityAsync(formId);
             if (fetchForm == null)
                 throw new CustomException<UpdateFormInputModel>(new ValidationDto<UpdateFormInputModel>(false, "Form", "CorruptedNotfound", form), 500);
 
             //is validation model
-            if (form.Id == 0)
+            if (formId == 0)
                 throw new CustomException<UpdateFormInputModel>(new ValidationDto<UpdateFormInputModel>(false, "Form", "CorruptedForm", form), 500);
 
             //if (form.BackgroundImg != null)
@@ -78,11 +78,8 @@ namespace AutomationEngine.Controllers
                 form.BackgroundColor ?? fetchForm.BackgroundColor,
                 form.IsRepeatedImage ?? fetchForm.IsRepeatedImage
             );
-            result.Id = form.Id;
-            if(form.Entities != null)
-            {
-                await _formService.AddEntitiesToFormAsync(form.Id,form.Entities.ToList());
-            }
+            result.Id = formId;
+
             var validationModel = await _formService.FormValidationAsync(result);
             if (!validationModel.IsSuccess)
                 throw new CustomException<Form>(validationModel, 500);
@@ -96,6 +93,27 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<string>(saveResult, 500);
 
             return (new ResultViewModel { Data = result, Message = new ValidationDto<Form>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+        }
+
+        // POST: api/form/{formId}/updateEntities
+        [HttpPost("{formId}/updateEntities")]
+        public async Task<ResultViewModel> UpdateFormEntities(IEnumerable<int>? Entities, int formId)
+        {
+            if (formId == 0)
+                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedForm", formId), 500);
+
+            var fetchForm = await _formService.IsFormExistAsync(formId);
+            if (fetchForm == false)
+                throw new CustomException<IEnumerable<int>>(new ValidationDto<IEnumerable<int>>(false, "Form", "CorruptedNotfound", Entities), 500);
+
+            await _formService.AddEntitiesToFormAsync(formId, Entities?.ToList() ?? new List<int>());
+            
+            var saveResult = await _formService.SaveChangesAsync();
+
+            if (!saveResult.IsSuccess)
+                throw new CustomException<string>(saveResult, 500);
+
+            return (new ResultViewModel { Message = new ValidationDto<IEnumerable<int>>(true, "Success", "Success", Entities).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/form/remove  
