@@ -28,7 +28,7 @@ namespace AutomationEngine.Controllers
             if (form == null)
                 throw new CustomException<Form>(new ValidationDto<Form>(false, "Form", "CorruptedForm", null), 500);
             //transfer model
-            var result = new Form(form.Name, form.Description, form.SizeMinHeight, form.BackgroundImgPath, form.SizeWidth
+            var result = new Form(form.Name, form.Description, form.SizeHeight, form.BackgroundImgPath, form.SizeWidth
             , form.HtmlFormBody, form.IsAutoHeight, form.BackgroundColor, form.IsRepeatedImage);
 
             //is validation model
@@ -71,7 +71,7 @@ namespace AutomationEngine.Controllers
             var result = new Form(
                 form.Name ?? fetchForm.Name,
                 form.Description ?? fetchForm.Description,
-                form.SizeMinHeight ?? fetchForm.SizeMinHeight,
+                form.SizeHeight ?? fetchForm.SizeHeight,
                 await UploadImage.UploadFormBackgroundImage(form.BackgroundImg) ?? fetchForm.BackgroundImgPath,
                 form.SizeWidth ?? fetchForm.SizeWidth,
                 form.HtmlFormBody ?? fetchForm.HtmlFormBody,

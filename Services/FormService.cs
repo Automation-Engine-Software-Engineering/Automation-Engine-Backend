@@ -47,7 +47,7 @@ namespace Services
 
             //transfer model
             fetchModel.Name = form.Name;
-            fetchModel.SizeMinHeight = form.SizeMinHeight;
+            fetchModel.SizeHeight = form.SizeHeight;
             fetchModel.IsAutoHeight = form.IsAutoHeight;
             fetchModel.SizeWidth = form.SizeWidth;
             fetchModel.BackgroundImgPath = form.BackgroundImgPath;
@@ -196,7 +196,7 @@ namespace Services
             if (form == null) return new ValidationDto<Form>(false, "Form", "CorruptedForm", form);
             if (form.Name == null || !form.Name.IsValidString()) return new ValidationDto<Form>(false, "Form", "CorruptedFormName", form);
             if (form.SizeWidth == 0) return new ValidationDto<Form>(false, "Form", "CorruptedFormSize", form);
-            if (form.SizeMinHeight == 0 ^ form.IsAutoHeight) return new ValidationDto<Form>(false, "Form", "CorruptedFormSize", form);
+            if (form.SizeHeight == 0 ^ form.IsAutoHeight) return new ValidationDto<Form>(false, "Form", "CorruptedFormSize", form);
             return new ValidationDto<Form>(true, "Success", "Success", form);
         }
 

@@ -52,7 +52,7 @@ namespace DataLayer.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<double?>("SizeMinHeight")
+                    b.Property<double?>("SizeHeight")
                         .HasColumnType("float");
 
                     b.Property<double>("SizeWidth")
@@ -182,6 +182,9 @@ namespace DataLayer.Migrations
                     b.Property<bool>("AllowNull")
                         .HasColumnType("bit");
 
+                    b.Property<string>("DefaultErrorMessage")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("DefaultValue")
                         .HasColumnType("nvarchar(max)");
 
@@ -191,12 +194,21 @@ namespace DataLayer.Migrations
                     b.Property<int>("EntityId")
                         .HasColumnType("int");
 
+                    b.Property<string>("IconClass")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IsRequiredErrorMessage")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PreviewName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PropertyName")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ToolType")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Type")

@@ -55,7 +55,7 @@ namespace DataLayer.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<double?>("SizeMinHeight")
+                    b.Property<double?>("SizeHeight")
                         .HasColumnType("float");
 
                     b.Property<double>("SizeWidth")

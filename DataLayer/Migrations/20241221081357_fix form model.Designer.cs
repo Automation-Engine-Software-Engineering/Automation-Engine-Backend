@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(Context.Context))]
-    [Migration("20241208072134_fix model")]
-    partial class fixmodel
+    [Migration("20241221081357_fix form model")]
+    partial class fixformmodel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -185,6 +185,9 @@ namespace DataLayer.Migrations
                     b.Property<bool>("AllowNull")
                         .HasColumnType("bit");
 
+                    b.Property<string>("DefaultErrorMessage")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("DefaultValue")
                         .HasColumnType("nvarchar(max)");
 
@@ -194,12 +197,21 @@ namespace DataLayer.Migrations
                     b.Property<int>("EntityId")
                         .HasColumnType("int");
 
+                    b.Property<string>("IconClass")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IsRequiredErrorMessage")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PreviewName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PropertyName")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ToolType")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Type")

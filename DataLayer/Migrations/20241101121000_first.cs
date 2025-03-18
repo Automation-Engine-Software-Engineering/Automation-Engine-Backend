@@ -34,7 +34,7 @@ namespace DataLayer.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SizeWidth = table.Column<double>(type: "float", nullable: false),
-                    SizeMinHeight = table.Column<double>(type: "float", nullable: false),
+                    SizeHeight = table.Column<double>(type: "float", nullable: false),
                     BackgroundColor = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     BackgroundImgPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     HtmlFormBody = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -128,7 +128,7 @@ namespace DataLayer.Migrations
                     AllowNull = table.Column<bool>(type: "bit", nullable: false),
                     DefaultValue = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SizeWidth = table.Column<double>(type: "float", nullable: false),
-                    SizeMinHeight = table.Column<double>(type: "float", nullable: false),
+                    SizeHeight = table.Column<double>(type: "float", nullable: false),
                     EntityId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>

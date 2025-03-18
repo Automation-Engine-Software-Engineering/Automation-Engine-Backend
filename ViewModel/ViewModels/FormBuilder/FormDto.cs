@@ -10,7 +10,7 @@ namespace ViewModels.ViewModels.FormBuilder
         public string Name { get; set; }
         public string? Description { get; set; }
         public double SizeWidth { get; set; } = 0;
-        public double SizeMinHeight { get; set; } = 0;
+        public double SizeHeight { get; set; } = 0;
         public bool IsAutoHeight { get; set; }
         public string BackgroundColor { get; set; } = "#ffffff";
         public string? BackgroundImgPath { get; set; }
@@ -23,7 +23,7 @@ namespace ViewModels.ViewModels.FormBuilder
         public string? Name { get; set; }
         public string? Description { get; set; }
         public double? SizeWidth { get; set; }
-        public double? SizeMinHeight { get; set; }
+        public double? SizeHeight { get; set; }
         public bool? IsAutoHeight { get; set; }
         public string? BackgroundColor { get; set; }
         public IFormFile? BackgroundImg { get; set; }

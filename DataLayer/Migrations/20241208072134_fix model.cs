@@ -15,7 +15,7 @@ namespace DataLayer.Migrations
                 table: "User");
 
             migrationBuilder.DropColumn(
-                name: "SizeMinHeight",
+                name: "SizeHeight",
                 table: "Property");
 
             migrationBuilder.DropColumn(
@@ -29,7 +29,7 @@ namespace DataLayer.Migrations
                 nullable: true);
 
             migrationBuilder.AlterColumn<double>(
-                name: "SizeMinHeight",
+                name: "SizeHeight",
                 table: "Form",
                 type: "float",
                 nullable: true,
@@ -74,7 +74,7 @@ namespace DataLayer.Migrations
                 defaultValue: "");
 
             migrationBuilder.AddColumn<double>(
-                name: "SizeMinHeight",
+                name: "SizeHeight",
                 table: "Property",
                 type: "float",
                 nullable: false,
@@ -88,7 +88,7 @@ namespace DataLayer.Migrations
                 defaultValue: 0.0);
 
             migrationBuilder.AlterColumn<double>(
-                name: "SizeMinHeight",
+                name: "SizeHeight",
                 table: "Form",
                 type: "float",
                 nullable: false,
