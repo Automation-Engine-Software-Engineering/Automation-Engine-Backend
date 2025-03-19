@@ -36,10 +36,11 @@ namespace DataLayer.Context
                             //parameter.Value = param.ParameterValue;
                             //command.Parameters.Add(parameter);
 
-                           command.CommandText = command.CommandText.Replace(param.ParameterName, param.ParameterValue);
+                            command.CommandText = command.CommandText.Replace(param.ParameterName, param.ParameterValue);
                         }
                     }
 
+                    command.CommandText.IsValidateStringQuery();
                     await command.ExecuteNonQueryAsync(); // Execute the command
                 }
             }

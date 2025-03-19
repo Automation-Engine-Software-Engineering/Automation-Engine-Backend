@@ -22,15 +22,16 @@
         "CorruptedNotfound": "فرم یافت نشد",
         "CorruptedInvalidPage": "تعداد صفحات نا معتبر"
 
-      },
+      }, 
       "File": {
         "FileSize": "حجم فایل آپلود شده بیشتر از مقدار تعیین شده است",
         "FileType": "پسوند فایل آپلود شده معتبر نمی باشد",
         "CorruptedFile": "فایل آپلود شده معتبر نمی باشد"
       },
       "Defult": {
-        "CorruptedStringCommand": "خظا در نوشتار دستور وجود دارد",
-        "CorruptedString": "خظا در نوشتار وجود دارد"
+        "CorruptedStringQuery" : "خظا در نوشتار دستور وجود دارد",
+        "CorruptedStringCommand" : "خظا در نوشتار دستور وجود دارد",
+        "CorruptedString" : "خظا در نوشتار وجود دارد"
       }
     },
     "Warning": {},

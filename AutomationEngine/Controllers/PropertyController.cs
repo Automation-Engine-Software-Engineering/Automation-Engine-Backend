@@ -23,8 +23,8 @@ namespace AutomationEngine.Controllers
         }
 
         // POST: api/entity/{entityId}/property/add  
-        [HttpPost("entity/property/add")]
-        public async Task<ResultViewModel> AddpropertyToEntity([FromBody] PropertyDto property)
+        [HttpPost("add")]
+        public async Task<ResultViewModel> AddPropertyToEntity([FromBody] PropertyDto property)
         {
             //is valid model
             if (property.EntityId == 0)
@@ -68,8 +68,8 @@ namespace AutomationEngine.Controllers
         }
 
         // POST: api/property/update  
-        [HttpPost("property/update")]
-        public async Task<ResultViewModel> updatepropertyInEntity([FromBody] PropertyDto property)
+        [HttpPost("update")]
+        public async Task<ResultViewModel> updatePropertyInEntity([FromBody] PropertyDto property)
         {
             //is valid model
             if (property == null)
@@ -86,9 +86,9 @@ namespace AutomationEngine.Controllers
 
             if (entity.Id == 0)
                 throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
-            
+
             result.Id = entity.Id;
-            
+
             var validationModel = await _propertyService.PropertyValidation(result);
             if (!validationModel.IsSuccess)
                 throw new CustomException<EntityProperty>(validationModel, 500);
@@ -116,7 +116,31 @@ namespace AutomationEngine.Controllers
             return (new ResultViewModel { Data = fetchModel, Message = new ValidationDto<EntityProperty>(true, "Success", "Success", fetchModel).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
-      
+        // POST: api/property/remove  
+        [HttpPost("remove")]
+        public async Task<ResultViewModel> removePropertyInEntity([FromBody] int propertyId)
+        {
+            //is valid model
+            if (propertyId == 0)
+                throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
+
+            var property = await _propertyService.GetColumnByIdAsync(propertyId);
+            if (property == null)
+                throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
+
+            var validationModel = await _propertyService.PropertyValidation(property);
+            if (!validationModel.IsSuccess)
+                throw new CustomException<EntityProperty>(validationModel, 500);
+
+            //initial action
+            await _propertyService.RemoveColumnByIdAsync(property.Id);
+            var saveResult = await _propertyService.SaveChangesAsync();
+            if (!saveResult.IsSuccess)
+                throw new CustomException<string>(saveResult, 500);
+
+            return (new ResultViewModel { Data = property, Message = new ValidationDto<EntityProperty>(true, "Success", "Success", property).GetMessage(200), Status = true, StatusCode = 200 });
+        }
+
         // GET: api/property/propertyId
         [HttpGet("{propertyId}")]
         public async Task<ResultViewModel> GetPropertyById(int propertyId)
@@ -134,5 +158,20 @@ namespace AutomationEngine.Controllers
 
             return (new ResultViewModel { Data = column, Message = new ValidationDto<EntityProperty>(true, "Success", "Success", column).GetMessage(200), Status = true, StatusCode = 200 });
         }
+
+
+        // GET: api/property/All
+        [HttpGet("All")]
+        public async Task<ResultViewModel> GetAllProperty(int pageSize, int pageNumber)
+        {
+            var column = await _propertyService.GetAllColumnsAsync(pageSize, pageNumber);
+
+            //is valid data
+            if ((((pageSize * pageNumber) - column.TotalCount) > pageSize) && (pageSize * pageNumber) > column.TotalCount)
+                throw new CustomException<ListDto<EntityProperty>>(new ValidationDto<ListDto<EntityProperty>>(false, "Form", "CorruptedEntity", column), 500);
+
+            return (new ResultViewModel { Data = column, Message = new ValidationDto<ListDto<EntityProperty>>(true, "Success", "Success", column).GetMessage(200), Status = true, StatusCode = 200 });
+        }
+
     }
 }

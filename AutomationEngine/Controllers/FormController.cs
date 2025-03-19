@@ -23,7 +23,7 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/create  
         [HttpPost("create")]
-        public async Task<ResultViewModel> CreateForm([FromBody] FormDto form)
+        public async Task<ResultViewModel> CreateForm([FromForm] FormDto form)
         {
             if (form == null)
                 throw new CustomException<Form>(new ValidationDto<Form>(false, "Form", "CorruptedForm", null), 500);
@@ -67,6 +67,7 @@ namespace AutomationEngine.Controllers
             //if (form.BackgroundImg != null)
             //    RemoveFile.Remove(fetchForm.BackgroundImgPath);
             //transfer model
+
             var result = new Form(
                 form.Name ?? fetchForm.Name,
                 form.Description ?? fetchForm.Description,

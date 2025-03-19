@@ -195,6 +195,35 @@ namespace Services
             return new ValidationDto<Form>(true, "Success", "Success", form);
         }
 
+        // public async Task<Form> GetFormpreview(int formId)
+        // {
+        //     //the sample input
+        //     //<div id="main">
+        //     // <p> بسمه تعالی </p>
+        //     // <p> نام و نام خانوادگی </p>
+        //     // <input type="text" id="10" />
+        //     // <select id="11"> <select>
+        //     //<table id="12" data-table="maghalat" data-filter="name = ali" data-clumns="name,id"><table>
+        //     //</div>
+
+        //     //the sample output
+        //     //<div id="main">
+        //     // <p> بسمه تعالی </p>
+        //     // <p> نام و نام خانوادگی </p>
+        //     //<i class="fas fa-clock"></i>
+        //     // <input type="text" id="10" value="name" tooltype="name fild" required/>
+        //     //<span>pleas file the input</span>
+        //     //<span>invalid data</span>
+        //     // <select id="11">
+        //     //<option>ali-kazemi<option>
+        //     // <select>
+        //     //<table id="12" data-table="maghalat" data-filter="name = ali" data-clumns="name,id"><table>
+        //     //</div>
+
+        //     var form = await GetFormByIdAsync(formId);
+
+        // }
+
         public async Task<ValidationDto<string>> SaveChangesAsync()
         {
             try
