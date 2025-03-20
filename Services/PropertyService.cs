@@ -12,6 +12,7 @@ namespace Services
     {
         Task AddColumnToTableAsync(EntityProperty property);
         Task UpdateColumnInTableAsync(EntityProperty property);
+        Task RemoveColumnByIdAsync(int propertyId);
         Task<ListDto<EntityProperty>> GetAllColumnsAsync(int pageSize, int pageNumber);
         Task<EntityProperty?> GetColumnByIdAsync(int propertyId);
         Task<ListDto<Dictionary<string, object>>> GetColumnValuesByIdAsync(int propertyId, int pageSize, int pageNumber);
@@ -34,7 +35,6 @@ namespace Services
 
         public async Task AddColumnToTableAsync(EntityProperty property)
         {
-
             var entity = await _context.Entity.FirstAsync(x => x.Id == property.EntityId);
 
             property.DefaultValue.IsValidString();
@@ -42,12 +42,54 @@ namespace Services
             var commandText = $"ALTER TABLE {entity.TableName} ADD ";
             commandText += property.PropertyName + " " + "@Type ";
             //commandText += "COMMENT" + " " + "@DescriptionValue ";
-            commandText += "DEFAULT" + " " + $"{property.DefaultValue} ";
+            commandText += "DEFAULT" + " " + $"'{property.DefaultValue}' ";
             commandText += "@NullAbleValue";
 
             var parameters = new List<(string ParameterName, string ParameterValue)>();
-            parameters.Add(("@Type", property.Type.ToString().Replace("Short", "(50)").Replace("Long", "(max)")));
             parameters.Add(("@DescriptionValue", property.Description));
+
+            switch (property.Type)
+            {
+                case PropertyType.INT:
+                    parameters.Add(("@Type", "INT"));
+                    break;
+
+                case PropertyType.Float:
+                    parameters.Add(("@Type", "Float"));
+                    break;
+                    
+                case PropertyType.Email:
+                    parameters.Add(("@Type", "Nvarchar(50)"));
+                    break;
+                    
+                case PropertyType.Color:
+                    parameters.Add(("@Type", "Nvarchar(50)"));
+                    break;
+                    
+                case PropertyType.BIT:
+                    parameters.Add(("@Type", "BIT"));
+                    break;
+                    
+                case PropertyType.binaryLong:
+                    parameters.Add(("@Type", "binary(max)"));
+                    break;
+                    
+                case PropertyType.NvarcharLong:
+                    parameters.Add(("@Type", "Nvarchar(max)"));
+                    break;
+                    
+                case PropertyType.NvarcharShort:
+                    parameters.Add(("@Type", "Nvarchar(50)"));
+                    break;
+                    
+                case PropertyType.Password:
+                    parameters.Add(("@Type", "Nvarchar(50)"));
+                    break;
+                    
+                case PropertyType.Time:
+                    parameters.Add(("@Type", "time(7)"));
+                    break;
+            }
 
             if (property.AllowNull)
                 parameters.Add(("@NullAbleValue", "Null"));
@@ -88,6 +130,16 @@ namespace Services
             fetchModel.AllowNull = property.AllowNull;
 
             _context.Property.Update(fetchModel);
+        }
+
+        public async Task RemoveColumnByIdAsync(int propertyId)
+        {
+            var property = await _context.Property.Include(x => x.Entity).FirstAsync(x => x.Id == propertyId);
+            var commandText = $"ALTER TABLE {property.Entity.TableName} ;";
+            commandText += $"DROP COLUMN {property.PropertyName};";
+            await _dynamicDbContext.ExecuteSqlRawAsync(commandText, null);
+
+            _context.Property.Remove(property);
         }
 
         public async Task<ListDto<EntityProperty>> GetAllColumnsAsync(int pageSize, int pageNumber)
