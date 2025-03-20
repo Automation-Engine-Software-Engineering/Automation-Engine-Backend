@@ -23,7 +23,7 @@ namespace AutomationEngine.Controllers
         }
 
         // POST: api/entity/{entityId}/property/add  
-        [HttpPost("entity/property/add")]
+        [HttpPost("add")]
         public async Task<ResultViewModel> AddpropertyToEntity([FromBody] PropertyDto property)
         {
             //is valid model
@@ -68,7 +68,7 @@ namespace AutomationEngine.Controllers
         }
 
         // POST: api/property/update  
-        [HttpPost("property/update")]
+        [HttpPost("update")]
         public async Task<ResultViewModel> updatepropertyInEntity([FromBody] PropertyDto property)
         {
             //is valid model
