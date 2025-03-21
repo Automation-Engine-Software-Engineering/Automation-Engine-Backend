@@ -163,6 +163,23 @@ namespace AutomationEngine.Controllers
             return (new ResultViewModel { Data = form, Message = new ValidationDto<Form>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
+        
+        // GET: api/form/{id}  
+        [HttpGet("Preview/{formId}")]
+        public async Task<ResultViewModel> GetFormPreview(int formId)
+        {
+            //is validation model
+            if (formId == 0)
+                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedForm", formId), 500);
+
+            //initial action
+            var formBody = await _formService.GetFormpreview(formId);
+            if (formBody == null)
+                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedNotfound", formId), 500);
+
+            return (new ResultViewModel { Data = formBody, Message = new ValidationDto<string>(true, "Success", "Success", formBody).GetMessage(200), Status = true, StatusCode = 200 });
+        }
+
         // GET: api/form/uploadImage  
         [HttpPost("uploadImage")]
         public async Task<ResultViewModel> UploadImageFormContent(IFormFile image)

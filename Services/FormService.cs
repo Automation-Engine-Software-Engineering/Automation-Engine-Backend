@@ -1,4 +1,5 @@
-﻿using DataLayer.Context;
+﻿using System.Text.RegularExpressions;
+using DataLayer.Context;
 using DataLayer.Models.FormBuilder;
 using DataLayer.Models.TableBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
@@ -23,6 +24,7 @@ namespace Services
         Task<ValidationDto<string>> SaveChangesAsync();
         Task<bool> IsFormExistAsync(int formId);
         Task AddEntitiesToFormAsync(int formId, List<int> entityIds);
+        Task<string> GetFormpreview(int formId);
     }
 
     public class FormService : IFormService
@@ -200,34 +202,78 @@ namespace Services
             return new ValidationDto<Form>(true, "Success", "Success", form);
         }
 
-        // public async Task<Form> GetFormpreview(int formId)
-        // {
-        //     //the sample input
-        //     //<div id="main">
-        //     // <p> بسمه تعالی </p>
-        //     // <p> نام و نام خانوادگی </p>
-        //     // <input type="text" id="10" />
-        //     // <select id="11"> <select>
-        //     //<table id="12" data-table="maghalat" data-filter="name = ali" data-clumns="name,id"><table>
-        //     //</div>
+        public async Task<string> GetFormpreview(int formId)
+        {
+            var form = await _context.Form.FirstOrDefaultAsync(x => x.Id == formId);
+            if (form.HtmlFormBody == null)
+                return "<span>طراحی شده توسط پارسه آذین مبین<span>";
 
-        //     //the sample output
-        //     //<div id="main">
-        //     // <p> بسمه تعالی </p>
-        //     // <p> نام و نام خانوادگی </p>
-        //     //<i class="fas fa-clock"></i>
-        //     // <input type="text" id="10" value="name" tooltype="name fild" required/>
-        //     //<span>pleas file the input</span>
-        //     //<span>invalid data</span>
-        //     // <select id="11">
-        //     //<option>ali-kazemi<option>
-        //     // <select>
-        //     //<table id="12" data-table="maghalat" data-filter="name = ali" data-clumns="name,id"><table>
-        //     //</div>
+            var htmlBody = form.HtmlFormBody.ToString();
+            htmlBody = htmlBody.Replace("disabled", "");
+            htmlBody = htmlBody.Replace("&nbsp;", " ");
 
-        //     var form = await GetFormByIdAsync(formId);
+            var tags = ExtractTagsWithAttributes(htmlBody);
 
-        // }
+            tags.ForEach(async x =>
+            {
+                var tableId = int.Parse(x.FirstOrDefault(x => x.Key == "data-tableid").Value);
+                var table = _context.Entity.FirstOrDefault(x => x.Id == tableId);
+                var commandText = $"SELECT * FROM {table.TableName}";
+                var data = await _dynamicDbContext.ExecuteReaderAsync(commandText);
+
+
+
+                foreach (var item in data.Data)
+                {
+                    var value = x.FirstOrDefault(x => x.Key == "data-condition").Value;
+
+                   string pattern = @"\{\{(.*?)\}\}";
+                    MatchCollection matches = Regex.Matches(value, pattern);
+                    List<string> filter = new List<string>();
+                    foreach (Match match in matches)
+                    {
+                        filter.Add(match.Groups[1].Value);
+                    }
+
+                    filter.ForEach(xxx =>
+                       {
+                           value = value.Replace("{{" + xxx + "}}", item.FirstOrDefault(x => x.Key == xxx).Value.ToString());
+                       });
+
+                    htmlBody = htmlBody.Replace(x.FirstOrDefault(x => x.Key == "tag").Value.ToString(), x.FirstOrDefault(x => x.Key == "tag").Value.ToString() + " " + $"<option value=\"{value}\">{value}</option>");
+                }
+                Console.WriteLine("");
+            });
+
+            return null;
+        }
+
+        private List<Dictionary<string, string>> ExtractTagsWithAttributes(string html)
+        {
+            var tags = new List<Dictionary<string, string>>();
+
+            string pattern = @"<[^>]*(data-tableid|data-condition|data-filter)=""[^""]*""[^>]*>";
+            MatchCollection matches = Regex.Matches(html, pattern);
+
+            foreach (Match match in matches)
+            {
+                var tagInfo = new Dictionary<string, string>
+            {
+                { "tag", match.Value }            };
+
+                string attributePattern = @"\b(data-tableid|data-condition|data-filter)=""([^""]*)""";
+                MatchCollection attributeMatches = Regex.Matches(match.Value, attributePattern);
+
+                foreach (Match attrMatch in attributeMatches)
+                {
+                    tagInfo[attrMatch.Groups[1].Value] = attrMatch.Groups[2].Value;
+                }
+
+                tags.Add(tagInfo);
+            }
+
+            return tags;
+        }
 
         public async Task<ValidationDto<string>> SaveChangesAsync()
         {
