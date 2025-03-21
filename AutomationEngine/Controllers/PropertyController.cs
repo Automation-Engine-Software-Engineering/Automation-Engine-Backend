@@ -41,7 +41,7 @@ namespace AutomationEngine.Controllers
 				throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
 
 
-			var result = new EntityProperty(property.PropertyName, property.PropertyName, property.Description, property.AllowNull, property.DefaultValue, propertyType, entity);
+			var result = new EntityProperty(property.PropertyName, property.PropertyName, property.Description, property.DefaultValue, propertyType, entity);
 
             if (result.Id != 0)
                 throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
@@ -69,7 +69,7 @@ namespace AutomationEngine.Controllers
 
         // POST: api/property/update  
         [HttpPost("update")]
-        public async Task<ResultViewModel> updatePropertyInEntity([FromBody] PropertyDto property)
+        public async Task<ResultViewModel<EntityProperty>> updatePropertyInEntity([FromBody] PropertyDto property)
         {
             //is valid model
             if (property == null)
@@ -82,7 +82,7 @@ namespace AutomationEngine.Controllers
 			if (!Enum.TryParse(property.Type, true, out PropertyType propertyType))
 				throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
 
-			var result = new EntityProperty(property.PropertyName, property.PropertyName, property.Description, property.AllowNull, property.DefaultValue, propertyType, entity);
+			var result = new EntityProperty(property.PropertyName, property.PropertyName, property.Description, property.DefaultValue, propertyType, entity);
 
             if (entity.Id == 0)
                 throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
@@ -103,7 +103,6 @@ namespace AutomationEngine.Controllers
             fetchModel.PreviewName = result.PreviewName;
             fetchModel.PropertyName = result.PropertyName;
             fetchModel.Description = result.Description;
-            fetchModel.AllowNull = result.AllowNull;
             fetchModel.DefaultValue = result.DefaultValue;
             fetchModel.Type = result.Type;
 
@@ -113,7 +112,7 @@ namespace AutomationEngine.Controllers
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
 
-            return (new ResultViewModel { Data = fetchModel, Message = new ValidationDto<EntityProperty>(true, "Success", "Success", fetchModel).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<EntityProperty> { Data = fetchModel, Message = new ValidationDto<EntityProperty>(true, "Success", "Success", fetchModel).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/property/remove  

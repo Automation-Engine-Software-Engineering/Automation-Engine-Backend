@@ -43,7 +43,6 @@ namespace Services
             commandText += property.PropertyName + " " + "@Type ";
             //commandText += "COMMENT" + " " + "@DescriptionValue ";
             commandText += "DEFAULT" + " " + $"'{property.DefaultValue}' ";
-            commandText += "@NullAbleValue";
 
             var parameters = new List<(string ParameterName, string ParameterValue)>();
             parameters.Add(("@DescriptionValue", property.Description));
@@ -91,11 +90,6 @@ namespace Services
                     break;
             }
 
-            if (property.AllowNull)
-                parameters.Add(("@NullAbleValue", "Null"));
-            else
-                parameters.Add(("@NullAbleValue", "NOT NULL"));
-
             //initial action
             await _dynamicDbContext.ExecuteSqlRawAsync(commandText, parameters);
             await _context.Property.AddAsync(property);
@@ -108,18 +102,10 @@ namespace Services
             //create query
             var fetchModel = await _context.Property.Include(x => x.Entity).FirstAsync(x => x.Id == property.Id);
             var commandText = $"ALTER TABLE {fetchModel.Entity.TableName} ALTER COLUMN  {fetchModel.PropertyName} @ColumnType";
-            //commandText += "COMMENT" + " " + "@DescriptionValue ";
-            //commandText += "DEFAULT" + " " + $"{property.DefaultValue} ";
-            commandText += " @NullAbleValue ";
 
             var parameters = new List<(string ParameterName, string ParameterValue)>() {
                ("@DescriptionValue", property.Description) ,
                ("@ColumnType", fetchModel.Type.ToString().Replace("Short", "(50)").Replace("Long", "(max)"))};
-
-            if (property.AllowNull)
-                parameters.Add(("@NullAbleValue", "Null"));
-            else
-                parameters.Add(("@NullAbleValue", "NOT NULL"));
 
             await _dynamicDbContext.ExecuteSqlRawAsync(commandText, parameters);
 
@@ -127,7 +113,6 @@ namespace Services
             fetchModel.PreviewName = property.PreviewName;
             fetchModel.PropertyName = property.PropertyName;
             fetchModel.DefaultValue = property.DefaultValue;
-            fetchModel.AllowNull = property.AllowNull;
 
             _context.Property.Update(fetchModel);
         }
@@ -195,7 +180,6 @@ namespace Services
             if (property.PreviewName.IsNullOrEmpty() || !property.PreviewName.IsValidString()) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyPreviewName", property);
             if (property.PropertyName.IsNullOrEmpty() || !property.PropertyName.IsValidStringCommand()) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyPropertyName", property);
             if (property.Type == null || property.Type.GetType() != new PropertyType().GetType()) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyType", property);
-            if (property.AllowNull == null) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyAllowNull", property);
             return new ValidationDto<EntityProperty>(true, "Success", "Success", property);
         }
 

@@ -14,7 +14,6 @@ namespace ViewModels.ViewModels.Entity
         public string? PropertyName { get; set; }
         public string? Description { get; set; }
         public string Type { get; set; } = "1";
-        public bool AllowNull { get; set; } = true;
         public string? DefaultValue { get; set; } = "مقدار فیلد را وارد کنید";
         public int? EntityId { get; set; }
     }

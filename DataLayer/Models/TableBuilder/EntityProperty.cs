@@ -7,12 +7,11 @@ namespace DataLayer.Models.TableBuilder
     [Description("The column of each table (entity)")]
     public class EntityProperty
     {
-        public EntityProperty(string previewName, string propertyName, string description, bool allowNull, string defaultValue, PropertyType type, Entity? entity)
+        public EntityProperty(string previewName, string propertyName, string description, string defaultValue, PropertyType type, Entity? entity)
         {
             this.PreviewName = previewName;
             this.PropertyName = propertyName;
             this.Description = description;
-            this.AllowNull = allowNull;
             this.DefaultValue = defaultValue;
             this.Type = type;
             this.Entity = entity;
@@ -25,7 +24,6 @@ namespace DataLayer.Models.TableBuilder
         public string PreviewName { get; set; }  // For preview (each language)
         public string PropertyName { get; set; } // Database name (en, -, and _)
         public string? Description { get; set; }
-        public bool AllowNull { get; set; } = true;
         public string? DefaultValue { get; set; }
         public string? IsRequiredErrorMessage { get; set; }
         public string? DefaultErrorMessage { get; set; }
