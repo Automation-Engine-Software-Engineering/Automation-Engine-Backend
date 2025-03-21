@@ -5,6 +5,7 @@ using DataLayer.Models.TableBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Tools.TextTools;
 
 namespace Services
@@ -20,21 +21,23 @@ namespace Services
         Task<ListDto<Form>> GetAllFormsAsync(int pageSize, int pageNumber);
         Task UpdateFormBodyAsync(int formId, string htmlContent);
         Task SetTheParameter(List<(int entityId, int propertyId, object value)> data);
+        Task<string> GetFormpreview(int formId);
         Task<ValidationDto<Form>> FormValidationAsync(Form form);
         Task<ValidationDto<string>> SaveChangesAsync();
         Task<bool> IsFormExistAsync(int formId);
         Task AddEntitiesToFormAsync(int formId, List<int> entityIds);
-        Task<string> GetFormpreview(int formId);
     }
 
     public class FormService : IFormService
     {
         private readonly Context _context;
         private readonly DynamicDbContext _dynamicDbContext;
-        public FormService(Context context, DynamicDbContext dynamicDbContext)
+        private readonly IHtmlService _htmlService;
+        public FormService(Context context, DynamicDbContext dynamicDbContext, IHtmlService htmlService)
         {
             _context = context;
             _dynamicDbContext = dynamicDbContext;
+            _htmlService = htmlService;
         }
 
         public async Task CreateFormAsync(Form form)
@@ -121,7 +124,6 @@ namespace Services
                 .ToList(); // Retain only entities matching the provided IDs
 
         }
-
         public async Task<bool> IsFormExistAsync(int formId)
         {
             //check model exist
@@ -141,7 +143,6 @@ namespace Services
 
             return new ListDto<Form>(result, count, pageSize, pageNumber);
         }
-
         public async Task UpdateFormBodyAsync(int formId, string htmlContent)
         {
             //initialize model
@@ -152,7 +153,6 @@ namespace Services
 
             await UpdateFormAsync(fetchModel);
         }
-
         public async Task SetTheParameter(List<(int entityId, int propertyId, object value)> data)
         {
             var entityIds = new List<int>();
@@ -192,16 +192,6 @@ namespace Services
                 _dynamicDbContext.ExecuteSqlRawAsync(query);
             });
         }
-
-        public async Task<ValidationDto<Form>> FormValidationAsync(Form form)
-        {
-            if (form == null) return new ValidationDto<Form>(false, "Form", "CorruptedForm", form);
-            if (form.Name == null || !form.Name.IsValidString()) return new ValidationDto<Form>(false, "Form", "CorruptedFormName", form);
-            if (form.SizeWidth == 0) return new ValidationDto<Form>(false, "Form", "CorruptedFormSize", form);
-            if (form.SizeHeight == 0 ^ form.IsAutoHeight) return new ValidationDto<Form>(false, "Form", "CorruptedFormSize", form);
-            return new ValidationDto<Form>(true, "Success", "Success", form);
-        }
-
         public async Task<string> GetFormpreview(int formId)
         {
             var form = await _context.Form.FirstOrDefaultAsync(x => x.Id == formId);
@@ -212,69 +202,51 @@ namespace Services
             htmlBody = htmlBody.Replace("disabled", "");
             htmlBody = htmlBody.Replace("&nbsp;", " ");
 
-            var tags = ExtractTagsWithAttributes(htmlBody);
+            string tagName = "select";
+            var attributes = new List<string> { "data-tableid", "data-condition", "data-filter" };
+            var tags = await _htmlService.FindeHtmlTag(htmlBody, tagName, attributes);
 
-            tags.ForEach(async x =>
+            foreach (var tag in tags)
             {
-                var tableId = int.Parse(x.FirstOrDefault(x => x.Key == "data-tableid").Value);
-                var table = _context.Entity.FirstOrDefault(x => x.Id == tableId);
-                var commandText = $"SELECT * FROM {table.TableName}";
-                var data = await _dynamicDbContext.ExecuteReaderAsync(commandText);
+                var tableId = await _htmlService.getTagAttributesValue(tag, "data-tableid");
+                var condition = await _htmlService.getTagAttributesValue(tag, "data-condition");
+                var filter = await _htmlService.getTagAttributesValue(tag, "data-filter");
 
+                var table = _context.Entity.FirstOrDefault(x => x.Id == int.Parse(tableId));
+                var query = $"select * from {table.TableName}";
+                var data = await _dynamicDbContext.ExecuteReaderAsync(query);
 
-
-                foreach (var item in data.Data)
+                if (data != null || data.TotalCount != 0)
                 {
-                    var value = x.FirstOrDefault(x => x.Key == "data-condition").Value;
+                    var childTags = new List<string>();
+                    var values = await _htmlService.getAttributeConditionValues(condition);
 
-                   string pattern = @"\{\{(.*?)\}\}";
-                    MatchCollection matches = Regex.Matches(value, pattern);
-                    List<string> filter = new List<string>();
-                    foreach (Match match in matches)
+                    foreach (var item in data.Data)
                     {
-                        filter.Add(match.Groups[1].Value);
+                        var textValue = condition;
+                        foreach (var value in values)
+                        {
+                            textValue = textValue.Replace("{{" + value + "}}", item.FirstOrDefault(x => x.Key == value).Value.ToString());
+                        }
+
+                        var childTag = $"<option>{textValue}</option>";
+                        childTags.Add(childTag);
                     }
 
-                    filter.ForEach(xxx =>
-                       {
-                           value = value.Replace("{{" + xxx + "}}", item.FirstOrDefault(x => x.Key == xxx).Value.ToString());
-                       });
-
-                    htmlBody = htmlBody.Replace(x.FirstOrDefault(x => x.Key == "tag").Value.ToString(), x.FirstOrDefault(x => x.Key == "tag").Value.ToString() + " " + $"<option value=\"{value}\">{value}</option>");
+                    var newTag = await _htmlService.InsertTag(tag, childTags);
+                    htmlBody = htmlBody.Replace(tag, newTag);
                 }
-                Console.WriteLine("");
-            });
-
-            return null;
-        }
-
-        private List<Dictionary<string, string>> ExtractTagsWithAttributes(string html)
-        {
-            var tags = new List<Dictionary<string, string>>();
-
-            string pattern = @"<[^>]*(data-tableid|data-condition|data-filter)=""[^""]*""[^>]*>";
-            MatchCollection matches = Regex.Matches(html, pattern);
-
-            foreach (Match match in matches)
-            {
-                var tagInfo = new Dictionary<string, string>
-            {
-                { "tag", match.Value }            };
-
-                string attributePattern = @"\b(data-tableid|data-condition|data-filter)=""([^""]*)""";
-                MatchCollection attributeMatches = Regex.Matches(match.Value, attributePattern);
-
-                foreach (Match attrMatch in attributeMatches)
-                {
-                    tagInfo[attrMatch.Groups[1].Value] = attrMatch.Groups[2].Value;
-                }
-
-                tags.Add(tagInfo);
             }
-
-            return tags;
+            return htmlBody;
         }
-
+        public async Task<ValidationDto<Form>> FormValidationAsync(Form form)
+        {
+            if (form == null) return new ValidationDto<Form>(false, "Form", "CorruptedForm", form);
+            if (form.Name == null || !form.Name.IsValidString()) return new ValidationDto<Form>(false, "Form", "CorruptedFormName", form);
+            if (form.SizeWidth == 0) return new ValidationDto<Form>(false, "Form", "CorruptedFormSize", form);
+            if (form.SizeHeight == 0 ^ form.IsAutoHeight) return new ValidationDto<Form>(false, "Form", "CorruptedFormSize", form);
+            return new ValidationDto<Form>(true, "Success", "Success", form);
+        }
         public async Task<ValidationDto<string>> SaveChangesAsync()
         {
             try

@@ -165,7 +165,7 @@ namespace AutomationEngine.Controllers
 
         
         // GET: api/form/{id}  
-        [HttpGet("Preview/{formId}")]
+        [HttpGet("preview")]
         public async Task<ResultViewModel> GetFormPreview(int formId)
         {
             //is validation model

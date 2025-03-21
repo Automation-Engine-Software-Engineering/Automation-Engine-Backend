@@ -37,6 +37,8 @@ builder.Services.AddScoped<IPropertyService, PropertyService>();
 builder.Services.AddScoped<IWorkFlowService, WorkFlowService>();
 builder.Services.AddScoped<IWorkFlowUserService, WorkFlowUserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IHtmlService, HtmlService>();
+
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

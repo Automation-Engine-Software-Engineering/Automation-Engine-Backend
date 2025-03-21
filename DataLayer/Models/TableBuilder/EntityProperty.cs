@@ -26,9 +26,9 @@ namespace DataLayer.Models.TableBuilder
         public string? Description { get; set; }
         public string? DefaultValue { get; set; }
         public string? IsRequiredErrorMessage { get; set; }
-        public string? DefaultErrorMessage { get; set; }
-        public string? ToolType { get; set; }
-        public string? IconClass { get; set; }
+        public string? DefaultErrorMessage { get; set; } = null;
+        public string? ToolType { get; set; } = null;
+        public string? IconClass { get; set; } = null;
 
         #region Relations
         public PropertyType Type { get; set; }
