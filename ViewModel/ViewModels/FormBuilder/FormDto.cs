@@ -19,7 +19,6 @@ namespace ViewModels.ViewModels.FormBuilder
     }
     public class UpdateFormInputModel
     {
-        public int Id { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
         public double? SizeWidth { get; set; }
@@ -29,6 +28,5 @@ namespace ViewModels.ViewModels.FormBuilder
         public IFormFile? BackgroundImg { get; set; }
         public bool? IsRepeatedImage { get; set; }
         public string? HtmlFormBody { get; set; }
-        public IEnumerable<int>? Entities { get; set; }
     }
 }

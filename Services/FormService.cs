@@ -22,7 +22,7 @@ namespace Services
         Task<ValidationDto<Form>> FormValidationAsync(Form form);
         Task<ValidationDto<string>> SaveChangesAsync();
         Task<bool> IsFormExistAsync(int formId);
-        Task AddEntitiesToFormAsync(int formId, List<int> entityIds);
+        Task AddEntitiesToFormAsync(int formId, IEnumerable<int> entityIds);
     }
 
     public class FormService : IFormService
@@ -90,34 +90,29 @@ namespace Services
             //return model
             return fetchModel;
         }
-        public async Task AddEntitiesToFormAsync(int formId, List<int> entityIds)
+
+        public async Task AddEntitiesToFormAsync(int formId, IEnumerable<int> entityIds)
         {
             // Find the Form
             var form = await _context.Form
-                .Include(f => f.Entities) // Load related entities
+                .Include(f => f.Entities)
                 .FirstOrDefaultAsync(f => f.Id == formId);
 
-            if (form == null)
-                throw new CustomException<Form>(new ValidationDto<Form>(false, "Form", "FormNotFound", form), 404);
+            //var entities = 
+            //    .Where(e => entityIds.Contains(e.Id))
+            //    .ToListAsync();
 
-            // Find the Entities based on the provided list of IDs
-            var entities = await _context.Entity
+            // Add new Entities 
+            var newEntities = await _context.Entity
                 .Where(e => entityIds.Contains(e.Id))
                 .ToListAsync();
 
-            // Add new Entities that are not already in the form's entity list
-            var newEntities = entities
-                .Where(e => !form.Entities.Any(existing => existing.Id == e.Id))
-                .ToList();
+            form?.Entities?.AddRange(newEntities);
 
-            if (newEntities.Any())
-                form.Entities.AddRange(newEntities); // Add the new entities
-
-            // Remove Entities that are not in the provided entityIds
-            form.Entities = form.Entities
+            // Remove Entities 
+            form.Entities = form.Entities?
                 .Where(e => entityIds.Contains(e.Id))
-                .ToList(); // Retain only entities matching the provided IDs
-
+                .ToList();
         }
 
         public async Task<bool> IsFormExistAsync(int formId)

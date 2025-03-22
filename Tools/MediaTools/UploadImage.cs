@@ -16,7 +16,7 @@ namespace Tools
             ValidationFile.ValidateImageFile(file,20.ToMB());
             var fileName = await FileTool.UploadFileWithUniqueName(file,DirectoryTool.FormContentPath.GetFullPath());
 
-            return Path.Combine(DirectoryTool.FormContentPath, fileName);
+            return "\\"+ Path.Combine(DirectoryTool.FormContentPath, fileName);
         }
         public static async Task<string?> UploadFormBackgroundImage(IFormFile? file)
         {
@@ -25,7 +25,7 @@ namespace Tools
             ValidationFile.ValidateImageFile(file, 20.ToMB());
             var fileName = await FileTool.UploadFileWithUniqueName(file, DirectoryTool.FormBackgroundImagePath.GetFullPath());
 
-            return Path.Combine(DirectoryTool.FormBackgroundImagePath, fileName);
+            return "\\" + Path.Combine(DirectoryTool.FormBackgroundImagePath, fileName);
         }
     }
 }
