@@ -213,7 +213,7 @@ namespace Services
                 var filter = await _htmlService.getTagAttributesValue(tag, "data-filter");
 
                 var table = _context.Entity.FirstOrDefault(x => x.Id == int.Parse(tableId));
-                var query = $"select * from {table.TableName}";
+                var query = $"select * from {table.TableName} where" + filter;
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
 
                 if (data != null || data.TotalCount != 0)
@@ -229,7 +229,7 @@ namespace Services
                             textValue = textValue.Replace("{{" + value + "}}", item.FirstOrDefault(x => x.Key == value).Value.ToString());
                         }
 
-                        var childTag = $"<option>{textValue}</option>";
+                        var childTag = $"<option value=\"textValue\">{textValue}</option>";
                         childTags.Add(childTag);
                     }
 
@@ -237,6 +237,48 @@ namespace Services
                     htmlBody = htmlBody.Replace(tag, newTag);
                 }
             }
+
+            tagName = "table";
+            attributes = new List<string> { "data-tableid", "data-condition", "data-filter" };
+            tags = await _htmlService.FindeHtmlTag(htmlBody, tagName, attributes);
+
+            foreach (var tag in tags)
+            {
+                var tableId = await _htmlService.getTagAttributesValue(tag, "data-tableid");
+                var condition = await _htmlService.getTagAttributesValue(tag, "data-condition");
+                var filter = await _htmlService.getTagAttributesValue(tag, "data-filter");
+
+                var table = _context.Entity.FirstOrDefault(x => x.Id == int.Parse(tableId));
+                var query = $"select " + condition + " from {table.TableName} where" + filter;
+                var data = await _dynamicDbContext.ExecuteReaderAsync(query);
+
+                if (data != null || data.TotalCount != 0)
+                {
+                    var childTags = new List<string>();
+                    string header = "<tr>";
+                    foreach (var item in condition.Split(",").ToList())
+                    {
+                        header += $"<th>{item}</th>";
+                    }
+                    header += "</tr>";
+                    childTags.Add(header);
+
+                    foreach (var item in data.Data)
+                    {
+                        string body = "<tr>";
+                        foreach (var item2 in condition.Split(",").ToList())
+                        {
+                            body += $"<td>{item.GetValueOrDefault(item2)}</td>";
+                        }
+                        body += "</tr>";
+                        childTags.Add(body);
+                    }
+
+                    var newTag = await _htmlService.InsertTag(tag, childTags);
+                    htmlBody = htmlBody.Replace(tag, newTag);
+                }
+            }
+
             return htmlBody;
         }
         public async Task<ValidationDto<Form>> FormValidationAsync(Form form)
