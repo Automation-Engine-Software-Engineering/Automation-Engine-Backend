@@ -97,7 +97,7 @@ namespace AutomationEngine.Controllers
         }
 
         // POST: api/form/{formId}/updateEntities
-        [HttpPost("{formId}/updateEntities")]
+        [HttpPost("entities")]
         public async Task<ResultViewModel> UpdateFormEntities(IEnumerable<int>? Entities, int formId)
         {
             if (formId == 0)
