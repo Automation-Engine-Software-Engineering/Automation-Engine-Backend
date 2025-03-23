@@ -17,7 +17,7 @@ namespace FrameWork.Model.DTO
         public bool IsSuccess;
         public string Parent;
         public string MessageName;
-        public static T? Value ;
+        public static T? Value;
 
         public string GetMessage(int statusId)
         {

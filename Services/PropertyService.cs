@@ -43,6 +43,7 @@ namespace Services
             commandText += property.PropertyName + " " + "@Type ";
             //commandText += "COMMENT" + " " + "@DescriptionValue ";
             commandText += "DEFAULT" + " " + $"'{property.DefaultValue}' ";
+            commandText += " NULL";
 
             var parameters = new List<(string ParameterName, string ParameterValue)>();
             parameters.Add(("@DescriptionValue", property.Description));
@@ -101,7 +102,7 @@ namespace Services
 
             //create query
             var fetchModel = await _context.Property.Include(x => x.Entity).FirstAsync(x => x.Id == property.Id);
-            var commandText = $"ALTER TABLE {fetchModel.Entity.TableName} ALTER COLUMN  {fetchModel.PropertyName} @ColumnType";
+            var commandText = $"ALTER TABLE {fetchModel.Entity.TableName} ALTER COLUMN  {fetchModel.PropertyName} @ColumnType  NULL";
 
             var parameters = new List<(string ParameterName, string ParameterValue)>() {
                ("@DescriptionValue", property.Description) ,

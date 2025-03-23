@@ -22,12 +22,12 @@ builder.Services.AddSwaggerGen();
 //Add-Migration InitialCreate -Context Context
 //Update-Database InitialCreate -Context Context
 builder.Services.AddDbContext<Context>(options =>
-           options.UseSqlServer(builder.Configuration.GetConnectionString("Basic")));
+           options.UseSqlServer(builder.Configuration.GetConnectionString("BasicServer")));
 
 //Add-Migration InitialCreate -Context DynamicDbContext
 //Update-Database InitialCreate -Context DynamicDbContext
 builder.Services.AddDbContext<DynamicDbContext>(options =>
-           options.UseSqlServer(builder.Configuration.GetConnectionString("Dynamic")));
+           options.UseSqlServer(builder.Configuration.GetConnectionString("DynamicServer")));
            
 builder.Services.AddScoped<Context>();
 builder.Services.AddScoped<DynamicDbContext>();
@@ -37,6 +37,8 @@ builder.Services.AddScoped<IPropertyService, PropertyService>();
 builder.Services.AddScoped<IWorkFlowService, WorkFlowService>();
 builder.Services.AddScoped<IWorkFlowUserService, WorkFlowUserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IHtmlService, HtmlService>();
+
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
