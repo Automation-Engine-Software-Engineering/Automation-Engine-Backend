@@ -19,7 +19,6 @@ namespace DataLayer.Context
         #endregion
 
         public DbSet<WorkFlow> WorkFlow { get; set; }
-        public DbSet<Edge> Edge { get; set; }
         public DbSet<Node> Node { get; set; }
         public DbSet<WorkFlow_User> WorkFlow_User { get; set; }
         public DbSet<Role_WorkFlow> Role_WorkFlows { get; set; }
