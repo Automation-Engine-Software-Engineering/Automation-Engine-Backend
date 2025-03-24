@@ -208,7 +208,8 @@ namespace Services
                 var filter = await _htmlService.getTagAttributesValue(tag, "data-filter");
 
                 var table = _context.Entity.FirstOrDefault(x => x.Id == int.Parse(tableId));
-                var query = $"select * from {table.TableName} where" + filter;
+                // var query = $"select * from {table.TableName} where" + filter;
+                var query = $"select * from {table.TableName}" ;
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
 
                 if (data != null || data.TotalCount != 0)
@@ -236,15 +237,17 @@ namespace Services
             tagName = "table";
             attributes = new List<string> { "data-tableid", "data-condition", "data-filter" };
             tags = await _htmlService.FindeHtmlTag(htmlBody, tagName, attributes);
-
             foreach (var tag in tags)
             {
-                var tableId = await _htmlService.getTagAttributesValue(tag, "data-tableid");
+               // var tableId = await _htmlService.getTagAttributesValue(tag, "data-tableid");
+
                 var condition = await _htmlService.getTagAttributesValue(tag, "data-condition");
+                condition = condition.Replace("{{", "");
+                condition = condition.Replace("}}", "");
                 var filter = await _htmlService.getTagAttributesValue(tag, "data-filter");
 
-                var table = _context.Entity.FirstOrDefault(x => x.Id == int.Parse(tableId));
-                var query = $"select " + condition + " from {table.TableName} where" + filter;
+                var table = _context.Entity.FirstOrDefault(x => x.Id == int.Parse(filter));
+                var query = $"select " + condition + $" from {table.TableName}";
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
 
                 if (data != null || data.TotalCount != 0)
@@ -263,7 +266,7 @@ namespace Services
                         string body = "<tr>";
                         foreach (var item2 in condition.Split(",").ToList())
                         {
-                            body += $"<td>{item.GetValueOrDefault(item2)}</td>";
+                            body += $"<td>{item.GetValueOrDefault(item2.Replace(" " , ""))}</td>";
                         }
                         body += "</tr>";
                         childTags.Add(body);
