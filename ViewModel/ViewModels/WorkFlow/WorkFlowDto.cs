@@ -1,11 +1,4 @@
-﻿using DataLayer.Models.WorkFlow;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ViewModels.ViewModels.WorkFlow
+﻿namespace ViewModels.ViewModels.WorkFlow
 {
     public class WorkFlowDto
     {
@@ -18,29 +11,26 @@ namespace ViewModels.ViewModels.WorkFlow
     }
     public class NodeDto
     {
-        public string id { get; set; }
-        public position position { get; set; }
-        public Data data { get; set; }
-        public string Type { get; set; }
+        public string Id { get; set; }
+        public position Position { get; set; }
+        public Data Data { get; set; }
+        public int Type { get; set; }
     }
     public class Data
     {
-        public int Icon { get; set; }
+        public string Icon { get; set; }
         public string Name { get; set; }
-        public string Type { get; set; }
-        public int TypeId { get; set; }
-
     }
-
     public class position
     {
         public float X { get; set; }
         public float Y { get; set; }
-
+        public float Width { get; set; }
+        public float Height { get; set; }
     }
     public class EdgeDto
     {
-        public string id { get; set; }
+        public string Id { get; set; }
         public string Source { get; set; }
         public string SourceHandle { get; set; }
         public string Target { get; set; }

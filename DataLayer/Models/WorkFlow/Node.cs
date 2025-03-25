@@ -13,20 +13,20 @@ namespace DataLayer.Models.WorkFlow
         public string Name { get; set; }
         public float X { get; set; }
         public float Y { get; set; }
-        public int Width { get; set; }
-        public int Height { get; set; }
+        public float Width { get; set; }
+        public float Height { get; set; }
 
         #region relation
         public int? FormId { get; set; }
         [ForeignKey(nameof(FormId))]
         public Form Form { get; set; }
 
-        public int? LastNodeId { get; set; }
+        public string? LastNodeId { get; set; }
         [ForeignKey(nameof(LastNodeId))]
         public Node LastNode { get; set; }
 
 
-        public int? NextNodeId { get; set; }
+        public string? NextNodeId { get; set; }
         [ForeignKey(nameof(NextNodeId))]
         public Node NextNode { get; set; }
         #endregion
@@ -34,6 +34,6 @@ namespace DataLayer.Models.WorkFlow
 
     public enum UnknownType
     {
-        form = 1, Dynamic = 2
+        form = 1, dynamic = 2
     }
 }

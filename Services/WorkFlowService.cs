@@ -15,6 +15,7 @@ namespace Services
         Task<ListDto<WorkFlow>> GetAllWorFlowsAsync(int pageSize, int pageNumber);
         Task<ValidationDto<WorkFlow>> WorkFlowValidationAsync(WorkFlow workFlow);
         Task<ValidationDto<string>> SaveChangesAsync();
+        Task<bool> IsWorkflowExistAsync(int formId);
     }
     public class WorkFlowService : IWorkFlowService
     {
@@ -90,6 +91,14 @@ namespace Services
             {
                 return new ValidationDto<string>(false, "Workflow", "CorruptedWorkflow", ex.Message);
             }
+        }
+        public async Task<bool> IsWorkflowExistAsync(int workflowId)
+        {
+            //check model exist
+            var isExist = await _context.WorkFlow.AnyAsync(x => x.Id == workflowId);
+
+            //return model
+            return isExist;
         }
     }
 }

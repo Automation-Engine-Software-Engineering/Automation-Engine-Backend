@@ -21,22 +21,22 @@
         "CorruptedFormSize": "خطا در ابعاد فرم وجود دارد",
         "CorruptedNotfound": "فرم یافت نشد",
         "CorruptedInvalidPage": "تعداد صفحات نا معتبر"
-
       },
       "Workflow": {
         "CorruptedWorkflow": "خطا در اطلاعات گردشکار وجود دارد",
         "CorruptedWorkflowName": "خطا در نام گردشکار وجود دارد",
-        "CorruptedWorkflowDes": "خطا در توضیحات گردشکار وجود دارد"
-      }, 
+        "CorruptedWorkflowDes": "خطا در توضیحات گردشکار وجود دارد",
+        "NoWorkflowFound": "گردشکار یافت نشد"
+      },
       "File": {
         "FileSize": "حجم فایل آپلود شده بیشتر از مقدار تعیین شده است",
         "FileType": "پسوند فایل آپلود شده معتبر نمی باشد",
         "CorruptedFile": "فایل آپلود شده معتبر نمی باشد"
       },
       "Defult": {
-        "CorruptedStringQuery" : "خظا در نوشتار دستور وجود دارد",
-        "CorruptedStringCommand" : "خظا در نوشتار دستور وجود دارد",
-        "CorruptedString" : "خظا در نوشتار وجود دارد"
+        "CorruptedStringQuery": "خظا در نوشتار دستور وجود دارد",
+        "CorruptedStringCommand": "خظا در نوشتار دستور وجود دارد",
+        "CorruptedString": "خظا در نوشتار وجود دارد"
       }
     },
     "Warning": {},

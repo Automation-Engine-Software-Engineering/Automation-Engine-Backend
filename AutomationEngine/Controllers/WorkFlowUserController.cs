@@ -5,6 +5,8 @@ using ViewModels;
 using DataLayer.Models.WorkFlow;
 using Services;
 using ViewModels.ViewModels.WorkFlow;
+using FrameWork.ExeptionHandler.ExeptionModel;
+using FrameWork.Model.DTO;
 
 namespace AutomationEngine.Controllers
 {
@@ -15,7 +17,7 @@ namespace AutomationEngine.Controllers
         private readonly IWorkFlowUserService _WorkFlowUserService;
         private readonly IWorkFlowService _workFlowService;
 
-        public WorkFlowUserController(IWorkFlowUserService WorkFlowUserService , IWorkFlowService workFlowService)
+        public WorkFlowUserController(IWorkFlowUserService WorkFlowUserService, IWorkFlowService workFlowService)
         {
             _WorkFlowUserService = WorkFlowUserService;
             _workFlowService = workFlowService;
@@ -24,7 +26,7 @@ namespace AutomationEngine.Controllers
         [HttpPost("create")]
         public async Task<ResultViewModel> CreateWorkFlowUser([FromBody] WorkFlowUserDto WorkFlowUser)
         {
-            var WorkFlow =await _workFlowService.GetWorFlowById(WorkFlowUser.WorkFlowId);
+            var WorkFlow = await _workFlowService.GetWorFlowByIdAsync(WorkFlowUser.WorkFlowId);
             var result = new WorkFlow_User()
             {
                 UserId = WorkFlowUser.UserId,
@@ -41,7 +43,7 @@ namespace AutomationEngine.Controllers
         [HttpPost("update")]
         public async Task<ResultViewModel> UpdateWorkFlowUser([FromBody] WorkFlowUserDto WorkFlowUser)
         {
-            var WorkFlow = await _workFlowService.GetWorFlowById(WorkFlowUser.WorkFlowId);
+            var WorkFlow = await _workFlowService.GetWorFlowByIdAsync(WorkFlowUser.WorkFlowId);
             var result = new WorkFlow_User()
             {
                 Id = WorkFlowUser.Id,
@@ -66,9 +68,19 @@ namespace AutomationEngine.Controllers
 
         // GET: api/form/all  
         [HttpGet("all")]
-        public async Task<ResultViewModel> GetAllWorkFlowUser()
+        public async Task<ResultViewModel> GetAllWorkFlowUser(int pageSize, int pageNumber)
         {
-            var forms = await _WorkFlowUserService.GetAllWorFlowUsers();
+            if (pageSize > 100)
+                pageSize = 100;
+            if (pageNumber < 1)
+                pageNumber = 1;
+
+            var forms = await _WorkFlowUserService.GetAllWorFlowUsers(pageSize, pageNumber);
+
+            //is valid data
+            if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
+                throw new CustomException<ListDto<WorkFlow_User>>(new ValidationDto<ListDto<WorkFlow_User>>(false, "Form", "CorruptedInvalidPage", forms), 500);
+
             return (new ResultViewModel { Data = forms, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 
