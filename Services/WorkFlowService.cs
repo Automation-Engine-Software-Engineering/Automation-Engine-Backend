@@ -1,30 +1,20 @@
 ﻿using DataLayer.Context;
-using DataLayer.Models.FormBuilder;
-using DataLayer.Models.TableBuilder;
 using DataLayer.Models.WorkFlow;
-using FrameWork.ExeptionHandler.ExeptionModel;
+using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Tools.TextTools;
-using ViewModels.ViewModels.Unknown;
 
 namespace Services
 {
     public interface IWorkFlowService
     {
-        Task InsertWorFlow(WorkFlow workFlow);
-        Task UpdateWorFlow(WorkFlow workFlow);
-        Task DeleteWorFlow(int id);
-        Task<WorkFlow> GetWorFlowById(int id);
-        Task<List<WorkFlow>> GetAllWorFlows();
-        Task<UnknownDto> GetWorFlowValueById(int id , int userId);
-        Task<UnknownDto> GetNextWorFlowValueById(int id, int userId);
-        Task<UnknownDto> GetLastWorFlowValueById(int id, int userId);
-        Task SaveChangesAsync();
+        Task InsertWorFlowAsync(WorkFlow workFlow);
+        Task UpdateWorFlowAsync(WorkFlow workFlow);
+        Task DeleteWorFlowAsync(int id);
+        Task<WorkFlow> GetWorFlowByIdAsync(int id);
+        Task<ListDto<WorkFlow>> GetAllWorFlowsAsync(int pageSize, int pageNumber);
+        Task<ValidationDto<WorkFlow>> WorkFlowValidationAsync(WorkFlow workFlow);
+        Task<ValidationDto<string>> SaveChangesAsync();
     }
     public class WorkFlowService : IWorkFlowService
     {
@@ -33,168 +23,72 @@ namespace Services
         {
             _context = context;
         }
-        
-        public async Task DeleteWorFlow(int id)
+
+        public async Task DeleteWorFlowAsync(int id)
         {
-            if (id == null) throw new CustomException("گردشکار معتبر نمی باشد");
+            //initialize model
+            var result = await _context.WorkFlow.FirstAsync(x => x.Id == id);
 
-            var result = _context.WorkFlow.FirstOrDefault(x => x.Id == id)
-                  ?? throw new CustomException("گردشکار یافت نشد.");
 
+            //remove form
             _context.Remove(result);
         }
 
-        public async Task<List<WorkFlow>> GetAllWorFlows()
+        public async Task<ListDto<WorkFlow>> GetAllWorFlowsAsync(int pageSize, int pageNumber)
         {
-            var result = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges).ToList();
+            //create query
+            var query = _context.WorkFlow.Include(x => x.Nodes);
+
+            //get Value and count
+            var count = query.Count();
+            var result = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            return new ListDto<WorkFlow>(result, count, pageSize, pageNumber);
+
+        }
+
+        public async Task<WorkFlow> GetWorFlowByIdAsync(int id)
+        {
+            var result = await _context.WorkFlow.Include(x => x.Nodes).FirstAsync(x => x.Id == id);
             return result;
         }
 
-        public async Task<UnknownDto> GetLastWorFlowValueById(int idWorkflowUser, int userId)
+        public async Task InsertWorFlowAsync(WorkFlow workFlow)
         {
-            if (idWorkflowUser == null) throw new CustomException("گردشکار معتبر نمی باشد");
-
-            var userWorkFlow = _context.WorkFlow_User.FirstOrDefault(x => x.Id == idWorkflowUser && x.UserId == userId)
-               ?? throw new CustomException("گردشکار یافت نشد.");
-
-            var workflow = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges)
-                .FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowId)
-               ?? throw new CustomException("گردشکار با خطا مواجه شد.");
-
-            var result = workflow.Nodes.FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowState)
-                ?? throw new CustomException("گردشکار با خطا مواجه شد.");
-
-            var lastEdge = workflow.Edges.FirstOrDefault(x => x.Target == result.Id)
-                ?? throw new CustomException("گردشکار با خطا مواجه شد.");
-
-            var LastNode = workflow.Nodes.FirstOrDefault(x => x.Id == lastEdge.Source)
-                ?? throw new CustomException("گردشکار با خطا مواجه شد.");
-
-            return new UnknownDto()
-            {
-                Type = LastNode.Type,
-                DataId = LastNode.Type == UnknownType.form ? LastNode.formId :
-                result.Type == UnknownType.table ?  result.entityId: 0
-            };
-        }
-        public async Task<UnknownDto> GetWorFlowValueById(int idWorkflowUser , int userId)
-        {
-            if (idWorkflowUser == null) throw new CustomException("گردشکار معتبر نمی باشد");
-
-            var userWorkFlow = _context.WorkFlow_User.FirstOrDefault(x => x.WorkFlowId == idWorkflowUser && x.UserId == userId)
-               ?? throw new CustomException("گردشکار یافت نشد.");
-
-            var workflow = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges)
-                .FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowId)
-               ?? throw new CustomException("گردشکار یافت نشد.");
-
-            var result = workflow.Nodes.FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowState)
-                ?? throw new CustomException("گردشکار یافت نشد.");
-
-            return new UnknownDto()
-            {
-                Type = result.Type,
-                DataId = result.Type == UnknownType.form ?  result.formId:
-                result.Type == UnknownType.table ? result.entityId : 0
-            };
-        }
-
-        public async Task<UnknownDto> GetNextWorFlowValueById(int idWorkflowUser, int userId)
-        {
-            if (idWorkflowUser == null) throw new CustomException("گردشکار معتبر نمی باشد");
-
-            var userWorkFlow = _context.WorkFlow_User.FirstOrDefault(x => x.Id == idWorkflowUser && x.UserId == userId)
-               ?? throw new CustomException("گردشکار یافت نشد.");
-
-            var workflow = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges)
-                .FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowId)
-               ?? throw new CustomException("گردشکار با خطا مواجه شد.");
-
-            var result = workflow.Nodes.FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowState)
-                ?? throw new CustomException("گردشکار با خطا مواجه شد.");
-
-            var NextEdge = workflow.Edges.FirstOrDefault(x => x.Source == result.Id)
-                ?? throw new CustomException("گردشکار با خطا مواجه شد.");
-
-            var NextNode = workflow.Nodes.FirstOrDefault(x => x.Id == NextEdge.Target)
-                ?? throw new CustomException("گردشکار با خطا مواجه شد.");
-
-            return new UnknownDto()
-            {
-                Type = NextNode.Type,
-                DataId = NextNode.Type == UnknownType.form ?  NextNode.formId:
-                NextNode.Type == UnknownType.table ? NextNode.entityId : 0
-            };
-        }
-
-        public async Task<WorkFlow> GetWorFlowById(int id)
-        {
-            if (id == null) throw new CustomException("گردشکار معتبر نمی باشد");
-            var result = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges).FirstOrDefault(x => x.Id == id)
-               ?? throw new CustomException("گردشکار یافت نشد.");
-
-            return result;
-        }
-
-        public async Task InsertWorFlow(WorkFlow workFlow)
-        {
-            await WorkFlowValidation(workFlow);
-
-
             await _context.WorkFlow.AddAsync(workFlow);
         }
 
-        public async Task UpdateWorFlow(WorkFlow workFlow)
+        public async Task UpdateWorFlowAsync(WorkFlow workFlow)
         {
-            await WorkFlowValidation(workFlow);
-            if (workFlow.Id == null) throw new CustomException("گردشکار معتبر نمی باشد");
+            //initialize model
+            var fetchModel = await _context.WorkFlow.FirstAsync(x => x.Id == workFlow.Id);
 
-            var result = _context.WorkFlow.FirstOrDefault(x => x.Id == workFlow.Id)
-               ?? throw new CustomException("گردشکار یافت نشد.");
+            //transfer model
+            fetchModel.Name = workFlow.Name;
+            fetchModel.Description = workFlow.Description;
+            fetchModel.Nodes = workFlow.Nodes;
 
-            var feachModel = new WorkFlow()
-            {
-                Nodes = workFlow.Nodes,
-                Edges = workFlow.Edges,
-                Id = result.Id
-            };
-            _context.Update(feachModel);
+            _context.WorkFlow.Update(fetchModel);
         }
 
-        public async Task<string> WorkFlowValidation(WorkFlow workFlow)
+        public async Task<ValidationDto<WorkFlow>> WorkFlowValidationAsync(WorkFlow workFlow)
         {
-            if (workFlow == null) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlow.Nodes == null) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlow.Edges == null) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlow.Nodes.Any(x => !x.Name.IsValidString() || x.Type == null || x.Icon == null || x.X == null || x.Y == null)) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlow.Edges.Any(x => x.Source == null || x.Target == null || x.SourceHandle == null || x.TargetHandle == null)) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
+            if (workFlow == null) return new ValidationDto<WorkFlow>(false, "Workflow", "CorruptedWorkflow", workFlow);
+            if (workFlow.Name == null || !workFlow.Name.IsValidString()) return new ValidationDto<WorkFlow>(false, "Workflow", "CorruptedWorkflowName", workFlow);
+            if (workFlow.Description == null || !workFlow.Description.IsValidString()) return new ValidationDto<WorkFlow>(false, "Workflow", "CorruptedWorkflowDes", workFlow);
 
-            var isRotate = false;
-            workFlow.Edges.ForEach(x =>
-            {
-                if (workFlow.Edges.Where(x => x.Source == x.Source).ToList().Count > 1)
-                {
-                    isRotate = true;
-                }
-                if (workFlow.Edges.Where(x => x.Target == x.Target).ToList().Count > 1)
-                {
-                    isRotate = true;
-                }
-            });
-
-            if (isRotate) throw new CustomException("تمامی مراحل تنها باید دارای یک خروجی و یک ورودی باشند");
-            return "";
+            return new ValidationDto<WorkFlow>(true, "Success", "Success", workFlow);
         }
 
-        public async Task SaveChangesAsync()
+        public async Task<ValidationDto<string>> SaveChangesAsync()
         {
             try
             {
                 await _context.SaveChangesAsync();
+                return new ValidationDto<string>(true, "Success", "Success", null);
             }
             catch (Exception ex)
             {
-           //     throw new CustomException();
+                return new ValidationDto<string>(false, "Workflow", "CorruptedWorkflow", ex.Message);
             }
         }
     }

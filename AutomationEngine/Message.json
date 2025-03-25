@@ -22,6 +22,11 @@
         "CorruptedNotfound": "فرم یافت نشد",
         "CorruptedInvalidPage": "تعداد صفحات نا معتبر"
 
+      },
+      "Workflow": {
+        "CorruptedWorkflow": "خطا در اطلاعات گردشکار وجود دارد",
+        "CorruptedWorkflowName": "خطا در نام گردشکار وجود دارد",
+        "CorruptedWorkflowDes": "خطا در توضیحات گردشکار وجود دارد"
       }, 
       "File": {
         "FileSize": "حجم فایل آپلود شده بیشتر از مقدار تعیین شده است",
