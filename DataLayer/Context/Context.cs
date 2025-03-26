@@ -1,7 +1,7 @@
 ﻿using DataLayer.Models.FormBuilder;
 using DataLayer.Models.MainEngine;
 using DataLayer.Models.TableBuilder;
-using DataLayer.Models.WorkFlow;
+using DataLayer.Models.WorkFlows;
 using Microsoft.EntityFrameworkCore;
 
 namespace DataLayer.Context
@@ -11,9 +11,9 @@ namespace DataLayer.Context
         public Context(DbContextOptions<Context> options) : base(options) { }
         #region basic database
         public DbSet<Form> Form { get; set; }
+
         public DbSet<Entity> Entity { get; set; }
         public DbSet<EntityProperty> Property { get; set; }
-        public DbSet<User> User { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Role_User> Role_Users { get; set; }
         #endregion

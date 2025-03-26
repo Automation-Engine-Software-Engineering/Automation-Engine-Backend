@@ -1,4 +1,4 @@
-﻿using DataLayer.Models.WorkFlow;
+﻿using DataLayer.Models.WorkFlows;
 using System;
 using System.Collections.Generic;
 using System.Linq;

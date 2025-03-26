@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ViewModels.ViewModels.FormBuilder;
 using ViewModels;
-using DataLayer.Models.WorkFlow;
+using DataLayer.Models.WorkFlows;
 using Services;
 using ViewModels.ViewModels.WorkFlow;
 

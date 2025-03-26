@@ -4,7 +4,7 @@ using Services;
 using ViewModels.ViewModels.FormBuilder;
 using ViewModels;
 using ViewModels.ViewModels.WorkFlow;
-using DataLayer.Models.WorkFlow;
+using DataLayer.Models.WorkFlows;
 
 namespace AutomationEngine.Controllers
 {

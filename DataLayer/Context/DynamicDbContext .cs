@@ -1,4 +1,5 @@
-﻿using FrameWork.Model.DTO;
+﻿using DataLayer.Models.MainEngine;
+using FrameWork.Model.DTO;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -11,6 +12,7 @@ namespace DataLayer.Context
     public class DynamicDbContext : DbContext
     {
         private readonly IConfiguration _configuration;
+        public DbSet<User> User { get; set; }
 
         public DynamicDbContext(DbContextOptions<DynamicDbContext> options , IConfiguration configuration) : base(options)
         {

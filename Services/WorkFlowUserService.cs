@@ -1,5 +1,5 @@
 ﻿using DataLayer.Context;
-using DataLayer.Models.WorkFlow;
+using DataLayer.Models.WorkFlows;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -67,7 +67,7 @@ namespace Services
             await WorkFlowValidation(workFlow);
             if (workFlow.Id == null) throw new CustomException("گردشکار معتبر نمی باشد");
 
-            var result = _context.WorkFlow_User.FirstOrDefault(x => x.Id == workFlow.Id)
+            var result = await _context.WorkFlow_User.FirstOrDefaultAsync(x => x.Id == workFlow.Id)
              ?? throw new CustomException("گردشکار یافت نشد.");
 
             var feachModel = new WorkFlow_User()
@@ -82,7 +82,7 @@ namespace Services
         public async Task<string> WorkFlowValidation(WorkFlow_User workFlowUser)
         {
             if (workFlowUser == null) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlowUser.WorkFlowState.IsNullOrEmpty()) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
+            if (string.IsNullOrEmpty(workFlowUser.WorkFlowState)) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
             if (workFlowUser.WorkFlowId == null || workFlowUser.WorkFlowId == 0) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
             if (workFlowUser.UserId == null || workFlowUser.UserId == 0) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
 
@@ -90,14 +90,7 @@ namespace Services
         }
         public async Task SaveChangesAsync()
         {
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                // throw new CustomException();
-            }
+            await _context.SaveChangesAsync();
         }
     }
 }

@@ -2,6 +2,7 @@ using DataLayer.Context;
 using FrameWork.ExeptionHandler.CustomMiddleware;
 using Microsoft.EntityFrameworkCore;
 using Services;
+using Tools.AuthoraizationTools;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,12 +23,12 @@ builder.Services.AddSwaggerGen();
 //Add-Migration InitialCreate -Context Context
 //Update-Database InitialCreate -Context Context
 builder.Services.AddDbContext<Context>(options =>
-           options.UseSqlServer(builder.Configuration.GetConnectionString("BasicServer")));
+           options.UseSqlServer(builder.Configuration.GetConnectionString("Basic")));
 
 //Add-Migration InitialCreate -Context DynamicDbContext
 //Update-Database InitialCreate -Context DynamicDbContext
 builder.Services.AddDbContext<DynamicDbContext>(options =>
-           options.UseSqlServer(builder.Configuration.GetConnectionString("DynamicServer")));
+           options.UseSqlServer(builder.Configuration.GetConnectionString("Dynamic")));
            
 builder.Services.AddScoped<Context>();
 builder.Services.AddScoped<DynamicDbContext>();
@@ -38,7 +39,7 @@ builder.Services.AddScoped<IWorkFlowService, WorkFlowService>();
 builder.Services.AddScoped<IWorkFlowUserService, WorkFlowUserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IHtmlService, HtmlService>();
-
+builder.Services.AddSingleton<TokenGenerator>();
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

@@ -207,7 +207,7 @@ namespace Services
                 var condition = await _htmlService.getTagAttributesValue(tag, "data-condition");
                 var filter = await _htmlService.getTagAttributesValue(tag, "data-filter");
 
-                var table = _context.Entity.FirstOrDefault(x => x.Id == int.Parse(tableId));
+                var table = await _context.Entity.FirstOrDefaultAsync(x => x.Id == int.Parse(tableId));
                 // var query = $"select * from {table.TableName} where" + filter;
                 var query = $"select * from {table.TableName}" ;
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
@@ -246,7 +246,7 @@ namespace Services
                 condition = condition.Replace("}}", "");
                 var filter = await _htmlService.getTagAttributesValue(tag, "data-filter");
 
-                var table = _context.Entity.FirstOrDefault(x => x.Id == int.Parse(filter));
+                var table = await _context.Entity.FirstOrDefaultAsync(x => x.Id == int.Parse(filter));
                 var query = $"select " + condition + $" from {table.TableName}";
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
 

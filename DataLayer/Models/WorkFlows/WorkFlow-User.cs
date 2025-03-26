@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataLayer.Models.WorkFlow
+namespace DataLayer.Models.WorkFlows
 {
     public class WorkFlow_User
     {

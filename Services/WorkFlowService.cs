@@ -1,7 +1,7 @@
 ﻿using DataLayer.Context;
 using DataLayer.Models.FormBuilder;
 using DataLayer.Models.TableBuilder;
-using DataLayer.Models.WorkFlow;
+using DataLayer.Models.WorkFlows;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -37,7 +37,7 @@ namespace Services
         {
             if (id == null) throw new CustomException("گردشکار معتبر نمی باشد");
 
-            var result = _context.WorkFlow.FirstOrDefault(x => x.Id == id)
+            var result = await _context.WorkFlow.FirstOrDefaultAsync(x => x.Id == id)
                   ?? throw new CustomException("گردشکار یافت نشد.");
 
             _context.Remove(result);
@@ -53,11 +53,11 @@ namespace Services
         {
             if (idWorkflowUser == null) throw new CustomException("گردشکار معتبر نمی باشد");
 
-            var userWorkFlow = _context.WorkFlow_User.FirstOrDefault(x => x.Id == idWorkflowUser && x.UserId == userId)
+            var userWorkFlow = await _context.WorkFlow_User.FirstOrDefaultAsync(x => x.Id == idWorkflowUser && x.UserId == userId)
                ?? throw new CustomException("گردشکار یافت نشد.");
 
-            var workflow = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges)
-                .FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowId)
+            var workflow = await _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges)
+                .FirstOrDefaultAsync(x => x.Id == userWorkFlow.WorkFlowId)
                ?? throw new CustomException("گردشکار با خطا مواجه شد.");
 
             var result = workflow.Nodes.FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowState)
@@ -80,11 +80,11 @@ namespace Services
         {
             if (idWorkflowUser == null) throw new CustomException("گردشکار معتبر نمی باشد");
 
-            var userWorkFlow = _context.WorkFlow_User.FirstOrDefault(x => x.WorkFlowId == idWorkflowUser && x.UserId == userId)
+            var userWorkFlow = await _context.WorkFlow_User.FirstOrDefaultAsync(x => x.WorkFlowId == idWorkflowUser && x.UserId == userId)
                ?? throw new CustomException("گردشکار یافت نشد.");
 
-            var workflow = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges)
-                .FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowId)
+            var workflow = await _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges)
+                .FirstOrDefaultAsync(x => x.Id == userWorkFlow.WorkFlowId)
                ?? throw new CustomException("گردشکار یافت نشد.");
 
             var result = workflow.Nodes.FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowState)
@@ -100,13 +100,13 @@ namespace Services
 
         public async Task<UnknownDto> GetNextWorFlowValueById(int idWorkflowUser, int userId)
         {
-            if (idWorkflowUser == null) throw new CustomException("گردشکار معتبر نمی باشد");
+            if (idWorkflowUser == 0) throw new CustomException("گردشکار معتبر نمی باشد");
 
-            var userWorkFlow = _context.WorkFlow_User.FirstOrDefault(x => x.Id == idWorkflowUser && x.UserId == userId)
+            var userWorkFlow = await _context.WorkFlow_User.FirstOrDefaultAsync(x => x.Id == idWorkflowUser && x.UserId == userId)
                ?? throw new CustomException("گردشکار یافت نشد.");
 
-            var workflow = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges)
-                .FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowId)
+            var workflow = await _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges)
+                .FirstOrDefaultAsync(x => x.Id == userWorkFlow.WorkFlowId)
                ?? throw new CustomException("گردشکار با خطا مواجه شد.");
 
             var result = workflow.Nodes.FirstOrDefault(x => x.Id == userWorkFlow.WorkFlowState)
@@ -129,7 +129,7 @@ namespace Services
         public async Task<WorkFlow> GetWorFlowById(int id)
         {
             if (id == null) throw new CustomException("گردشکار معتبر نمی باشد");
-            var result = _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges).FirstOrDefault(x => x.Id == id)
+            var result = await _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges).FirstOrDefaultAsync(x => x.Id == id)
                ?? throw new CustomException("گردشکار یافت نشد.");
 
             return result;
@@ -148,7 +148,7 @@ namespace Services
             await WorkFlowValidation(workFlow);
             if (workFlow.Id == null) throw new CustomException("گردشکار معتبر نمی باشد");
 
-            var result = _context.WorkFlow.FirstOrDefault(x => x.Id == workFlow.Id)
+            var result = await _context.WorkFlow.FirstOrDefaultAsync(x => x.Id == workFlow.Id)
                ?? throw new CustomException("گردشکار یافت نشد.");
 
             var feachModel = new WorkFlow()
