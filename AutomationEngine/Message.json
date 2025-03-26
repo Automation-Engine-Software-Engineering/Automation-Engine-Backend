@@ -28,6 +28,12 @@
         "CorruptedWorkflowDes": "خطا در توضیحات گردشکار وجود دارد",
         "NoWorkflowFound": "گردشکار یافت نشد"
       },
+      "UserWorkflow": {
+        "CorruptedUserWorkflow": "خطا در اطلاعات گردشکار وجود دارد",
+        "CorruptedUserWorkflowName": "خطا در نام گردشکار وجود دارد",
+        "CorruptedUserWorkflowDes": "خطا در توضیحات گردشکار وجود دارد",
+        "NoUserWorkflowFound": "گردشکار یافت نشد"
+      },
       "File": {
         "FileSize": "حجم فایل آپلود شده بیشتر از مقدار تعیین شده است",
         "FileType": "پسوند فایل آپلود شده معتبر نمی باشد",

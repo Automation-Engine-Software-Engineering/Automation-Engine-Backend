@@ -7,6 +7,7 @@ using Services;
 using ViewModels.ViewModels.WorkFlow;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AutomationEngine.Controllers
 {
@@ -24,15 +25,28 @@ namespace AutomationEngine.Controllers
         }
         // POST: api/form/create  
         [HttpPost("create")]
-        public async Task<ResultViewModel> CreateWorkFlowUser([FromBody] WorkFlowUserDto WorkFlowUser)
+        public async Task<ResultViewModel> CreateWorkFlowUser([FromBody] WorkFlowUserDto workFlowUser)
         {
-            var WorkFlow = await _workFlowService.GetWorFlowByIdAsync(WorkFlowUser.WorkFlowId);
+            if (workFlowUser == null)
+                throw new CustomException<WorkFlow_User>(new ValidationDto<WorkFlow_User>(false, "UserWorkflow", "CorruptedUserWorkflow", null), 500);
+
+            var workFlow = await _workFlowService.GetWorFlowByIdAsync(workFlowUser.WorkFlowId);
+
             var result = new WorkFlow_User()
             {
-                UserId = WorkFlowUser.UserId,
-                WorkFlowId = WorkFlowUser.WorkFlowId,
-                WorkFlowState = WorkFlow.Nodes.FirstOrDefault().Id
+                UserId = workFlowUser.UserId,
+                WorkFlowId = workFlowUser.WorkFlowId,
+                WorkFlowState = workFlow.Nodes.FirstOrDefault(x => x.LastNodeId.IsNullOrEmpty()).Id
             };
+
+            //is validation model
+            if (workFlowUser.Id != 0)
+                throw new CustomException<WorkFlow_User>(new ValidationDto<WorkFlow_User>(false, "UserWorkflow", "CorruptedUserWorkflow", result), 500);
+
+            var validationModel = await _WorkFlowUserService.WorkFlowValidation(result);
+            if (!validationModel.IsSuccess)
+                throw new CustomException<WorkFlow_User>(validationModel, 500);
+
 
             await _WorkFlowUserService.InsertWorFlowUser(result);
             await _WorkFlowUserService.SaveChangesAsync();
@@ -41,16 +55,28 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/update  
         [HttpPost("update")]
-        public async Task<ResultViewModel> UpdateWorkFlowUser([FromBody] WorkFlowUserDto WorkFlowUser)
+        public async Task<ResultViewModel> UpdateWorkFlowUser([FromBody] WorkFlowUserDto workFlowUser)
         {
-            var WorkFlow = await _workFlowService.GetWorFlowByIdAsync(WorkFlowUser.WorkFlowId);
+            if (workFlowUser == null)
+                throw new CustomException<WorkFlow_User>(new ValidationDto<WorkFlow_User>(false, "UserWorkflow", "CorruptedUserWorkflow", null), 500);
+
+            var workFlow = await _workFlowService.GetWorFlowByIdAsync(workFlowUser.WorkFlowId);
+
             var result = new WorkFlow_User()
             {
-                Id = WorkFlowUser.Id,
-                UserId = WorkFlowUser.UserId,
-                WorkFlowId = WorkFlowUser.WorkFlowId,
-                WorkFlowState = WorkFlow.Nodes.FirstOrDefault().Id
+                Id = workFlowUser.Id,
+                UserId = workFlowUser.UserId,
+                WorkFlowId = workFlowUser.WorkFlowId,
+                WorkFlowState = workFlow.Nodes.FirstOrDefault().Id
             };
+
+            //is validation model
+            if (workFlowUser.Id == 0)
+                throw new CustomException<WorkFlow_User>(new ValidationDto<WorkFlow_User>(false, "UserWorkflow", "CorruptedUserWorkflow", result), 500);
+
+            var validationModel = await _WorkFlowUserService.WorkFlowValidation(result);
+            if (!validationModel.IsSuccess)
+                throw new CustomException<WorkFlow_User>(validationModel, 500);
 
             await _WorkFlowUserService.UpdateWorFlowUser(result);
             await _WorkFlowUserService.SaveChangesAsync();
@@ -59,10 +85,27 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/delete  
         [HttpPost("remove")]
-        public async Task<ResultViewModel> RemoveWorkFlowUser([FromBody] int WorkFlowUserId)
+        public async Task<ResultViewModel> RemoveWorkFlowUser([FromBody] int workFlowUserId)
         {
-            await _WorkFlowUserService.DeleteWorFlowUser(WorkFlowUserId);
-            _WorkFlowUserService.SaveChangesAsync();
+            //is validation model
+            if (workFlowUserId == 0)
+                throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "CorruptedUserWorkflow", workFlowUserId), 500);
+
+            var fetchForm = await _WorkFlowUserService.GetWorFlowUserById(workFlowUserId);
+            if (fetchForm == null)
+                throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "CorruptedUserWorkflow", workFlowUserId), 500);
+
+            var validationModel = await _WorkFlowUserService.WorkFlowValidation(fetchForm);
+            if (!validationModel.IsSuccess)
+                throw new CustomException<WorkFlow_User>(validationModel, 500);
+
+            //initial action
+            await _WorkFlowUserService.DeleteWorFlowUser(workFlowUserId);
+            var saveResult = await _WorkFlowUserService.SaveChangesAsync();
+
+            if (!saveResult.IsSuccess)
+                throw new CustomException<string>(saveResult, 500);
+
             return (new ResultViewModel { Data = null, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 
@@ -85,10 +128,22 @@ namespace AutomationEngine.Controllers
         }
 
         // GET: api/form/{id}  
-        [HttpGet("{WorkFlowUserId}")]
-        public async Task<ResultViewModel> GetWorkFlowUser(int WorkFlowUserId)
-        {
-            var form = await _WorkFlowUserService.GetWorFlowUserById(WorkFlowUserId);
+        [HttpGet("{workFlowUserId}")]
+        public async Task<ResultViewModel> GetWorkFlowUser(int workFlowUserId)
+        {                        //is validation model
+            if (workFlowUserId == 0)
+                throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "CorruptedUserWorkflow", workFlowUserId), 500);
+
+            //initial action
+            var workflowUser = await _WorkFlowUserService.GetWorFlowUserById(workFlowUserId);
+            if (workflowUser == null)
+                throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "CorruptedUserWorkflow", workFlowUserId), 500);
+
+            var validationModel = await _WorkFlowUserService.WorkFlowValidation(workflowUser);
+            if (!validationModel.IsSuccess)
+                throw new CustomException<WorkFlow_User>(validationModel, 500);
+
+            var form = await _WorkFlowUserService.GetWorFlowUserById(workFlowUserId);
             return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
     }

@@ -24,6 +24,10 @@ namespace AutomationEngine.Controllers
         [HttpPost("create")]
         public async Task<ResultViewModel> CreateWorkFLow([FromBody] WorkFlowDto workFlow)
         {
+            if (workFlow == null)
+                throw new CustomException<WorkFlow>(new ValidationDto<WorkFlow>(false, "Workflow", "CorruptedWorkflow", null), 500);
+
+            //transfer model
             var result = new WorkFlow();
             result.Name = workFlow.Name;
             result.Description = workFlow.Description;
@@ -52,11 +56,18 @@ namespace AutomationEngine.Controllers
             });
 
             result.Nodes = nodes;
+
+            //is validation model
+            if (result.Id != 0)
+                throw new CustomException<WorkFlow>(new ValidationDto<WorkFlow>(false, "Workflow", "CorruptedWorkflow", result), 500);
+
             if ((await _workFlowService.WorkFlowValidationAsync(result)).IsSuccess)
                 throw new CustomException<WorkFlow>(new ValidationDto<WorkFlow>(false, "Workflow", "CorruptedWorkflow", result), 500);
 
             await _workFlowService.InsertWorFlowAsync(result);
-            await _workFlowService.SaveChangesAsync();
+            var saveResult = await _workFlowService.SaveChangesAsync();
+            if (!saveResult.IsSuccess)
+                throw new CustomException<string>(saveResult, 500);
             return (new ResultViewModel { Data = result, Message = new ValidationDto<WorkFlow>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
@@ -64,6 +75,9 @@ namespace AutomationEngine.Controllers
         [HttpPost("update")]
         public async Task<ResultViewModel> UpdateForm([FromBody] WorkFlowDto workFlow)
         {
+            if (workFlow == null)
+                throw new CustomException<WorkFlow>(new ValidationDto<WorkFlow>(false, "Workflow", "CorruptedWorkflow", null), 500);
+
             var result = new WorkFlow();
             result.Id = workFlow.Id;
             result.Name = workFlow.Name;
@@ -93,6 +107,11 @@ namespace AutomationEngine.Controllers
             });
 
             result.Nodes = nodes;
+
+            //is validation model
+            if (result.Id == 0)
+                throw new CustomException<WorkFlow>(new ValidationDto<WorkFlow>(false, "Workflow", "CorruptedWorkflow", result), 500);
+
             if ((await _workFlowService.WorkFlowValidationAsync(result)).IsSuccess)
                 throw new CustomException<WorkFlow>(new ValidationDto<WorkFlow>(false, "Workflow", "CorruptedWorkflow", result), 500);
 
