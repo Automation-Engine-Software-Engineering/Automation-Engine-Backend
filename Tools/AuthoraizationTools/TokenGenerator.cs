@@ -34,16 +34,16 @@ namespace Tools.AuthoraizationTools
             var token = GenerateToken("JWTSettings:RefreshTokenSecret", DateTime.UtcNow.AddMonths(1));
             return token;
         }
-        private string GenerateToken(string secretConfigPath, string frontDomainConfigPath, string backendDomainConfigPath, DateTime expires, params Claim[] claims)
+        private string GenerateToken(string secretConfigPath DateTime expires, params Claim[] claims)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 
-            var backendDomain = _configuration[backendDomainConfigPath];
-            if (backendDomain.IsNullOrEmpty())
+            var issuer = _configuration["JWTSettings:Issuer"];
+            if (issuer.IsNullOrEmpty())
                 throw new CustomException("دامنه یافت نشد");
 
-            var frontDomain = _configuration[frontDomainConfigPath];
-            if (frontDomain.IsNullOrEmpty())
+            var audience = _configuration["JWTSettings:Audience"];
+            if (audience.IsNullOrEmpty())
                 throw new CustomException("دامنه یافت نشد");
 
             // خواندن مقدار JWTSecret از فایل appsettings.json
@@ -58,13 +58,36 @@ namespace Tools.AuthoraizationTools
                 Expires = expires, // مدت زمان Access Token
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                 NotBefore = DateTime.UtcNow,
-                Audience = frontDomain,
-                Issuer = backendDomain,
-                
+                Audience = audience,//دریافت کننده
+                Issuer = issuer,// صادرکننده
+
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+        private ClaimsPrincipal ValidateRefreshToken(string refreshToken)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes("your_refresh_secret_key");
+
+            try
+            {
+                var principal = tokenHandler.ValidateToken(refreshToken, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ClockSkew = TimeSpan.Zero // تأخیر زمانی مجاز
+                }, out SecurityToken validatedToken);
+
+                return principal;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

@@ -1,25 +1,32 @@
-using DataLayer.Context;
+﻿using DataLayer.Context;
 using FrameWork.ExeptionHandler.CustomMiddleware;
+using FrameWork.ExeptionHandler.ExeptionModel;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Services;
+using System.Text;
 using Tools.AuthoraizationTools;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+var audience = builder.Configuration["JWTSettings:Audience"] ?? throw new CustomException("Audience در appsettings یافت نشد");
+var issuer = builder.Configuration["JWTSettings:Issuer"] ?? throw new CustomException("Audience در appsettings یافت نشد");
+var accessTokenSecret = builder.Configuration["JWTSettings:AccessTokenSecret"] ?? throw new CustomException("Audience در appsettings یافت نشد");
+
 builder.Services.AddCors(options => options.AddPolicy("MyPolicy",
 builder =>
 {
     builder.AllowAnyHeader()
-           .AllowAnyMethod()
-           .SetIsOriginAllowed((host) => true)
+           .WithMethods("Get","Post")
+           .WithOrigins(audience)
            .AllowCredentials();
 }));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
 //Add-Migration InitialCreate -Context Context
 //Update-Database InitialCreate -Context Context
 builder.Services.AddDbContext<Context>(options =>
@@ -29,7 +36,23 @@ builder.Services.AddDbContext<Context>(options =>
 //Update-Database InitialCreate -Context DynamicDbContext
 builder.Services.AddDbContext<DynamicDbContext>(options =>
            options.UseSqlServer(builder.Configuration.GetConnectionString("Dynamic")));
-           
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = issuer,
+            ValidAudience = audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(accessTokenSecret))
+        };
+        options.RequireHttpsMetadata = true;
+    });
+
 builder.Services.AddScoped<Context>();
 builder.Services.AddScoped<DynamicDbContext>();
 builder.Services.AddScoped<IFormService, FormService>();
