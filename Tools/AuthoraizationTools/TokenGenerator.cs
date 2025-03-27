@@ -34,7 +34,7 @@ namespace Tools.AuthoraizationTools
             var token = GenerateToken("JWTSettings:RefreshTokenSecret", DateTime.UtcNow.AddMonths(1));
             return token;
         }
-        private string GenerateToken(string secretConfigPath DateTime expires, params Claim[] claims)
+        private string GenerateToken(string secretConfigPath ,DateTime expires, params Claim[] claims)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 

@@ -12,8 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 var audience = builder.Configuration["JWTSettings:Audience"] ?? throw new CustomException("Audience در appsettings یافت نشد");
-var issuer = builder.Configuration["JWTSettings:Issuer"] ?? throw new CustomException("Audience در appsettings یافت نشد");
 var accessTokenSecret = builder.Configuration["JWTSettings:AccessTokenSecret"] ?? throw new CustomException("Audience در appsettings یافت نشد");
+var issuer = builder.Configuration["JWTSettings:Issuer"] ?? throw new CustomException("Issuer در appsettings یافت نشد");
 
 builder.Services.AddCors(options => options.AddPolicy("MyPolicy",
 builder =>
@@ -55,6 +55,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddScoped<Context>();
 builder.Services.AddScoped<DynamicDbContext>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IFormService, FormService>();
 builder.Services.AddScoped<IEntityService, EntityService>();
 builder.Services.AddScoped<IPropertyService, PropertyService>();
