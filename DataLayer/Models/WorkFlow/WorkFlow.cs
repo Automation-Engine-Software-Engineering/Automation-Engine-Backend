@@ -12,6 +12,6 @@ namespace DataLayer.Models.WorkFlow
         public string Name { get; set; }
         public string Description { get; set; }
         public List<Node> Nodes { get; set; }
-    //    public List<WorkFlow_User> workFlowUser { get; set; }
+       public List<WorkFlow_User> workFlowUser { get; set; }
     }
 }

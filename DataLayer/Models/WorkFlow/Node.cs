@@ -23,12 +23,16 @@ namespace DataLayer.Models.WorkFlow
 
         public string? LastNodeId { get; set; }
         [ForeignKey(nameof(LastNodeId))]
-        public Node LastNode { get; set; }
+        public Node? LastNode { get; set; }
 
 
         public string? NextNodeId { get; set; }
         [ForeignKey(nameof(NextNodeId))]
-        public Node NextNode { get; set; }
+        public Node? NextNode { get; set; }
+
+        public int WorkflowId { get; set; }
+        [ForeignKey(nameof(WorkflowId))]
+        public WorkFlow WorkFlow{ get; set; }
         #endregion
     }
 

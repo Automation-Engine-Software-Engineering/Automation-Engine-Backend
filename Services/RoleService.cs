@@ -21,8 +21,8 @@ namespace Services
     }
     public class RoleService : IRoleService
     {
-        private readonly Context _context;
-        public RoleService(Context context)
+        private readonly DataLayer.Context.DbContext _context;
+        public RoleService(DataLayer.Context.DbContext context)
         {
             _context = context;
         }

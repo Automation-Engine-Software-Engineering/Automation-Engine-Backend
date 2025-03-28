@@ -8,7 +8,7 @@ using Tools.TextTools;
 
 namespace DataLayer.Context
 {
-    public class DynamicDbContext : DbContext
+    public class DynamicDbContext : Microsoft.EntityFrameworkCore.DbContext
     {
         private readonly IConfiguration _configuration;
 

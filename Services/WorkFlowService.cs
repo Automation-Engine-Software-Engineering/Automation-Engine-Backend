@@ -11,7 +11,9 @@ namespace Services
         Task InsertWorFlowAsync(WorkFlow workFlow);
         Task UpdateWorFlowAsync(WorkFlow workFlow);
         Task DeleteWorFlowAsync(int id);
+        Task DeleteAllNodeOfWorFlowAsync(int id);
         Task<WorkFlow> GetWorFlowByIdAsync(int id);
+        Task<WorkFlow> GetWorFlowByIdIncNodesAsync(int id);
         Task<ListDto<WorkFlow>> GetAllWorFlowsAsync(int pageSize, int pageNumber);
         Task<ValidationDto<WorkFlow>> WorkFlowValidationAsync(WorkFlow workFlow);
         Task<ValidationDto<string>> SaveChangesAsync();
@@ -19,8 +21,8 @@ namespace Services
     }
     public class WorkFlowService : IWorkFlowService
     {
-        private readonly Context _context;
-        public WorkFlowService(Context context)
+        private readonly DataLayer.Context.DbContext _context;
+        public WorkFlowService(DataLayer.Context.DbContext context)
         {
             _context = context;
         }
@@ -28,12 +30,24 @@ namespace Services
         public async Task DeleteWorFlowAsync(int id)
         {
             //initialize model
-            var result = await _context.WorkFlow.FirstAsync(x => x.Id == id);
+            var result = await _context.WorkFlow.Include(x => x.Nodes).FirstAsync(x => x.Id == id);
 
 
             //remove form
             _context.Remove(result);
         }
+
+        public async Task DeleteAllNodeOfWorFlowAsync(int id)
+        {
+            //initialize model
+            var result = await _context.WorkFlow.Include(x => x.Nodes).FirstAsync(x => x.Id == id);
+            result.Nodes.ForEach(x => { x.LastNodeId = null; x.NextNodeId = null; x.NextNode = null; x.LastNode = null; });
+            await _context.SaveChangesAsync();
+
+            _context.Node.RemoveRange(result.Nodes);
+
+        }
+
 
         public async Task<ListDto<WorkFlow>> GetAllWorFlowsAsync(int pageSize, int pageNumber)
         {
@@ -48,6 +62,12 @@ namespace Services
         }
 
         public async Task<WorkFlow> GetWorFlowByIdAsync(int id)
+        {
+            var result = await _context.WorkFlow.FirstAsync(x => x.Id == id);
+            return result;
+        }
+
+        public async Task<WorkFlow> GetWorFlowByIdIncNodesAsync(int id)
         {
             var result = await _context.WorkFlow.Include(x => x.Nodes).FirstAsync(x => x.Id == id);
             return result;
