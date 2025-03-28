@@ -19,17 +19,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//Add-Migration InitialCreate -Context Context
-//Update-Database InitialCreate -Context Context
-builder.Services.AddDbContext<Context>(options =>
-           options.UseSqlServer(builder.Configuration.GetConnectionString("BasicServer")));
+//Add-Migration InitialCreate -DbContext DbContext
+//Update-Database InitialCreate -DbContext DbContext
+builder.Services.AddDbContext<DataLayer.Context.DbContext>(options =>
+           options.UseSqlServer(builder.Configuration.GetConnectionString("Basic")));
 
-//Add-Migration InitialCreate -Context DynamicDbContext
-//Update-Database InitialCreate -Context DynamicDbContext
+//Add-Migration InitialCreate -DbContext DynamicDbContext
+//Update-Database InitialCreate -DbContext DynamicDbContext
 builder.Services.AddDbContext<DynamicDbContext>(options =>
-           options.UseSqlServer(builder.Configuration.GetConnectionString("DynamicServer")));
+           options.UseSqlServer(builder.Configuration.GetConnectionString("Dynamic")));
            
-builder.Services.AddScoped<Context>();
+builder.Services.AddScoped<DataLayer.Context.DbContext>();
 builder.Services.AddScoped<DynamicDbContext>();
 builder.Services.AddScoped<IFormService, FormService>();
 builder.Services.AddScoped<IEntityService, EntityService>();

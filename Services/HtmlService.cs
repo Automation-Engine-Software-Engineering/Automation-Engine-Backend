@@ -14,8 +14,8 @@ namespace Services
 
     public class HtmlService : IHtmlService
     {
-        private readonly Context _context;
-        public HtmlService(Context context)
+        private readonly DbContext _context;
+        public HtmlService(DbContext context)
         {
             _context = context;
         }

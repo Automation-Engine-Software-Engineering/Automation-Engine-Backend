@@ -24,10 +24,10 @@ namespace Services
 
     public class PropertyService : IPropertyService
     {
-        private readonly Context _context;
+        private readonly DataLayer.Context.DbContext _context;
         private readonly DynamicDbContext _dynamicDbContext;
 
-        public PropertyService(Context context, DynamicDbContext dynamicDbContext)
+        public PropertyService(DataLayer.Context.DbContext context, DynamicDbContext dynamicDbContext)
         {
             _context = context;
             _dynamicDbContext = dynamicDbContext;

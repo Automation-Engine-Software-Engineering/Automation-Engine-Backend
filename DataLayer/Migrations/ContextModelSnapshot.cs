@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DataLayer.Migrations
 {
-    [DbContext(typeof(Context.Context))]
+    [DbContext(typeof(Context.DbContext))]
     partial class ContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
@@ -218,51 +218,36 @@ namespace DataLayer.Migrations
                     b.ToTable("Property");
                 });
 
-            modelBuilder.Entity("DataLayer.Models.WorkFlow.Edge", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Source")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SourceHandle")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Target")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TargetHandle")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("WorkFlowId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WorkFlowId");
-
-                    b.ToTable("Edge");
-                });
-
             modelBuilder.Entity("DataLayer.Models.WorkFlow.Node", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("Icon")
+                    b.Property<int?>("FormId")
                         .HasColumnType("int");
+
+                    b.Property<float>("Height")
+                        .HasColumnType("real");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastNodeId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("NextNodeId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("Type")
                         .HasColumnType("int");
+
+                    b.Property<float>("Width")
+                        .HasColumnType("real");
 
                     b.Property<int?>("WorkFlowId")
                         .HasColumnType("int");
@@ -273,19 +258,15 @@ namespace DataLayer.Migrations
                     b.Property<float>("Y")
                         .HasColumnType("real");
 
-                    b.Property<int?>("entityId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("formId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
+                    b.HasIndex("FormId");
+
+                    b.HasIndex("LastNodeId");
+
+                    b.HasIndex("NextNodeId");
+
                     b.HasIndex("WorkFlowId");
-
-                    b.HasIndex("entityId");
-
-                    b.HasIndex("formId");
 
                     b.ToTable("Node");
                 });
@@ -364,30 +345,31 @@ namespace DataLayer.Migrations
                     b.Navigation("Entity");
                 });
 
-            modelBuilder.Entity("DataLayer.Models.WorkFlow.Edge", b =>
-                {
-                    b.HasOne("DataLayer.Models.WorkFlow.WorkFlow", null)
-                        .WithMany("Edges")
-                        .HasForeignKey("WorkFlowId");
-                });
-
             modelBuilder.Entity("DataLayer.Models.WorkFlow.Node", b =>
                 {
+                    b.HasOne("DataLayer.Models.FormBuilder.Form", "Form")
+                        .WithMany()
+                        .HasForeignKey("FormId");
+
+                    b.HasOne("DataLayer.Models.WorkFlow.Node", "LastNode")
+                        .WithMany()
+                        .HasForeignKey("LastNodeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("DataLayer.Models.WorkFlow.Node", "NextNode")
+                        .WithMany()
+                        .HasForeignKey("NextNodeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("DataLayer.Models.WorkFlow.WorkFlow", null)
                         .WithMany("Nodes")
                         .HasForeignKey("WorkFlowId");
 
-                    b.HasOne("DataLayer.Models.TableBuilder.Entity", "entity")
-                        .WithMany()
-                        .HasForeignKey("entityId");
+                    b.Navigation("Form");
 
-                    b.HasOne("DataLayer.Models.FormBuilder.Form", "form")
-                        .WithMany()
-                        .HasForeignKey("formId");
+                    b.Navigation("LastNode");
 
-                    b.Navigation("entity");
-
-                    b.Navigation("form");
+                    b.Navigation("NextNode");
                 });
 
             modelBuilder.Entity("DataLayer.Models.WorkFlow.WorkFlow_User", b =>
@@ -431,8 +413,6 @@ namespace DataLayer.Migrations
 
             modelBuilder.Entity("DataLayer.Models.WorkFlow.WorkFlow", b =>
                 {
-                    b.Navigation("Edges");
-
                     b.Navigation("Nodes");
 
                     b.Navigation("workFlowUser");

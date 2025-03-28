@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DataLayer.Migrations
 {
-    [DbContext(typeof(Context.Context))]
+    [DbContext(typeof(Context.DbContext))]
     [Migration("20241221081357_fix form model")]
     partial class fixformmodel
     {
