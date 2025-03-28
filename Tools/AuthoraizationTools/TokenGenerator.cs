@@ -12,6 +12,7 @@ using System.Security.Cryptography;
 using Tools.TextTools;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using System.Data;
+using FrameWork.Model.DTO;
 
 namespace Tools.AuthoraizationTools
 {
@@ -24,9 +25,9 @@ namespace Tools.AuthoraizationTools
             _configuration = configuration;
         }
 
-        public string GenerateAccessToken(string username,string role)
+        public string GenerateAccessToken(string username, string role)
         {
-            var token = GenerateToken("JWTSettings:AccessTokenSecret",DateTime.UtcNow.AddMinutes(15),new Claim(ClaimTypes.Name, username), new Claim(ClaimTypes.Role, role));
+            var token = GenerateToken("JWTSettings:AccessTokenSecret", DateTime.UtcNow.AddMinutes(15), new Claim(ClaimTypes.Name, username), new Claim(ClaimTypes.Role, role));
             return token;
         }
         public string GenerateRefreshToken()
@@ -34,7 +35,7 @@ namespace Tools.AuthoraizationTools
             var token = GenerateToken("JWTSettings:RefreshTokenSecret", DateTime.UtcNow.AddMonths(1));
             return token;
         }
-        private string GenerateToken(string secretConfigPath ,DateTime expires, params Claim[] claims)
+        private string GenerateToken(string secretConfigPath, DateTime expires, params Claim[] claims)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 
@@ -66,10 +67,20 @@ namespace Tools.AuthoraizationTools
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-        private ClaimsPrincipal ValidateRefreshToken(string refreshToken)
+        public ClaimsPrincipal ValidateRefreshToken(string refreshToken, bool isRefreshToken = false)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes("your_refresh_secret_key");
+            string tokenSecret = "";
+            if (isRefreshToken)
+                tokenSecret = "JWTSettings:RefreshTokenSecret";
+            else
+                tokenSecret = "JWTSettings:AccessTokenSecret";
+
+            // خواندن مقدار JWTSecret از فایل appsettings.json
+            var secretKey = _configuration[tokenSecret];
+            if (secretKey.IsNullOrEmpty())
+                throw new CustomException("کلید خصوصی یافت نشد");
+            var key = Encoding.UTF8.GetBytes(secretKey ?? "");
 
             try
             {
@@ -86,7 +97,7 @@ namespace Tools.AuthoraizationTools
             }
             catch
             {
-                return null;
+                throw new CustomException(new ValidationDto<string>(false, "Authentication", "NotAuthorized", refreshToken).GetMessage(403));
             }
         }
     }

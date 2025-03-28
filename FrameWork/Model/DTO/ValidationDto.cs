@@ -21,9 +21,11 @@ namespace FrameWork.Model.DTO
 
         public string GetMessage(int statusId)
         {
-            if (statusId == 200)
+            if (statusId >= 200 && statusId < 300)
                 return GetSuccessMessage();
-            else if (statusId == 300)
+            else if (statusId >= 300 && statusId < 400)
+                return GetWarnningMessage();
+            else if (statusId >= 400 && statusId < 500)
                 return GetWarnningMessage();
             else
                 return GetErrorMessage();

@@ -34,7 +34,11 @@
         "CorruptedString" : "خظا در نوشتار وجود دارد"
       }
     },
-    "Warning": {},
+    "Warning": {
+      "Authentication": {
+        "NotAuthorized": "شما به این بخش دسترسی ندارید"
+      }
+    },
     "Success": {
       "Success": {
         "Success": "عملیات با موفقیت انجام شد"
