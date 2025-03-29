@@ -15,8 +15,6 @@ namespace DataLayer.Models.WorkFlows
         public string WorkFlowState { get; set; }
 
         public int UserId { get; set; }
-        [ForeignKey(nameof(UserId))]
-        public User User { get; set; }
 
         public int WorkFlowId { get; set; }
         [ForeignKey(nameof(WorkFlowId))]

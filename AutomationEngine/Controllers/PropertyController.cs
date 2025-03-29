@@ -1,4 +1,5 @@
-﻿using DataLayer.Models.TableBuilder;
+﻿using AutomationEngine.ControllerAttributes;
+using DataLayer.Models.TableBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,7 @@ namespace AutomationEngine.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [CheckAccess]
     public class PropertyController : Controller
     {
         private readonly IPropertyService _propertyService;

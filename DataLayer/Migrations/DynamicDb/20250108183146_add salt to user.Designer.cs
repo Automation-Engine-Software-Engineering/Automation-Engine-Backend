@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations.DynamicDb
 {
     [DbContext(typeof(DynamicDbContext))]
-    [Migration("20250106123244_AddPropertyToUser")]
-    partial class AddPropertyToUser
+    [Migration("20250108183146_add salt to user")]
+    partial class addsalttouser
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,14 +36,15 @@ namespace DataLayer.Migrations.DynamicDb
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Password")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RefreshToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Salt")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserAgent")

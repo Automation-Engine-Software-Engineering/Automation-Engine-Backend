@@ -7,9 +7,9 @@ using System.Data;
 using System.Data.Common;
 using Tools.TextTools;
 
-namespace DataLayer.Context
+namespace DataLayer.DbContext
 {
-    public class DynamicDbContext : DbContext
+    public class DynamicDbContext : Microsoft.EntityFrameworkCore.DbContext
     {
         private readonly IConfiguration _configuration;
         public DbSet<User> User { get; set; }

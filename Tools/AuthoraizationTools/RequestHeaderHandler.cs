@@ -16,7 +16,7 @@ namespace Tools.AuthoraizationTools
             var currentUserAgent = context.Request.Headers["User-Agent"].ToString();
             return currentUserAgent;
         }
-        private static string[] ipHeaders = [
+        public static string[] ipHeaders = [
             "X-Forwarded-For",
             "X-Real-IP",
             "Forwarded",

@@ -1,4 +1,4 @@
-﻿using DataLayer.Context;
+﻿using DataLayer.DbContext;
 using FrameWork.ExeptionHandler.CustomMiddleware;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -16,14 +16,7 @@ var audience = builder.Configuration["JWTSettings:Audience"] ?? throw new Custom
 var accessTokenSecret = builder.Configuration["JWTSettings:AccessTokenSecret"] ?? throw new CustomException("Audience در appsettings یافت نشد");
 var issuer = builder.Configuration["JWTSettings:Issuer"] ?? throw new CustomException("Issuer در appsettings یافت نشد");
 
-builder.Services.AddCors(options => options.AddPolicy("PolicyPublish",
-builder =>
-{
-    builder.AllowAnyHeader()
-           .WithMethods("Get", "Post")
-           .WithOrigins(audience)
-           .AllowCredentials();
-}));
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -59,7 +52,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 //Add-Migration InitialCreate -Context Context
 //Update-Database InitialCreate -Context Context
-builder.Services.AddDbContext<Context>(options =>
+builder.Services.AddDbContext<DataLayer.DbContext.Context>(options =>
            options.UseSqlServer(builder.Configuration.GetConnectionString("Basic")));
 
 //Add-Migration InitialCreate -Context DynamicDbContext
@@ -83,7 +76,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.RequireHttpsMetadata = true;
     });
 
-builder.Services.AddScoped<Context>();
+builder.Services.AddScoped<DataLayer.DbContext.Context>();
 builder.Services.AddScoped<DynamicDbContext>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IFormService, FormService>();
@@ -100,13 +93,25 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 });
 
+var headers = RequestHeaderHandler.ipHeaders.ToList();
+headers.AddRange(["Content-Type", "Authorization", "User-Agent"]);
+builder.Services.AddCors(options => options.AddPolicy("PublishPolicy",
+builder =>
+{
+    builder.WithHeaders(headers.ToArray())
+           .WithMethods("GET", "POST")
+           .WithOrigins(audience)
+           .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
+}));
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
 }
-app.UseCors("PolicyPublish");
+app.UseCors("PublishPolicy");
 app.UseMiddleware<CustomMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI();

@@ -5,11 +5,13 @@ using ViewModels;
 using DataLayer.Models.WorkFlows;
 using Services;
 using ViewModels.ViewModels.WorkFlow;
+using AutomationEngine.ControllerAttributes;
 
 namespace AutomationEngine.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [CheckAccess]
     public class WorkFlowUserController : Controller
     {
         private readonly IWorkFlowUserService _WorkFlowUserService;

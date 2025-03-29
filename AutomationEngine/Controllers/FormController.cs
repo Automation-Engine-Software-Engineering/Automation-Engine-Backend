@@ -14,7 +14,7 @@ namespace AutomationEngine.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [CheckAccess(WorkFlowEnum.FormBuilder)]
+    [CheckAccess]
     public class FormController : ControllerBase
     {
         private readonly IFormService _formService;
@@ -146,7 +146,7 @@ namespace AutomationEngine.Controllers
         }
 
         // GET: api/form/all  
-        [HttpDelete("all")]
+        [HttpGet("all")]
         public async Task<ResultViewModel> GetAllForms(int pageSize, int pageNumber)
         {
             if (pageSize > 100)

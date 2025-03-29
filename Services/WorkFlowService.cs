@@ -1,4 +1,4 @@
-﻿using DataLayer.Context;
+﻿using DataLayer.DbContext;
 using DataLayer.Models.FormBuilder;
 using DataLayer.Models.TableBuilder;
 using DataLayer.Models.WorkFlows;
@@ -29,8 +29,8 @@ namespace Services
     }
     public class WorkFlowService : IWorkFlowService
     {
-        private readonly Context _context;
-        public WorkFlowService(Context context)
+        private readonly DataLayer.DbContext.Context _context;
+        public WorkFlowService(DataLayer.DbContext.Context context)
         {
             _context = context;
         }

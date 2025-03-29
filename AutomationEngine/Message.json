@@ -36,7 +36,8 @@
     },
     "Warning": {
       "Authentication": {
-        "NotAuthorized": "شما به این بخش دسترسی ندارید"
+        "NotAuthorized": "شما به این بخش دسترسی ندارید",
+        "Login": "رمز عبور یا نام کاربری اشتباه است"
       }
     },
     "Success": {

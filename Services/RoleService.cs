@@ -1,4 +1,4 @@
-﻿using DataLayer.Context;
+﻿using DataLayer.DbContext;
 using DataLayer.Models.MainEngine;
 using DataLayer.Models.WorkFlows;
 using FrameWork.ExeptionHandler.ExeptionModel;
@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Tools.AuthoraizationTools;
+using Tools.TextTools;
 
 namespace Services
 {
@@ -23,10 +25,10 @@ namespace Services
     }
     public class RoleService : IRoleService
     {
-        private readonly Context _context;
+        private readonly DataLayer.DbContext.Context _context;
         private readonly DynamicDbContext _dynamicContext;
 
-        public RoleService(Context context, DynamicDbContext dynamicContext)
+        public RoleService(DataLayer.DbContext.Context context, DynamicDbContext dynamicContext)
         {
             _context = context;
             _dynamicContext = dynamicContext;
@@ -65,13 +67,19 @@ namespace Services
         public async Task<(User User, int? RoleId)> Login(string userName, string password)
         {
             if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password)) throw new CustomException("اشتباه در تکمیل اطلاعات.");
+            
+            var user = await _dynamicContext.User.FirstOrDefaultAsync(x => x.UserName == userName)
+                   ?? throw new CustomException<object>(new ValidationDto<object>(false, "Authentication", "Login", null), 401);
+            
+            if(!user.Password.IsNullOrEmpty())
+            {
+                var hashPassword = HashString.HashPassword(password, user.Salt);
+                if (hashPassword != user.Password)
+                    throw new CustomException<object>(new ValidationDto<object>(false, "Authentication", "Login", null), 401);
+            }
+            var roleUser = await _context.Role_Users.FirstOrDefaultAsync(x => x.UserId == user.Id);
 
-            var result = await _dynamicContext.User.FirstOrDefaultAsync(x => x.UserName == userName && x.Password == password)
-                   ?? throw new CustomException("نام کاربری یا رمز عبور اشتباه است.");
-
-            var roleUser = await _context.Role_Users.FirstOrDefaultAsync(x => x.UserId == result.Id);
-
-            return (result, roleUser?.RoleId);
+            return (user, roleUser?.RoleId);
         }
         public async Task SaveChangesAsync()
         {

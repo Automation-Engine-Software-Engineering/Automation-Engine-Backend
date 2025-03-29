@@ -71,8 +71,20 @@ namespace Tools.AuthoraizationTools
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-        public ClaimsPrincipal ValidateRefreshToken(string refreshToken, bool isRefreshToken = false)
+        public string? GetClaimFromToken(string token, string claimType)
         {
+            var jwtHandler = new JwtSecurityTokenHandler();
+            if (!jwtHandler.CanReadToken(token))
+                return null;
+
+            var jwtToken = jwtHandler.ReadJwtToken(token);
+            var claim = jwtToken.Claims.FirstOrDefault(c => c.Type == claimType);
+            return claim?.Value;
+        }
+        public ClaimsPrincipal ValidateRefreshToken(string token, bool isRefreshToken = false)
+        {
+            var refreshToken = token.Substring("Bearer ".Length).Trim();
+
             var tokenHandler = new JwtSecurityTokenHandler();
             string tokenSecret = "";
             if (isRefreshToken)

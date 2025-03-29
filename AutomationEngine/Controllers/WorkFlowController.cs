@@ -5,11 +5,13 @@ using ViewModels.ViewModels.FormBuilder;
 using ViewModels;
 using ViewModels.ViewModels.WorkFlow;
 using DataLayer.Models.WorkFlows;
+using AutomationEngine.ControllerAttributes;
 
 namespace AutomationEngine.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [CheckAccess]
 
     public class WorkFlowController : Controller
     {

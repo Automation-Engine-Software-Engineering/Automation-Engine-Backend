@@ -9,6 +9,6 @@ namespace DataLayer.Models.Enums
     public enum WorkFlowEnum
     {
         FormBuilder = 1,
-        WorkFlowBuilder
+        WorkflowBuilder
     }
 }

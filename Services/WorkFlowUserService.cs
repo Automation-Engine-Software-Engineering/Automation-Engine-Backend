@@ -1,4 +1,4 @@
-﻿using DataLayer.Context;
+﻿using DataLayer.DbContext;
 using DataLayer.Models.WorkFlows;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using Microsoft.EntityFrameworkCore;
@@ -24,8 +24,8 @@ namespace Services
 
     public class WorkFlowUserService : IWorkFlowUserService
     {
-        private readonly Context _context;
-        public WorkFlowUserService(Context context)
+        private readonly DataLayer.DbContext.Context _context;
+        public WorkFlowUserService(DataLayer.DbContext.Context context)
         {
             _context = context;
         }

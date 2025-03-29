@@ -3,6 +3,7 @@ using DataLayer.DbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20250108184400_add relations and remove user")]
+    partial class addrelationsandremoveuser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,14 +85,6 @@ namespace DataLayer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Roles");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Description = "مدیر سیستم",
-                            Name = "Admin"
-                        });
                 });
 
             modelBuilder.Entity("DataLayer.Models.MainEngine.Role_User", b =>
@@ -134,20 +129,6 @@ namespace DataLayer.Migrations
                     b.HasIndex("WorkFlowId");
 
                     b.ToTable("Role_WorkFlows");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            RoleId = 1,
-                            WorkFlowId = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            RoleId = 1,
-                            WorkFlowId = 2
-                        });
                 });
 
             modelBuilder.Entity("DataLayer.Models.TableBuilder.Entity", b =>
@@ -312,20 +293,6 @@ namespace DataLayer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("WorkFlow");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Description = "Form Builder",
-                            Name = "Form Builder"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Description = "Workflow Builder",
-                            Name = "Workflow Builder"
-                        });
                 });
 
             modelBuilder.Entity("DataLayer.Models.WorkFlows.WorkFlow_User", b =>

@@ -6,9 +6,9 @@ using DataLayer.Models.WorkFlows;
 using Microsoft.EntityFrameworkCore;
 using Tools.TextTools;
 
-namespace DataLayer.Context
+namespace DataLayer.DbContext
 {
-    public class Context : DbContext
+    public class Context : Microsoft.EntityFrameworkCore.DbContext
     {
         public Context(DbContextOptions<Context> options) : base(options) { }
         #region basic database
@@ -45,6 +45,18 @@ namespace DataLayer.Context
             //   new EntityProperty { PreviewName = "Name", PropertyName = "Name", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 2 },
             //   new EntityProperty { PreviewName = "Description", PropertyName = "Description", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 1 }
             //    );
+
+            // اضافه کردن نقش Admin به جدول Role
+            var adminRole = new Role
+            {
+                Id = 1,
+                Name = "Admin",
+                Description = "مدیر سیستم"
+            };
+
+            modelBuilder.Entity<Role>().HasData(adminRole);
+
+            // اضافه کردن داده‌های WorkFlow از روی WorkFlowEnum
             var workFlowSeedData = Enum.GetValues(typeof(WorkFlowEnum))
                 .Cast<WorkFlowEnum>()
                 .Select(e => new WorkFlow
@@ -55,6 +67,16 @@ namespace DataLayer.Context
                 }).ToArray();
 
             modelBuilder.Entity<WorkFlow>().HasData(workFlowSeedData);
+
+            // ایجاد رابطه بین Admin و تمام موارد WorkFlowEnum
+            var roleWorkFlowSeedData = workFlowSeedData.Select(wf => new Role_WorkFlow
+            {
+                Id = wf.Id, 
+                WorkFlowId = wf.Id,
+                RoleId = adminRole.Id
+            }).ToArray();
+
+            modelBuilder.Entity<Role_WorkFlow>().HasData(roleWorkFlowSeedData);
         }
     }
 }
