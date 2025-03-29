@@ -19,11 +19,12 @@ namespace Services
         Task InsertWorFlow(WorkFlow workFlow);
         Task UpdateWorFlow(WorkFlow workFlow);
         Task DeleteWorFlow(int id);
-        Task<WorkFlow> GetWorFlowById(int id);
+        Task<WorkFlow> GetWorFlowIncNodesIncEdgesById(int id);
         Task<List<WorkFlow>> GetAllWorFlows();
         Task<UnknownDto> GetWorFlowValueById(int id , int userId);
         Task<UnknownDto> GetNextWorFlowValueById(int id, int userId);
         Task<UnknownDto> GetLastWorFlowValueById(int id, int userId);
+        Task<WorkFlow> GetWorFlowIncRolesById(int id);
         Task SaveChangesAsync();
     }
     public class WorkFlowService : IWorkFlowService
@@ -35,7 +36,7 @@ namespace Services
         }
         public async Task DeleteWorFlow(int id)
         {
-            if (id == null) throw new CustomException("گردشکار معتبر نمی باشد");
+            if (id == 0) throw new CustomException("گردشکار معتبر نمی باشد");
 
             var result = await _context.WorkFlow.FirstOrDefaultAsync(x => x.Id == id)
                   ?? throw new CustomException("گردشکار یافت نشد.");
@@ -126,15 +127,22 @@ namespace Services
             };
         }
 
-        public async Task<WorkFlow> GetWorFlowById(int id)
+        public async Task<WorkFlow> GetWorFlowIncNodesIncEdgesById(int id)
         {
-            if (id == null) throw new CustomException("گردشکار معتبر نمی باشد");
+            if (id == 0) throw new CustomException("گردشکار معتبر نمی باشد");
             var result = await _context.WorkFlow.Include(x => x.Nodes).Include(x => x.Edges).FirstOrDefaultAsync(x => x.Id == id)
                ?? throw new CustomException("گردشکار یافت نشد.");
 
             return result;
         }
+        public async Task<WorkFlow> GetWorFlowIncRolesById(int id)
+        {
+            if (id == 0) throw new CustomException("گردشکار معتبر نمی باشد");
+            var result = await _context.WorkFlow.Include(x => x.Role_WorkFlows).ThenInclude(x => x.Role).FirstOrDefaultAsync(x => x.Id == id)
+               ?? throw new CustomException("گردشکار یافت نشد.");
 
+            return result;
+        }
         public async Task InsertWorFlow(WorkFlow workFlow)
         {
             await WorkFlowValidation(workFlow);
@@ -146,7 +154,7 @@ namespace Services
         public async Task UpdateWorFlow(WorkFlow workFlow)
         {
             await WorkFlowValidation(workFlow);
-            if (workFlow.Id == null) throw new CustomException("گردشکار معتبر نمی باشد");
+            if (workFlow.Id == 0) throw new CustomException("گردشکار معتبر نمی باشد");
 
             var result = await _context.WorkFlow.FirstOrDefaultAsync(x => x.Id == workFlow.Id)
                ?? throw new CustomException("گردشکار یافت نشد.");

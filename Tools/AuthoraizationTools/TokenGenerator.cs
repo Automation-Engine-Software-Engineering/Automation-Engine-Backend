@@ -25,9 +25,13 @@ namespace Tools.AuthoraizationTools
             _configuration = configuration;
         }
 
-        public string GenerateAccessToken(string username, string role)
+        public string GenerateAccessToken(string username, string? role)
         {
-            var token = GenerateToken("JWTSettings:AccessTokenSecret", DateTime.UtcNow.AddMinutes(15), new Claim(ClaimTypes.Name, username), new Claim(ClaimTypes.Role, role));
+            var claims = new List<Claim> { new Claim(ClaimTypes.Name, username) };
+            if (role != null)
+                claims.Add(new Claim(ClaimTypes.Name, role));
+
+            var token = GenerateToken("JWTSettings:AccessTokenSecret", DateTime.UtcNow.AddMinutes(15), claims);
             return token;
         }
         public string GenerateRefreshToken()
@@ -35,7 +39,7 @@ namespace Tools.AuthoraizationTools
             var token = GenerateToken("JWTSettings:RefreshTokenSecret", DateTime.UtcNow.AddMonths(1));
             return token;
         }
-        private string GenerateToken(string secretConfigPath, DateTime expires, params Claim[] claims)
+        private string GenerateToken(string secretConfigPath, DateTime expires, List<Claim>? claims = null)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 
@@ -77,25 +81,30 @@ namespace Tools.AuthoraizationTools
                 tokenSecret = "JWTSettings:AccessTokenSecret";
 
             // خواندن مقدار JWTSecret از فایل appsettings.json
-            var secretKey = _configuration[tokenSecret];
-            if (secretKey.IsNullOrEmpty())
-                throw new CustomException("کلید خصوصی یافت نشد");
+            var secretKey = _configuration[tokenSecret] ?? throw new CustomException("کلید خصوصی یافت نشد");
+            var issuer = _configuration["JWTSettings:Issuer"];
+            var audience = _configuration["JWTSettings:Audience"];
+
             var key = Encoding.UTF8.GetBytes(secretKey ?? "");
 
             try
             {
                 var principal = tokenHandler.ValidateToken(refreshToken, new TokenValidationParameters
                 {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = true,
                     ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = issuer,
+                    ValidAudience = audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey ?? "")),
+
                     ClockSkew = TimeSpan.Zero // تأخیر زمانی مجاز
                 }, out SecurityToken validatedToken);
 
                 return principal;
             }
-            catch
+            catch(Exception e)
             {
                 throw new CustomException(new ValidationDto<string>(false, "Authentication", "NotAuthorized", refreshToken).GetMessage(403));
             }

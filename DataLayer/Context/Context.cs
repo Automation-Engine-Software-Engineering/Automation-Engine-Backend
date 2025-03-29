@@ -1,8 +1,10 @@
-﻿using DataLayer.Models.FormBuilder;
+﻿using DataLayer.Models.Enums;
+using DataLayer.Models.FormBuilder;
 using DataLayer.Models.MainEngine;
 using DataLayer.Models.TableBuilder;
 using DataLayer.Models.WorkFlows;
 using Microsoft.EntityFrameworkCore;
+using Tools.TextTools;
 
 namespace DataLayer.Context
 {
@@ -43,6 +45,16 @@ namespace DataLayer.Context
             //   new EntityProperty { PreviewName = "Name", PropertyName = "Name", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 2 },
             //   new EntityProperty { PreviewName = "Description", PropertyName = "Description", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 1 }
             //    );
+            var workFlowSeedData = Enum.GetValues(typeof(WorkFlowEnum))
+                .Cast<WorkFlowEnum>()
+                .Select(e => new WorkFlow
+                {
+                    Id = (int)e,
+                    Name = e.ToString().InsertSpaces(),
+                    Description = e.ToString().InsertSpaces()
+                }).ToArray();
+
+            modelBuilder.Entity<WorkFlow>().HasData(workFlowSeedData);
         }
     }
 }

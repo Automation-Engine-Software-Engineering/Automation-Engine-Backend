@@ -8,6 +8,7 @@ namespace DataLayer.Models.Enums
 {
     public enum WorkFlowEnum
     {
-        Forms = 1,
+        FormBuilder = 1,
+        WorkFlowBuilder
     }
 }

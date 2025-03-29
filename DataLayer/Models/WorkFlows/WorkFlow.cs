@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataLayer.Models.MainEngine;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,7 @@ namespace DataLayer.Models.WorkFlows
         public string Description { get; set; }
         public List<Node> Nodes { get; set; }
         public List<Edge> Edges { get; set; }
-
+        public List<Role_WorkFlow> Role_WorkFlows { get; set; }
         public List<WorkFlow_User> workFlowUser { get; set; }
     }
 }

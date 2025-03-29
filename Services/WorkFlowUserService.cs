@@ -31,7 +31,7 @@ namespace Services
         }
         public async Task DeleteWorFlowUser(int id)
         {
-            if (id == null) throw new CustomException("گردشکار معتبر نمی باشد");
+            if (id == 0) throw new CustomException("گردشکار معتبر نمی باشد");
             var feachModel = await _context.WorkFlow_User.FirstOrDefaultAsync(x => x.Id == id)
              ?? throw new CustomException("گردشکار معتبر نمی باشد.");
 
@@ -48,7 +48,7 @@ namespace Services
 
         public async Task<WorkFlow_User> GetWorFlowUserById(int id)
         {
-            if (id == null) throw new CustomException("گردشکار معتبر نمی باشد");
+            if (id == 0) throw new CustomException("گردشکار معتبر نمی باشد");
 
             var feachModel = await _context.WorkFlow_User.FirstOrDefaultAsync(x => x.Id == id)
                   ?? throw new CustomException("گردشکار معتبر نمی باشد");
@@ -65,7 +65,7 @@ namespace Services
         public async Task UpdateWorFlowUser(WorkFlow_User workFlow)
         {
             await WorkFlowValidation(workFlow);
-            if (workFlow.Id == null) throw new CustomException("گردشکار معتبر نمی باشد");
+            if (workFlow.Id == 0) throw new CustomException("گردشکار معتبر نمی باشد");
 
             var result = await _context.WorkFlow_User.FirstOrDefaultAsync(x => x.Id == workFlow.Id)
              ?? throw new CustomException("گردشکار یافت نشد.");
@@ -83,8 +83,8 @@ namespace Services
         {
             if (workFlowUser == null) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
             if (string.IsNullOrEmpty(workFlowUser.WorkFlowState)) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlowUser.WorkFlowId == null || workFlowUser.WorkFlowId == 0) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlowUser.UserId == null || workFlowUser.UserId == 0) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
+            if (workFlowUser.WorkFlowId == 0 || workFlowUser.WorkFlowId == 0) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
+            if (workFlowUser.UserId == 0 || workFlowUser.UserId == 0) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
 
             return "";
         }

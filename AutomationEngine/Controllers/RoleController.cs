@@ -14,11 +14,13 @@ namespace AutomationEngine.Controllers
     public class RoleController : Controller
     {
         private readonly IRoleService _roleService;
+        private readonly IUserService _userService;
         private readonly TokenGenerator _tokenGenerator;
 
-        public RoleController(IRoleService roleService, TokenGenerator tokenGenerator)
+        public RoleController(IRoleService roleService, IUserService userService, TokenGenerator tokenGenerator)
         {
             _roleService = roleService;
+            _userService = userService;
             _tokenGenerator = tokenGenerator;
         }
 
@@ -26,18 +28,17 @@ namespace AutomationEngine.Controllers
         [HttpPost("login/{userName}")]
         public async Task<ResultViewModel> Login(string userName, [FromBody] string password)
         {
-
+            var ip = HttpContext.GetIP();
+            var userAgent = HttpContext.GetUserAgent();
             var userIdRoleId = await _roleService.Login(userName, password);
-            var accessToken = _tokenGenerator.GenerateAccessToken(userIdRoleId.UserId.ToString(), userIdRoleId.RoleId.ToString());
+            userIdRoleId.User.IP = ip;
+            userIdRoleId.User.UserAgent = userAgent;
+            await _userService.UpdateUser(userIdRoleId.User);
+            await _userService.SaveChangesAsync();
+
+            var accessToken = _tokenGenerator.GenerateAccessToken(userIdRoleId.User.Id.ToString(), userIdRoleId.RoleId.ToString());
             var refreshToken = _tokenGenerator.GenerateRefreshToken();
-            var cookieOptions = new CookieOptions // TODO : remove
-            {
-                HttpOnly = true,
-                Expires = DateTimeOffset.UtcNow.AddMinutes(15),
-                Secure = true,
-                SameSite = SameSiteMode.Strict
-            };
-            Response.Cookies.Append("accessToken", accessToken, cookieOptions);
+
             var result = new TokenResultViewModel
             {
                 AccessToken = accessToken,
@@ -50,6 +51,7 @@ namespace AutomationEngine.Controllers
         [HttpGet("GetWorkFlowsByRole/{roleId}")]
         public async Task<ResultViewModel> GetWorkFlowsByRole(int roleId)
         {
+
             var result = await _roleService.GetWorkFlowsByRole(roleId);
             return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }

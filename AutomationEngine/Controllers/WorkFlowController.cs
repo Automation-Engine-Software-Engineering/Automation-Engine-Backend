@@ -109,7 +109,7 @@ namespace AutomationEngine.Controllers
         [HttpGet("{workFlowId}")]
         public async Task<ResultViewModel> GetForm(int workFlowId)
         {
-            var form = await _workFlowService.GetWorFlowById(workFlowId);
+            var form = await _workFlowService.GetWorFlowIncNodesIncEdgesById(workFlowId);
             return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 

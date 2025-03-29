@@ -24,7 +24,7 @@ namespace AutomationEngine.Controllers
         [HttpPost("create")]
         public async Task<ResultViewModel> CreateWorkFlowUser([FromBody] WorkFlowUserDto WorkFlowUser)
         {
-            var WorkFlow =await _workFlowService.GetWorFlowById(WorkFlowUser.WorkFlowId);
+            var WorkFlow =await _workFlowService.GetWorFlowIncNodesIncEdgesById(WorkFlowUser.WorkFlowId);
             var result = new WorkFlow_User()
             {
                 UserId = WorkFlowUser.UserId,
@@ -41,7 +41,7 @@ namespace AutomationEngine.Controllers
         [HttpPost("update")]
         public async Task<ResultViewModel> UpdateWorkFlowUser([FromBody] WorkFlowUserDto WorkFlowUser)
         {
-            var WorkFlow = await _workFlowService.GetWorFlowById(WorkFlowUser.WorkFlowId);
+            var WorkFlow = await _workFlowService.GetWorFlowIncNodesIncEdgesById(WorkFlowUser.WorkFlowId);
             var result = new WorkFlow_User()
             {
                 Id = WorkFlowUser.Id,

@@ -16,7 +16,7 @@ var audience = builder.Configuration["JWTSettings:Audience"] ?? throw new Custom
 var accessTokenSecret = builder.Configuration["JWTSettings:AccessTokenSecret"] ?? throw new CustomException("Audience در appsettings یافت نشد");
 var issuer = builder.Configuration["JWTSettings:Issuer"] ?? throw new CustomException("Issuer در appsettings یافت نشد");
 
-builder.Services.AddCors(options => options.AddPolicy("MyPolicy",
+builder.Services.AddCors(options => options.AddPolicy("PolicyPublish",
 builder =>
 {
     builder.AllowAnyHeader()
@@ -39,7 +39,7 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Enter 'Bearer' [space] and then your token in the text input below.\n\nExample: 'Bearer 12345abcdef'"
+        Description = "Enter your token in the text input below.\n\nExample: 'Bearer 12345abcdef'"
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -106,8 +106,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
 }
-app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().SetIsOriginAllowed(x => true));
-app.UseCors("MyPolicy");
+app.UseCors("PolicyPublish");
 app.UseMiddleware<CustomMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI();
