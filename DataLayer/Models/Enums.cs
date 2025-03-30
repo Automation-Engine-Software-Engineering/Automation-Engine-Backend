@@ -11,4 +11,9 @@ namespace DataLayer.Models.Enums
         FormBuilder = 1,
         WorkflowBuilder
     }
+    public enum ClaimsEnum
+    {
+        UserId,
+        RoleId
+    }
 }

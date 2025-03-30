@@ -66,9 +66,9 @@ namespace Services
 
         public async Task<(User User, int? RoleId)> Login(string userName, string password)
         {
-            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password)) throw new CustomException("اشتباه در تکمیل اطلاعات.");
+            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password)) throw new CustomException("نام کاربری و رمز عبور نمی تواند خالی باشد");
             
-            var user = await _dynamicContext.User.FirstOrDefaultAsync(x => x.UserName == userName)
+            var user = await _dynamicContext.User.SingleOrDefaultAsync(x => x.UserName == userName)
                    ?? throw new CustomException<object>(new ValidationDto<object>(false, "Authentication", "Login", null), 401);
             
             if(!user.Password.IsNullOrEmpty())

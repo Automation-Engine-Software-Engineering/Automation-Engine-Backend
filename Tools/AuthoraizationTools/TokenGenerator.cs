@@ -25,18 +25,22 @@ namespace Tools.AuthoraizationTools
             _configuration = configuration;
         }
 
-        public string GenerateAccessToken(string username, string? role)
+        public string GenerateAccessToken(string userId, string? role)
         {
-            var claims = new List<Claim> { new Claim(ClaimTypes.Name, username) };
+            var claims = new List<Claim> { new Claim("UserId", userId) };//TODO : ClaimsEnum
             if (role != null)
-                claims.Add(new Claim(ClaimTypes.Name, role));
+                claims.Add(new Claim("RoleId", role));//TODO : ClaimsEnum
 
             var token = GenerateToken("JWTSettings:AccessTokenSecret", DateTime.UtcNow.AddMinutes(15), claims);
             return token;
         }
-        public string GenerateRefreshToken()
+        public string GenerateRefreshToken(string userId, string? role)
         {
-            var token = GenerateToken("JWTSettings:RefreshTokenSecret", DateTime.UtcNow.AddMonths(1));
+            var claims = new List<Claim> { new Claim("UserId", userId) };//TODO : ClaimsEnum
+            if (role != null)
+                claims.Add(new Claim("RoleId", role));//TODO : ClaimsEnum
+
+            var token = GenerateToken("JWTSettings:RefreshTokenSecret", DateTime.UtcNow.AddMonths(1), claims);
             return token;
         }
         private string GenerateToken(string secretConfigPath, DateTime expires, List<Claim>? claims = null)
@@ -71,8 +75,12 @@ namespace Tools.AuthoraizationTools
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-        public string? GetClaimFromToken(string token, string claimType)
+        public string? GetClaimFromToken(string inputToken, string claimType) // TODO : ClaimsEnum.UserId.ToString() change to ClaimsEnum
         {
+            var token = inputToken.Trim();
+            if (token.Contains("Bearer "))
+                token = inputToken.Substring("Bearer ".Length);
+
             var jwtHandler = new JwtSecurityTokenHandler();
             if (!jwtHandler.CanReadToken(token))
                 return null;
@@ -81,9 +89,11 @@ namespace Tools.AuthoraizationTools
             var claim = jwtToken.Claims.FirstOrDefault(c => c.Type == claimType);
             return claim?.Value;
         }
-        public ClaimsPrincipal ValidateRefreshToken(string token, bool isRefreshToken = false)
+        public ClaimsPrincipal ValidateToken(string token, bool isRefreshToken = false)
         {
-            var refreshToken = token.Substring("Bearer ".Length).Trim();
+            var refreshToken = token.Trim();
+            if (refreshToken.Contains("Bearer "))
+                refreshToken = token.Substring("Bearer ".Length);
 
             var tokenHandler = new JwtSecurityTokenHandler();
             string tokenSecret = "";
@@ -110,9 +120,9 @@ namespace Tools.AuthoraizationTools
                     ValidIssuer = issuer,
                     ValidAudience = audience,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey ?? "")),
-
+                    
                     ClockSkew = TimeSpan.Zero // تأخیر زمانی مجاز
-                }, out SecurityToken validatedToken);
+                },out _);
 
                 return principal;
             }

@@ -46,7 +46,7 @@ namespace AutomationEngine.ControllerAttributes
             if (environment != null && environment.IsDevelopment())
             {
                 // در حالت Development هیچ چکی انجام نمی‌شود
-                return;
+                //return;
             }
 
             // گرفتن IUserService از Dependency Injection
@@ -59,10 +59,10 @@ namespace AutomationEngine.ControllerAttributes
             if (token.IsNullOrWhiteSpace())
                 throw new CustomException<object>(new ValidationDto<object>(false, "Authentication", "NotAuthorized", null), 403);
 
-            tokenGeneratorService.ValidateRefreshToken(token);
+            tokenGeneratorService.ValidateToken(token);
 
             // بررسی IP و UserAgent
-            var userIdClaim = tokenGeneratorService.GetClaimFromToken(token, ClaimTypes.Name);
+            var userIdClaim = tokenGeneratorService.GetClaimFromToken(token, ClaimsEnum.UserId.ToString());
 
             var userId = int.Parse(userIdClaim ?? "0");
             var user = await userService.GetUserById(userId);
@@ -78,7 +78,7 @@ namespace AutomationEngine.ControllerAttributes
             }
 
             // چک کردن دسترسی به Workflow
-            var roles = tokenGeneratorService.GetClaimFromToken(token, ClaimTypes.Role);
+            var roles = tokenGeneratorService.GetClaimFromToken(token, ClaimsEnum.RoleId.ToString());
 
             if (workflowId != null)
             {

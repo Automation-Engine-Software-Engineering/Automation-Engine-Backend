@@ -72,9 +72,12 @@ namespace Services
              ?? throw new CustomException("کاربر یافت نشد.");
 
             result.Name = user.Name;
-            result.UserName = user.Name;
-            result.RefreshToken = user.Name;
+            result.UserName = user.UserName;
+            result.UserAgent = user.UserAgent;
+            result.Salt = user.Salt;
+            result.RefreshToken = user.RefreshToken;
             result.Password = user.Password;
+            result.IP = user.IP;
             _context.Update(result);
         }
 

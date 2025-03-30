@@ -1,7 +1,12 @@
 ﻿using AutomationEngine.ControllerAttributes;
+using DataLayer.Models.Enums;
+using FrameWork.ExeptionHandler.ExeptionModel;
+using FrameWork.Model.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using Services;
+using System.Security.Claims;
 using Tools.AuthoraizationTools;
 using Tools.TextTools;
 using ViewModels;
@@ -33,13 +38,18 @@ namespace AutomationEngine.Controllers
             var ip = HttpContext.GetIP();
             var userAgent = HttpContext.GetUserAgent();
             var userRoleId = await _roleService.Login(userName, password);
+
+            string userId = userRoleId.User.Id.ToString();
+            string? roleId = userRoleId.RoleId.ToString();
+            var accessToken = _tokenGenerator.GenerateAccessToken(userId, roleId);
+            var refreshToken = _tokenGenerator.GenerateRefreshToken(userId, roleId);
+
             userRoleId.User.IP = ip;
             userRoleId.User.UserAgent = userAgent;
+            userRoleId.User.RefreshToken = refreshToken;
             await _userService.UpdateUser(userRoleId.User);
             await _userService.SaveChangesAsync();
 
-            var accessToken = _tokenGenerator.GenerateAccessToken(userRoleId.User.Id.ToString(), userRoleId.RoleId.ToString());
-            var refreshToken = _tokenGenerator.GenerateRefreshToken();
 
             var result = new TokenResultViewModel
             {
@@ -52,11 +62,20 @@ namespace AutomationEngine.Controllers
 
 
         // POST: api/RefreshToken
-        [HttpPost("RefreshToken")]
-        public async Task<ResultViewModel> GenerateRefreshToken(string userName, [FromBody] ChangePasswordInputModel input)
+        [HttpPost("GenerateToken")]
+        public async Task<ResultViewModel> GenerateToken([FromBody] string refreshToken)
         {
-            //TODO : Add refreshToken Generator
-            return (new ResultViewModel { Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
+            _tokenGenerator.ValidateToken(refreshToken, true);
+            var userId = _tokenGenerator.GetClaimFromToken(refreshToken, ClaimsEnum.UserId.ToString());
+            var role = _tokenGenerator.GetClaimFromToken(refreshToken, ClaimsEnum.RoleId.ToString());
+            var user = await _userService.GetUserById(int.Parse(userId ?? "0"));
+
+            if (user.RefreshToken != refreshToken)
+                throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "Login", refreshToken), 401);
+
+            var newAccessToken = _tokenGenerator.GenerateAccessToken(userId, role);
+
+            return (new ResultViewModel { Data = new { newAccessToken }, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 
         // POST: api/ChangePassword/{userName}  
