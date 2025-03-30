@@ -1,12 +1,6 @@
-﻿using DataLayer.Models.FormBuilder;
-using DataLayer.Models.TableBuilder;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DataLayer.Models.FormBuilder;
 
 namespace DataLayer.Models.WorkFlows
 {
@@ -15,21 +9,35 @@ namespace DataLayer.Models.WorkFlows
         [Key]
         public string Id { get; set; }
         public UnknownType Type { get; set; }
-        public int Icon { get; set; }
+        public string Icon { get; set; }
         public string Name { get; set; }
         public float X { get; set; }
         public float Y { get; set; }
+        public float Width { get; set; }
+        public float Height { get; set; }
 
-        public int? formId { get; set; }
-        [ForeignKey(nameof(formId))]
-        public Form? form { get; set; }
+        #region relation
+        public int? FormId { get; set; }
+        [ForeignKey(nameof(FormId))]
+        public Form Form { get; set; }
 
-        public int? entityId { get; set; }
-        [ForeignKey(nameof(entityId))]
-        public Entity? entity { get; set; }
+        public string? LastNodeId { get; set; }
+        [ForeignKey(nameof(LastNodeId))]
+        public Node? LastNode { get; set; }
+
+
+        public string? NextNodeId { get; set; }
+        [ForeignKey(nameof(NextNodeId))]
+        public Node? NextNode { get; set; }
+
+        public int WorkflowId { get; set; }
+        [ForeignKey(nameof(WorkflowId))]
+        public WorkFlow WorkFlow{ get; set; }
+        #endregion
     }
+
     public enum UnknownType
     {
-        table = 1, form = 2, noDynamic = 3
+        form = 1, dynamic = 2
     }
 }

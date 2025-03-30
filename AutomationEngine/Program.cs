@@ -55,8 +55,8 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddDbContext<DataLayer.DbContext.Context>(options =>
            options.UseSqlServer(builder.Configuration.GetConnectionString("Basic")));
 
-//Add-Migration InitialCreate -Context DynamicDbContext
-//Update-Database InitialCreate -Context DynamicDbContext
+//Add-Migration InitialCreate -DbContext DynamicDbContext
+//Update-Database InitialCreate -DbContext DynamicDbContext
 builder.Services.AddDbContext<DynamicDbContext>(options =>
            options.UseSqlServer(builder.Configuration.GetConnectionString("Dynamic")));
 

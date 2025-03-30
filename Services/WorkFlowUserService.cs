@@ -1,6 +1,7 @@
 ﻿using DataLayer.DbContext;
 using DataLayer.Models.WorkFlows;
 using FrameWork.ExeptionHandler.ExeptionModel;
+using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -18,8 +19,9 @@ namespace Services
         Task UpdateWorFlowUser(WorkFlow_User workFlow);
         Task DeleteWorFlowUser(int id);
         Task<WorkFlow_User> GetWorFlowUserById(int id);
-        Task<List<WorkFlow_User>> GetAllWorFlowUsers();
-        Task SaveChangesAsync();
+        Task<ListDto<WorkFlow_User>> GetAllWorFlowUsers(int pageSize, int pageNumber);
+        Task<ValidationDto<WorkFlow_User>> WorkFlowValidation(WorkFlow_User workFlowUser);
+        Task<ValidationDto<string>> SaveChangesAsync();
     }
 
     public class WorkFlowUserService : IWorkFlowUserService
@@ -31,66 +33,63 @@ namespace Services
         }
         public async Task DeleteWorFlowUser(int id)
         {
-            if (id == 0) throw new CustomException("گردشکار معتبر نمی باشد");
-            var feachModel = await _context.WorkFlow_User.FirstOrDefaultAsync(x => x.Id == id)
-             ?? throw new CustomException("گردشکار معتبر نمی باشد.");
-
-            _context.WorkFlow_User.Remove(feachModel);
+            var fetchModel = await _context.WorkFlow_User.FirstOrDefaultAsync(x => x.Id == id);
+            _context.WorkFlow_User.Remove(fetchModel);
         }
 
-        public async Task<List<WorkFlow_User>> GetAllWorFlowUsers()
+        public async Task<ListDto<WorkFlow_User>> GetAllWorFlowUsers(int pageSize, int pageNumber)
         {
-            var feachModel = await _context.WorkFlow_User.ToListAsync()
-                       ?? throw new CustomException("هیچ گردشکار یافت نشد.");
+            //create query
+            var query = _context.WorkFlow_User;
 
-            return feachModel;
+            //get Value and count
+            var count = query.Count();
+            var result = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            return new ListDto<WorkFlow_User>(result, count, pageSize, pageNumber);
         }
 
         public async Task<WorkFlow_User> GetWorFlowUserById(int id)
         {
-            if (id == 0) throw new CustomException("گردشکار معتبر نمی باشد");
-
-            var feachModel = await _context.WorkFlow_User.FirstOrDefaultAsync(x => x.Id == id)
-                  ?? throw new CustomException("گردشکار معتبر نمی باشد");
-
-            return feachModel;
+            var fetchModel = await _context.WorkFlow_User.FirstAsync(x => x.Id == id);
+            return fetchModel;
         }
 
         public async Task InsertWorFlowUser(WorkFlow_User workFlow)
         {
-            await WorkFlowValidation(workFlow);
-
             await _context.WorkFlow_User.AddAsync(workFlow);
         }
+
         public async Task UpdateWorFlowUser(WorkFlow_User workFlow)
         {
-            await WorkFlowValidation(workFlow);
-            if (workFlow.Id == 0) throw new CustomException("گردشکار معتبر نمی باشد");
+            var result = await _context.WorkFlow_User.FirstAsync(x => x.Id == workFlow.Id);
 
-            var result = await _context.WorkFlow_User.FirstOrDefaultAsync(x => x.Id == workFlow.Id)
-             ?? throw new CustomException("گردشکار یافت نشد.");
+            var fetchModel = new WorkFlow_User();
+            fetchModel.WorkFlowState = workFlow.WorkFlowState;
+            fetchModel.UserId = workFlow.UserId;
+            fetchModel.WorkFlowId = workFlow.WorkFlowId;
+            _context.Update(fetchModel);
+        }
 
-            var feachModel = new WorkFlow_User()
+        public async Task<ValidationDto<WorkFlow_User>> WorkFlowValidation(WorkFlow_User workFlowUser)
+        {
+            if (workFlowUser == null) return new ValidationDto<WorkFlow_User>(false, "Form", "CorruptedForm", workFlowUser);
+            if (workFlowUser.User == null) return new ValidationDto<WorkFlow_User>(false, "Form", "CorruptedForm", workFlowUser);
+            if (workFlowUser.WorkFlowState == null) return new ValidationDto<WorkFlow_User>(false, "Form", "CorruptedForm", workFlowUser);
+            if (workFlowUser.WorkFlow == null) return new ValidationDto<WorkFlow_User>(false, "Form", "CorruptedForm", workFlowUser);
+
+            return new ValidationDto<WorkFlow_User>(true, "Success", "Success", workFlowUser);
+        }
+        public async Task<ValidationDto<string>> SaveChangesAsync()
+        {
+            try
             {
-                WorkFlowState = workFlow.WorkFlowState,
-                UserId = workFlow.UserId,
-                WorkFlowId = workFlow.WorkFlowId
-            };
-            _context.Update(feachModel);
-        }
-
-        public async Task<string> WorkFlowValidation(WorkFlow_User workFlowUser)
-        {
-            if (workFlowUser == null) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
-            if (string.IsNullOrEmpty(workFlowUser.WorkFlowState)) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlowUser.WorkFlowId == 0 || workFlowUser.WorkFlowId == 0) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
-            if (workFlowUser.UserId == 0 || workFlowUser.UserId == 0) throw new CustomException("اطلاعات گردشکار معتبر نمی باشد");
-
-            return "";
-        }
-        public async Task SaveChangesAsync()
-        {
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
+                return new ValidationDto<string>(true, "Success", "Success", null);
+            }
+            catch (Exception ex)
+            {
+                return new ValidationDto<string>(false, "Form", "CorruptedForm", ex.Message);
+            }
         }
     }
 }
