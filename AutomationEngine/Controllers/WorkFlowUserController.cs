@@ -9,6 +9,7 @@ using AutomationEngine.ControllerAttributes;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.IdentityModel.Tokens;
+using Tools.TextTools;
 
 namespace AutomationEngine.Controllers
 {

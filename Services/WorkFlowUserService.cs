@@ -73,7 +73,7 @@ namespace Services
         public async Task<ValidationDto<WorkFlow_User>> WorkFlowValidation(WorkFlow_User workFlowUser)
         {
             if (workFlowUser == null) return new ValidationDto<WorkFlow_User>(false, "Form", "CorruptedForm", workFlowUser);
-            if (workFlowUser.User == null) return new ValidationDto<WorkFlow_User>(false, "Form", "CorruptedForm", workFlowUser);
+            if (workFlowUser.UserId == null) return new ValidationDto<WorkFlow_User>(false, "Form", "CorruptedForm", workFlowUser);
             if (workFlowUser.WorkFlowState == null) return new ValidationDto<WorkFlow_User>(false, "Form", "CorruptedForm", workFlowUser);
             if (workFlowUser.WorkFlow == null) return new ValidationDto<WorkFlow_User>(false, "Form", "CorruptedForm", workFlowUser);
 

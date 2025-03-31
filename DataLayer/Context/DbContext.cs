@@ -22,42 +22,20 @@ namespace DataLayer.DbContext
         #endregion
 
         public DbSet<WorkFlow> WorkFlow { get; set; }
-        public DbSet<Edge> Edge { get; set; }
         public DbSet<Node> Node { get; set; }
         public DbSet<WorkFlow_User> WorkFlow_User { get; set; }
         public DbSet<Role_WorkFlow> Role_WorkFlows { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //     modelBuilder.Entity<Entity>().HasData(
-            //         new Entity { PreviewName = "کاربران", Description = "اطلاعات اولیه کاربران  (رمز و پسوردها)", TableName = "User" },
-            //         new Entity { PreviewName = "نقش ها", Description = "اطلاعات اولیه نفش ها", TableName = "Role" }
-            //     );
-
-            //     modelBuilder.Entity<EntityProperty>().HasData(
-            //    new EntityProperty { PreviewName = "Id", PropertyName = "Id", AllowNull = false, DefaultValue = null, Type = PropertyTypes.INT, EntityId = 1 },
-            //    new EntityProperty { PreviewName = "Name", PropertyName = "Name", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 1 },
-            //    new EntityProperty { PreviewName = "UserName", PropertyName = "UserName", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 1 },
-            //    new EntityProperty { PreviewName = "Password", PropertyName = "Password", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 1 }
-            //     );
-
-            //     modelBuilder.Entity<EntityProperty>().HasData(
-            //   new EntityProperty { PreviewName = "Id", PropertyName = "Id", AllowNull = false, DefaultValue = null, Type = PropertyTypes.INT, EntityId = 2 },
-            //   new EntityProperty { PreviewName = "Name", PropertyName = "Name", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 2 },
-            //   new EntityProperty { PreviewName = "Description", PropertyName = "Description", AllowNull = false, DefaultValue = null, Type = PropertyTypes.NvarcharLong, EntityId = 1 }
-            //    );
-
-            // اضافه کردن نقش Admin به جدول Role
             var adminRole = new Role
             {
                 Id = 1,
                 Name = "Admin",
                 Description = "مدیر سیستم"
             };
-
             modelBuilder.Entity<Role>().HasData(adminRole);
 
-            // اضافه کردن داده‌های WorkFlow از روی WorkFlowEnum
             var workFlowSeedData = Enum.GetValues(typeof(WorkFlowEnum))
                 .Cast<WorkFlowEnum>()
                 .Select(e => new WorkFlow
@@ -66,14 +44,11 @@ namespace DataLayer.DbContext
                     Name = e.ToString().InsertSpaces(),
                     Description = e.ToString().InsertSpaces()
                 }).ToArray();
-
             modelBuilder.Entity<WorkFlow>().HasData(workFlowSeedData);
-            
 
-            // ایجاد رابطه بین Admin و تمام موارد WorkFlowEnum
             var roleWorkFlowSeedData = workFlowSeedData.Select(wf => new Role_WorkFlow
             {
-                Id = wf.Id, 
+                Id = wf.Id,
                 WorkFlowId = wf.Id,
                 RoleId = adminRole.Id
             }).ToArray();
@@ -85,17 +60,18 @@ namespace DataLayer.DbContext
                  .HasForeignKey(n => n.NextNodeId)
                  .OnDelete(DeleteBehavior.NoAction);
 
-                 modelBuilder.Entity<Node>()
-                 .HasOne(n => n.WorkFlow)
-                 .WithMany(n => n.Nodes)
-                 .OnDelete(DeleteBehavior.Cascade);
-
             modelBuilder.Entity<Node>()
                  .HasOne(n => n.LastNode)
                  .WithMany()
                  .HasForeignKey(n => n.LastNodeId)
                  .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Node>()
+                 .HasOne(n => n.WorkFlow)
+                 .WithMany(n => n.Nodes)
+                 .OnDelete(DeleteBehavior.Cascade);
+
         }
-        
+
     }
 }
