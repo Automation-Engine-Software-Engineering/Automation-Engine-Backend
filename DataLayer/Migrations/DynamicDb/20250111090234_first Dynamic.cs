@@ -5,7 +5,7 @@
 namespace DataLayer.Migrations.DynamicDb
 {
     /// <inheritdoc />
-    public partial class AddPropertyToUser : Migration
+    public partial class firstDynamic : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,9 +16,10 @@ namespace DataLayer.Migrations.DynamicDb
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Salt = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RefreshToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserAgent = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IP = table.Column<string>(type: "nvarchar(max)", nullable: true)

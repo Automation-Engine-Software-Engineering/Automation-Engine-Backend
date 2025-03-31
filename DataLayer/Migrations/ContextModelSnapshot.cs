@@ -150,6 +150,41 @@ namespace DataLayer.Migrations
                         });
                 });
 
+            modelBuilder.Entity("DataLayer.Models.MainEngine.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("IP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Password")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Salt")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserAgent")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("User");
+                });
+
             modelBuilder.Entity("DataLayer.Models.TableBuilder.Entity", b =>
                 {
                     b.Property<int>("Id")
@@ -221,7 +256,7 @@ namespace DataLayer.Migrations
                     b.ToTable("Property");
                 });
 
-            modelBuilder.Entity("DataLayer.Models.WorkFlow.Node", b =>
+            modelBuilder.Entity("DataLayer.Models.WorkFlows.Node", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -252,7 +287,7 @@ namespace DataLayer.Migrations
                     b.Property<float>("Width")
                         .HasColumnType("real");
 
-                    b.Property<int?>("WorkFlowId")
+                    b.Property<int>("WorkflowId")
                         .HasColumnType("int");
 
                     b.Property<float>("X")
@@ -269,7 +304,7 @@ namespace DataLayer.Migrations
 
                     b.HasIndex("NextNodeId");
 
-                    b.HasIndex("WorkFlowId");
+                    b.HasIndex("WorkflowId");
 
                     b.ToTable("Node");
                 });
@@ -390,31 +425,35 @@ namespace DataLayer.Migrations
                     b.Navigation("Entity");
                 });
 
-            modelBuilder.Entity("DataLayer.Models.WorkFlow.Node", b =>
+            modelBuilder.Entity("DataLayer.Models.WorkFlows.Node", b =>
                 {
                     b.HasOne("DataLayer.Models.FormBuilder.Form", "Form")
                         .WithMany()
                         .HasForeignKey("FormId");
 
-                    b.HasOne("DataLayer.Models.WorkFlow.Node", "LastNode")
+                    b.HasOne("DataLayer.Models.WorkFlows.Node", "LastNode")
                         .WithMany()
                         .HasForeignKey("LastNodeId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("DataLayer.Models.WorkFlow.Node", "NextNode")
+                    b.HasOne("DataLayer.Models.WorkFlows.Node", "NextNode")
                         .WithMany()
                         .HasForeignKey("NextNodeId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("DataLayer.Models.WorkFlow.WorkFlow", null)
+                    b.HasOne("DataLayer.Models.WorkFlows.WorkFlow", "WorkFlow")
                         .WithMany("Nodes")
-                        .HasForeignKey("WorkFlowId");
+                        .HasForeignKey("WorkflowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Form");
 
                     b.Navigation("LastNode");
 
                     b.Navigation("NextNode");
+
+                    b.Navigation("WorkFlow");
                 });
 
             modelBuilder.Entity("DataLayer.Models.WorkFlows.WorkFlow_User", b =>

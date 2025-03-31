@@ -2,10 +2,12 @@
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace DataLayer.Migrations
 {
     /// <inheritdoc />
-    public partial class first : Migration
+    public partial class firstmigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -34,42 +36,16 @@ namespace DataLayer.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SizeWidth = table.Column<double>(type: "float", nullable: false),
-                    SizeHeight = table.Column<double>(type: "float", nullable: false),
+                    SizeHeight = table.Column<double>(type: "float", nullable: true),
+                    IsAutoHeight = table.Column<bool>(type: "bit", nullable: false),
                     BackgroundColor = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     BackgroundImgPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsRepeatedImage = table.Column<bool>(type: "bit", nullable: false),
                     HtmlFormBody = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Form", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Role_Users",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    RoleId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Role_Users", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Role_WorkFlows",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    WorkFlowId = table.Column<int>(type: "int", nullable: false),
-                    RoleId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Role_WorkFlows", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -92,10 +68,13 @@ namespace DataLayer.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Salt = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RefreshToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserAgent = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IP = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -124,11 +103,13 @@ namespace DataLayer.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     PreviewName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PropertyName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Type = table.Column<int>(type: "int", nullable: false),
-                    AllowNull = table.Column<bool>(type: "bit", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DefaultValue = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SizeWidth = table.Column<double>(type: "float", nullable: false),
-                    SizeHeight = table.Column<double>(type: "float", nullable: false),
+                    IsRequiredErrorMessage = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DefaultErrorMessage = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ToolType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IconClass = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Type = table.Column<int>(type: "int", nullable: false),
                     EntityId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -167,24 +148,23 @@ namespace DataLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Edge",
+                name: "Role_Users",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Source = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SourceHandle = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Target = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TargetHandle = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    WorkFlowId = table.Column<int>(type: "int", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    RoleId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Edge", x => x.Id);
+                    table.PrimaryKey("PK_Role_Users", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Edge_WorkFlow_WorkFlowId",
-                        column: x => x.WorkFlowId,
-                        principalTable: "WorkFlow",
-                        principalColumn: "Id");
+                        name: "FK_Role_Users_Roles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "Roles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -193,32 +173,67 @@ namespace DataLayer.Migrations
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Type = table.Column<int>(type: "int", nullable: false),
-                    Icon = table.Column<int>(type: "int", nullable: false),
+                    Icon = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     X = table.Column<float>(type: "real", nullable: false),
                     Y = table.Column<float>(type: "real", nullable: false),
-                    formId = table.Column<int>(type: "int", nullable: true),
-                    entityId = table.Column<int>(type: "int", nullable: true),
-                    WorkFlowId = table.Column<int>(type: "int", nullable: true)
+                    Width = table.Column<float>(type: "real", nullable: false),
+                    Height = table.Column<float>(type: "real", nullable: false),
+                    FormId = table.Column<int>(type: "int", nullable: true),
+                    LastNodeId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    NextNodeId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    WorkflowId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Node", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Node_Entity_entityId",
-                        column: x => x.entityId,
-                        principalTable: "Entity",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Node_Form_formId",
-                        column: x => x.formId,
+                        name: "FK_Node_Form_FormId",
+                        column: x => x.FormId,
                         principalTable: "Form",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Node_WorkFlow_WorkFlowId",
+                        name: "FK_Node_Node_LastNodeId",
+                        column: x => x.LastNodeId,
+                        principalTable: "Node",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Node_Node_NextNodeId",
+                        column: x => x.NextNodeId,
+                        principalTable: "Node",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Node_WorkFlow_WorkflowId",
+                        column: x => x.WorkflowId,
+                        principalTable: "WorkFlow",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Role_WorkFlows",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    WorkFlowId = table.Column<int>(type: "int", nullable: false),
+                    RoleId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Role_WorkFlows", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Role_WorkFlows_Roles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "Roles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Role_WorkFlows_WorkFlow_WorkFlowId",
                         column: x => x.WorkFlowId,
                         principalTable: "WorkFlow",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -235,12 +250,6 @@ namespace DataLayer.Migrations
                 {
                     table.PrimaryKey("PK_WorkFlow_User", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_WorkFlow_User_User_UserId",
-                        column: x => x.UserId,
-                        principalTable: "User",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_WorkFlow_User_WorkFlow_WorkFlowId",
                         column: x => x.WorkFlowId,
                         principalTable: "WorkFlow",
@@ -248,10 +257,28 @@ namespace DataLayer.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Edge_WorkFlowId",
-                table: "Edge",
-                column: "WorkFlowId");
+            migrationBuilder.InsertData(
+                table: "Roles",
+                columns: new[] { "Id", "Description", "Name" },
+                values: new object[] { 1, "مدیر سیستم", "Admin" });
+
+            migrationBuilder.InsertData(
+                table: "WorkFlow",
+                columns: new[] { "Id", "Description", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Form Builder", "Form Builder" },
+                    { 2, "Workflow Builder", "Workflow Builder" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Role_WorkFlows",
+                columns: new[] { "Id", "RoleId", "WorkFlowId" },
+                values: new object[,]
+                {
+                    { 1, 1, 1 },
+                    { 2, 1, 2 }
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_EntityForm_FormsId",
@@ -259,19 +286,24 @@ namespace DataLayer.Migrations
                 column: "FormsId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Node_entityId",
+                name: "IX_Node_FormId",
                 table: "Node",
-                column: "entityId");
+                column: "FormId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Node_formId",
+                name: "IX_Node_LastNodeId",
                 table: "Node",
-                column: "formId");
+                column: "LastNodeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Node_WorkFlowId",
+                name: "IX_Node_NextNodeId",
                 table: "Node",
-                column: "WorkFlowId");
+                column: "NextNodeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Node_WorkflowId",
+                table: "Node",
+                column: "WorkflowId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Property_EntityId",
@@ -279,9 +311,19 @@ namespace DataLayer.Migrations
                 column: "EntityId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WorkFlow_User_UserId",
-                table: "WorkFlow_User",
-                column: "UserId");
+                name: "IX_Role_Users_RoleId",
+                table: "Role_Users",
+                column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Role_WorkFlows_RoleId",
+                table: "Role_WorkFlows",
+                column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Role_WorkFlows_WorkFlowId",
+                table: "Role_WorkFlows",
+                column: "WorkFlowId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkFlow_User_WorkFlowId",
@@ -292,9 +334,6 @@ namespace DataLayer.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "Edge");
-
             migrationBuilder.DropTable(
                 name: "EntityForm");
 
@@ -311,7 +350,7 @@ namespace DataLayer.Migrations
                 name: "Role_WorkFlows");
 
             migrationBuilder.DropTable(
-                name: "Roles");
+                name: "User");
 
             migrationBuilder.DropTable(
                 name: "WorkFlow_User");
@@ -323,7 +362,7 @@ namespace DataLayer.Migrations
                 name: "Entity");
 
             migrationBuilder.DropTable(
-                name: "User");
+                name: "Roles");
 
             migrationBuilder.DropTable(
                 name: "WorkFlow");

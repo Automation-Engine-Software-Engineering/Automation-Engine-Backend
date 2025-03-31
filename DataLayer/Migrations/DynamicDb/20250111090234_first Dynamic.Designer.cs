@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations.DynamicDb
 {
     [DbContext(typeof(DynamicDbContext))]
-    [Migration("20250108183146_add salt to user")]
-    partial class addsalttouser
+    [Migration("20250111090234_first Dynamic")]
+    partial class firstDynamic
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
