@@ -84,6 +84,8 @@ builder.Services.AddScoped<IEntityService, EntityService>();
 builder.Services.AddScoped<IPropertyService, PropertyService>();
 builder.Services.AddScoped<IWorkFlowService, WorkFlowService>();
 builder.Services.AddScoped<IWorkFlowUserService, WorkFlowUserService>();
+builder.Services.AddScoped<IWorkFlowRoleService, WorkFlowRoleService>();
+builder.Services.AddScoped<IRoleUserService, RoleUserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IHtmlService, HtmlService>();
 builder.Services.AddSingleton<TokenGenerator>();

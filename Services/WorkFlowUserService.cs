@@ -21,6 +21,7 @@ namespace Services
         Task<WorkFlow_User> GetWorFlowUserById(int id);
         Task<ListDto<WorkFlow_User>> GetAllWorFlowUsers(int pageSize, int pageNumber);
         Task<ValidationDto<WorkFlow_User>> WorkFlowValidation(WorkFlow_User workFlowUser);
+         Task<WorkFlow_User> GetWorFlowUserByWorkflowAndUserId(int WorkflowId, int userId);
         Task<ValidationDto<string>> SaveChangesAsync();
     }
 
@@ -51,6 +52,12 @@ namespace Services
         public async Task<WorkFlow_User> GetWorFlowUserById(int id)
         {
             var fetchModel = await _context.WorkFlow_User.FirstAsync(x => x.Id == id);
+            return fetchModel;
+        }
+
+           public async Task<WorkFlow_User> GetWorFlowUserByWorkflowAndUserId(int WorkflowId, int userId)
+        {
+            var fetchModel = await _context.WorkFlow_User.FirstAsync(x => x.UserId == userId && x.WorkFlowId == WorkflowId);
             return fetchModel;
         }
 

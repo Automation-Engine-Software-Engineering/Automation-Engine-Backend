@@ -57,7 +57,7 @@ namespace AutomationEngine.Controllers
                 RefreshToken = refreshToken,
                 NeedNewPassword = userRoleId.User.Password.IsNullOrEmpty(),
             };
-            return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
+            return (new ResultViewModel { Data = result, Message = new ValidationDto<TokenResultViewModel>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
 
@@ -75,7 +75,7 @@ namespace AutomationEngine.Controllers
 
             var newAccessToken = _tokenGenerator.GenerateAccessToken(userId, role);
 
-            return (new ResultViewModel { Data = new { newAccessToken }, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
+            return (new ResultViewModel { Data = newAccessToken, Message = new ValidationDto<string>(true, "Success", "Success", newAccessToken).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/ChangePassword/{userName}  
@@ -93,7 +93,7 @@ namespace AutomationEngine.Controllers
             await _userService.UpdateUser(userIdRoleId.User);
             await _userService.SaveChangesAsync();
 
-            return (new ResultViewModel { Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
+            return (new ResultViewModel { Data = input, Message = new ValidationDto<ChangePasswordInputModel>(true, "Success", "Success", input).GetMessage(200), Status = true, StatusCode = 200 });
         }
     }
 }
