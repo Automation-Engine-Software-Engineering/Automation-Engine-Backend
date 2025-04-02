@@ -11,4 +11,9 @@ namespace ViewModels.ViewModels.AuthenticationDtos
         public required string OldPassword { get; set; }
         public required string NewPassword { get; set; }
     }
+    public class UserDashboardViewModel
+    {
+        public int Id { get; set; }
+        public string? Name { get; set; }
+    }
 }

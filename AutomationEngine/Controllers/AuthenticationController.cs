@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using Services;
+using System.Net.Http;
 using System.Security.Claims;
 using Tools.AuthoraizationTools;
 using Tools.TextTools;
@@ -94,6 +95,22 @@ namespace AutomationEngine.Controllers
             await _userService.SaveChangesAsync();
 
             return (new ResultViewModel { Data = input, Message = new ValidationDto<ChangePasswordInputModel>(true, "Success", "Success", input).GetMessage(200), Status = true, StatusCode = 200 });
+        }
+
+        // POST: api/ChangePassword/{userName}  
+        [HttpPost("User")]
+        [CheckAccess]
+        public async Task<ResultViewModel> GetUser()
+        {
+            var token = HttpContext.Request.Headers["Authorization"].ToString();
+            var userId = _tokenGenerator.GetClaimFromToken(token, ClaimsEnum.UserId.ToString());
+            var user = await _userService.GetUserById(int.Parse(userId ?? "0"));
+            var data = new UserDashboardViewModel
+            {
+                Id = user.Id,
+                Name = user.Name
+            };
+            return (new ResultViewModel {Data = data, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
     }
 }
