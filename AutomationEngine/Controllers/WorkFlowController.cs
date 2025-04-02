@@ -16,10 +16,12 @@ namespace AutomationEngine.Controllers
     public class WorkFlowController : Controller
     {
         private readonly IWorkFlowService _workFlowService;
+        private readonly IWorkFlowUserService _workFlowUserService;
 
-        public WorkFlowController(IWorkFlowService workFlowService)
+        public WorkFlowController(IWorkFlowService workFlowService, IWorkFlowUserService workFlowUserService)
         {
             _workFlowService = workFlowService;
+            _workFlowUserService = workFlowUserService;
         }
 
         // POST: api/form/create  
@@ -82,7 +84,9 @@ namespace AutomationEngine.Controllers
                 X = x.Position.X,
                 Y = x.Position.Y,
                 Width = x.Position.Width,
-                Height = x.Position.Height
+                Height = x.Position.Height,
+                FormId = x.Data.FormId == null ? null : x.Data.FormId,
+                DllName = x.Data.DllName == null ? null : x.Data.DllName
             }).ToList();
 
             workFlow.Edges.ForEach(x =>
@@ -117,7 +121,6 @@ namespace AutomationEngine.Controllers
         {
             if (workFlow == null)
                 throw new CustomException<WorkFlow>(new ValidationDto<WorkFlow>(false, "Workflow", "CorruptedWorkflow", null), 500);
-
 
             var result = await _workFlowService.GetWorFlowByIdAsync(workFlow.Id);
             result.Name = workFlow.Name;
@@ -234,6 +237,54 @@ namespace AutomationEngine.Controllers
             });
 
             return (new ResultViewModel { Data = dto, Message = new ValidationDto<WorkFlow>(true, "Success", "Success", fetchModel).GetMessage(200), Status = true, StatusCode = 200 });
+        }
+
+        // GET: api/nodeState  
+        [HttpGet("nodeState")]
+        public async Task<ResultViewModel> GetNodeState(int WorkFlowUserId)
+        {
+            if (WorkFlowUserId == 0)
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowFound", WorkFlowUserId), 500);
+
+            var workflowUser = await _workFlowUserService.GetWorFlowUserById(WorkFlowUserId);
+            if (workflowUser == null)
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowFound", WorkFlowUserId), 500);
+
+            var workFlow = await _workFlowService.GetWorFlowByIdIncNodesAsync(workflowUser.WorkFlowId);
+            if (workFlow == null)
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowFound", WorkFlowUserId), 500);
+
+            var node = workFlow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkFlowState);
+
+            return (new ResultViewModel { Data = node, Message = new ValidationDto<Node>(true, "Success", "Success", node).GetMessage(200), Status = true, StatusCode = 200 });
+        }
+
+
+        // GET: api/nodeMove  
+        [HttpGet("nodeMove")]
+        public async Task<ResultViewModel> NodeMove(int WorkFlowUserId, int state)
+        {
+            if (WorkFlowUserId == 0)
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowFound", WorkFlowUserId), 500);
+
+            var workflowUser = await _workFlowUserService.GetWorFlowUserById(WorkFlowUserId);
+            if (workflowUser == null)
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowFound", WorkFlowUserId), 500);
+
+            var workFlow = await _workFlowService.GetWorFlowByIdIncNodesAsync(workflowUser.WorkFlowId);
+            if (workFlow == null)
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowFound", WorkFlowUserId), 500);
+
+            var node = workFlow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkFlowState);
+
+            if (state == 1)
+                workflowUser.WorkFlowState = workFlow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkFlowState).NextNode.Id;
+            else if (state == 2)
+                workflowUser.WorkFlowState = workFlow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkFlowState).LastNode.Id;
+            else if (state == 3)
+                await _workFlowUserService.DeleteWorFlowUser(workflowUser.Id);
+
+            return (new ResultViewModel { Data = node, Message = new ValidationDto<Node>(true, "Success", "Success", node).GetMessage(200), Status = true, StatusCode = 200 });
         }
     }
 }

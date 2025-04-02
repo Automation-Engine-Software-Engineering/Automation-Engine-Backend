@@ -73,7 +73,10 @@ namespace Services
 
         public async Task<WorkFlow> GetWorFlowByIdIncNodesAsync(int id)
         {
-            var result = await _context.WorkFlow.Include(x => x.Nodes).FirstAsync(x => x.Id == id);
+            var result = await _context.WorkFlow
+            .Include(x => x.Nodes)
+            .ThenInclude(x => x.Form)
+            .FirstAsync(x => x.Id == id);
             return result;
         }
 

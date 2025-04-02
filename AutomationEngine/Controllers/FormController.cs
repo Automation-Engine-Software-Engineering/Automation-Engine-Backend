@@ -9,6 +9,9 @@ using DataLayer.Models.TableBuilder;
 using Tools;
 using AutomationEngine.ControllerAttributes;
 using DataLayer.Models.Enums;
+using DataLayer.Models.WorkFlows;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using DataLayer.DbContext;
 
 namespace AutomationEngine.Controllers
 {
@@ -18,10 +21,18 @@ namespace AutomationEngine.Controllers
     public class FormController : ControllerBase
     {
         private readonly IFormService _formService;
+        private readonly IWorkFlowUserService _workFlowUserService;
+        private readonly IWorkFlowService _workFlowService;
+        private readonly IPropertyService _propertyService;
+        private readonly DynamicDbContext _dynamicDbContext;
 
-        public FormController(IFormService formService)
+        public FormController(IFormService formService, IWorkFlowUserService workFlowUserService, IWorkFlowService workFlowService, IPropertyService propertyService, DynamicDbContext dynamicDbContext)
         {
             _formService = formService;
+            _workFlowUserService = workFlowUserService;
+            _workFlowService = workFlowService;
+            _propertyService = propertyService;
+            _dynamicDbContext = dynamicDbContext;
         }
 
         // POST: api/form/create  
@@ -54,7 +65,7 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/update  
         [HttpPost("{formId}/update")]
-        public async Task<ResultViewModel> UpdateForm(int formId,[FromForm] UpdateFormInputModel form)
+        public async Task<ResultViewModel> UpdateForm(int formId, [FromForm] UpdateFormInputModel form)
         {
             if (form == null)
                 throw new CustomException<UpdateFormInputModel>(new ValidationDto<UpdateFormInputModel>(false, "Form", "CorruptedForm", form), 500);
@@ -111,7 +122,7 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<IEnumerable<int>>(new ValidationDto<IEnumerable<int>>(false, "Form", "CorruptedNotfound", Entities), 500);
 
             await _formService.AddEntitiesToFormAsync(formId, Entities?.ToList() ?? new List<int>());
-            
+
             var saveResult = await _formService.SaveChangesAsync();
 
             if (!saveResult.IsSuccess)
@@ -183,7 +194,7 @@ namespace AutomationEngine.Controllers
             return (new ResultViewModel { Data = form, Message = new ValidationDto<Form>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
-        
+
         // GET: api/form/{id}  
         [HttpGet("preview")]
         public async Task<ResultViewModel> GetFormPreview(int formId)
@@ -240,6 +251,79 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<string>(saveResult, 500);
 
             return (new ResultViewModel { Data = form, Message = new ValidationDto<Form>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });
+        }
+
+        // POST: api/form/{formId}/updateBody  
+        [HttpPost("{formId}/sendFormData")]
+        public async Task<ResultViewModel> SendFormData(int formId, int userId, int workflowUserId, [FromBody] List<(int id, object content)> formData)
+        {
+            if (formId == 0 && workflowUserId == 0 && formData.Any(x => x.id == 0))
+                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedFormData", formId), 500);
+
+            var workflowUser = await _workFlowUserService.GetWorFlowUserById(workflowUserId);
+            if (workflowUser == null)
+                throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "NoUserWorkflowFound", workflowUserId), 500);
+
+            var form = await _formService.GetFormByIdIncEntityIncPropertyAsync(formId);
+            if (form == null)
+                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedNotfound", formId), 500);
+
+            if (userId != workflowUser.UserId) // userId == userJWT
+                throw new CustomException<int>(new ValidationDto<int>(false, "User", "CorruptedUser", formId), 500);
+
+            var workflow = await _workFlowService.GetWorFlowByIdIncNodesAsync(workflowUser.WorkFlowId);
+            if (workflow == null)
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowRoleFound", formId), 500);
+
+            var currentNode = workflow.Nodes.FirstOrDefault(x => x.Id == workflowUser.WorkFlowState);
+            if (currentNode.FormId != formId)
+                throw new CustomException<Node>(new ValidationDto<Node>(false, "Form", "CorruptedNotfound", currentNode), 500);
+
+            List<Entity> entites = new List<Entity>();
+            foreach (var prop in formData)
+            {
+                var property = await _propertyService.GetColumnByIdAsync(prop.id);
+
+                if (entites.Any(x => x == property.Entity))
+                {
+                    entites.FirstOrDefault(x => x == property.Entity)
+                    .Properties.Add(property);
+                }
+                else
+                {
+                    var entity = property.Entity;
+                    entity.Properties = new List<EntityProperty>();
+                    entity.Properties.Add(property);
+                }
+            }
+
+            foreach (var entity in entites)
+            {
+                string query = $"Insert into {entity.TableName} (";
+                int i = 0;
+                entity.Properties.ForEach(x =>
+                {
+                    if (i != 0)
+                        query += " , ";
+                    query += x.PropertyName;
+                    i++;
+                });
+                query += ") Value (";
+
+                i = 0;
+                entity.Properties.ForEach(x =>
+                {
+                    if (i != 0)
+                        query += " , ";
+                    query += formData.FirstOrDefault(xx => xx.id == x.Id).content;
+                });
+
+                query += ")";
+
+                _dynamicDbContext.ExecuteSqlRawAsync(query);
+            }
+
+            return (new ResultViewModel { Data = entites, Message = new ValidationDto<Form>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });
         }
     }
 }

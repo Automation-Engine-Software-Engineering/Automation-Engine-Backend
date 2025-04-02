@@ -20,7 +20,7 @@
         "CorruptedFormName": "خطا در نام فرم وجود دارد",
         "CorruptedFormSize": "خطا در ابعاد فرم وجود دارد",
         "CorruptedNotfound": "فرم یافت نشد",
-        "CorruptedInvalidPage": "تعداد صفحات نا معتبر"
+        "CorruptedFormData": "اطلاعات فرم یا گردشکار یا داده ها دارای خطا می باشد"
       },
       "Workflow": {
         "CorruptedWorkflow": "خطا در اطلاعات گردشکار وجود دارد",
@@ -33,6 +33,9 @@
         "CorruptedWorkflow": "خطا در گردشکار وجود دارد",
         "CorruptedRole": "خطا در نقش وجود دارد",
         "NoWorkflowRoleFound": "گردشکار یافت نشد"
+      },
+      "User": {
+        "CorruptedUser": "کاربر یافت نشد"
       },
       "RoleUser": {
         "CorruptedRoleUser": "خطا در اطلاعات گردشکار وجود دارد",

@@ -150,16 +150,15 @@ namespace AutomationEngine.Controllers
             return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 
-        
         // GET: api/form/{id}  
-        [HttpGet("WorkflowUser/workflow")]
-        public async Task<ResultViewModel> GetWorkFlowUserByUserAndWorkflowId(int workFlowId , int userId)
+        [HttpGet("workflow")]
+        public async Task<ResultViewModel> GetWorkFlowUserByUserAndWorkflowId(int workFlowId, int userId)
         {                        //is validation model
             if (workFlowId == 0)
                 throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "CorruptedUserWorkflow", workFlowId), 500);
 
             //initial action
-            var workflowUser = await _WorkFlowUserService.GetWorFlowUserByWorkflowAndUserId(workFlowId , userId);
+            var workflowUser = await _WorkFlowUserService.GetWorFlowUserByWorkflowAndUserId(workFlowId, userId);
             if (workflowUser == null)
                 throw new CustomException<WorkFlow_User>(new ValidationDto<WorkFlow_User>(false, "UserWorkflow", "CorruptedUserWorkflow", workflowUser), 500);
 

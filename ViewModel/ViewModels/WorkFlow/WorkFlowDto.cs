@@ -21,6 +21,8 @@
         public string Icon { get; set; }
         public string Name { get; set; }
         public int Type { get; set; }
+        public int? FormId { get; set; }
+        public string? DllName { get; set; }
     }
     public class position
     {

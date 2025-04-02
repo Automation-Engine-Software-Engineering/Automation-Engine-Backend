@@ -15,6 +15,7 @@ namespace DataLayer.Models.WorkFlows
         public float Y { get; set; }
         public float Width { get; set; }
         public float Height { get; set; }
+        public string DllName { get; set; }
 
         #region relation
         public int? FormId { get; set; }
@@ -32,7 +33,7 @@ namespace DataLayer.Models.WorkFlows
 
         public int WorkflowId { get; set; }
         [ForeignKey(nameof(WorkflowId))]
-        public WorkFlow WorkFlow{ get; set; }
+        public WorkFlow WorkFlow { get; set; }
         #endregion
     }
 
