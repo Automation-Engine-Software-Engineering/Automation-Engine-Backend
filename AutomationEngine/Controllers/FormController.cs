@@ -301,21 +301,31 @@ namespace AutomationEngine.Controllers
             {
                 string query = $"Insert into {entity.TableName} (";
                 int i = 0;
+                var propName = new List<string>();
+                var propValue = new List<string>();
+
                 entity.Properties.ForEach(x =>
+                {
+                    propName.Add(x.PropertyName);
+                    propValue.Add(formData.FirstOrDefault(xx => xx.id == x.Id).content.ToString());
+                });
+
+                i = 0;
+                propName.ForEach(x =>
                 {
                     if (i != 0)
                         query += " , ";
-                    query += x.PropertyName;
-                    i++;
+                    query += x;
                 });
+
                 query += ") Value (";
 
                 i = 0;
-                entity.Properties.ForEach(x =>
+                propValue.ForEach(x =>
                 {
                     if (i != 0)
                         query += " , ";
-                    query += formData.FirstOrDefault(xx => xx.id == x.Id).content;
+                    query += x;
                 });
 
                 query += ")";
