@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using DataLayer.Models.FormBuilder;
 
-namespace DataLayer.Models.WorkFlow
+namespace DataLayer.Models.WorkFlows
 {
     public class Node
     {

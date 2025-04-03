@@ -1,5 +1,8 @@
-﻿using DataLayer.Context;
-using DataLayer.Models.WorkFlow;
+﻿using DataLayer.DbContext;
+using DataLayer.Models.FormBuilder;
+using DataLayer.Models.TableBuilder;
+using DataLayer.Models.WorkFlows;
+using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
 using Tools.TextTools;
@@ -13,6 +16,7 @@ namespace Services
         Task DeleteWorFlowAsync(int id);
         Task DeleteAllNodeOfWorFlowAsync(int id);
         Task<WorkFlow> GetWorFlowByIdAsync(int id);
+        Task<WorkFlow> GetWorFlowIncRolesById(int id);
         Task<WorkFlow> GetWorFlowByIdIncNodesAsync(int id);
         Task<ListDto<WorkFlow>> GetAllWorFlowsAsync(int pageSize, int pageNumber);
         Task<ValidationDto<WorkFlow>> WorkFlowValidationAsync(WorkFlow workFlow);
@@ -21,8 +25,8 @@ namespace Services
     }
     public class WorkFlowService : IWorkFlowService
     {
-        private readonly DataLayer.Context.DbContext _context;
-        public WorkFlowService(DataLayer.Context.DbContext context)
+        private readonly DataLayer.DbContext.Context _context;
+        public WorkFlowService(DataLayer.DbContext.Context context)
         {
             _context = context;
         }
@@ -119,6 +123,12 @@ namespace Services
 
             //return model
             return isExist;
+        }
+
+        public async Task<WorkFlow> GetWorFlowIncRolesById(int id)
+        {
+            var result = await _context.WorkFlow.Include(x => x.Role_WorkFlows).FirstAsync(x => x.Id == id);
+            return result;
         }
     }
 }

@@ -1,17 +1,19 @@
-﻿using System.Security.Cryptography.X509Certificates;
+﻿using DataLayer.Models.Enums;
 using DataLayer.Models.FormBuilder;
 using DataLayer.Models.MainEngine;
 using DataLayer.Models.TableBuilder;
-using DataLayer.Models.WorkFlow;
+using DataLayer.Models.WorkFlows;
 using Microsoft.EntityFrameworkCore;
+using Tools.TextTools;
 
-namespace DataLayer.Context
+namespace DataLayer.DbContext
 {
-    public class DbContext : Microsoft.EntityFrameworkCore.DbContext
+    public class Context : Microsoft.EntityFrameworkCore.DbContext
     {
-        public DbContext(DbContextOptions<DbContext> options) : base(options) { }
+        public Context(DbContextOptions<Context> options) : base(options) { }
         #region basic database
         public DbSet<Form> Form { get; set; }
+
         public DbSet<Entity> Entity { get; set; }
         public DbSet<EntityProperty> Property { get; set; }
         public DbSet<User> User { get; set; }
@@ -26,11 +28,31 @@ namespace DataLayer.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Node>()
-                 .HasOne(n => n.LastNode)
-                 .WithMany()
-                 .HasForeignKey(n => n.LastNodeId)
-                 .OnDelete(DeleteBehavior.NoAction);
+            var adminRole = new Role
+            {
+                Id = 1,
+                Name = "Admin",
+                Description = "مدیر سیستم"
+            };
+            modelBuilder.Entity<Role>().HasData(adminRole);
+
+            var workFlowSeedData = Enum.GetValues(typeof(WorkFlowEnum))
+                .Cast<WorkFlowEnum>()
+                .Select(e => new WorkFlow
+                {
+                    Id = (int)e,
+                    Name = e.ToString().InsertSpaces(),
+                    Description = e.ToString().InsertSpaces()
+                }).ToArray();
+            modelBuilder.Entity<WorkFlow>().HasData(workFlowSeedData);
+
+            var roleWorkFlowSeedData = workFlowSeedData.Select(wf => new Role_WorkFlow
+            {
+                Id = wf.Id,
+                WorkFlowId = wf.Id,
+                RoleId = adminRole.Id
+            }).ToArray();
+            modelBuilder.Entity<Role_WorkFlow>().HasData(roleWorkFlowSeedData);
 
             modelBuilder.Entity<Node>()
                  .HasOne(n => n.NextNode)
@@ -38,11 +60,18 @@ namespace DataLayer.Context
                  .HasForeignKey(n => n.NextNodeId)
                  .OnDelete(DeleteBehavior.NoAction);
 
-                 modelBuilder.Entity<Node>()
+            modelBuilder.Entity<Node>()
+                 .HasOne(n => n.LastNode)
+                 .WithMany()
+                 .HasForeignKey(n => n.LastNodeId)
+                 .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Node>()
                  .HasOne(n => n.WorkFlow)
                  .WithMany(n => n.Nodes)
                  .OnDelete(DeleteBehavior.Cascade);
+
         }
-        
+
     }
 }

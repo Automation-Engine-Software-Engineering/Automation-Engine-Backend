@@ -28,6 +28,23 @@
         "CorruptedWorkflowDes": "خطا در توضیحات گردشکار وجود دارد",
         "NoWorkflowFound": "گردشکار یافت نشد"
       },
+      "WorkflowRole": {
+        "CorruptedWorkflowRole": "خطا در اطلاعات گردشکار وجود دارد",
+        "CorruptedWorkflow": "خطا در گردشکار وجود دارد",
+        "CorruptedRole": "خطا در نقش وجود دارد",
+        "NoWorkflowRoleFound": "گردشکار یافت نشد"
+      },
+      "RoleUser": {
+        "CorruptedRoleUser": "خطا در اطلاعات گردشکار وجود دارد",
+        "CorruptedRole": "خطا در گردشکار وجود دارد",
+        "CorruptedUser": "خطا در اطلاعات فرد وجود دارد",
+        "NoRoleUserFound": "گردشکار یافت نشد"
+      },
+      "Role": {
+        "InvalidRole": "خطا در اطلاعات نقش وجود دارد",
+        "InvalidName": "خطا در نام نقش وجود دارد",
+        "InvalidDescription": "خطا در توضیحات نقش وجود دارد"
+      },
       "UserWorkflow": {
         "CorruptedUserWorkflow": "خطا در اطلاعات گردشکار وجود دارد",
         "CorruptedUserWorkflowName": "خطا در نام گردشکار وجود دارد",
@@ -45,7 +62,12 @@
         "CorruptedString": "خظا در نوشتار وجود دارد"
       }
     },
-    "Warning": {},
+    "Warning": {
+      "Authentication": {
+        "NotAuthorized": "شما به این بخش دسترسی ندارید",
+        "Login": "رمز عبور یا نام کاربری اشتباه است"
+      }
+    },
     "Success": {
       "Success": {
         "Success": "عملیات با موفقیت انجام شد"

@@ -1,7 +1,9 @@
-﻿using DataLayer.Models.FormBuilder;
+﻿using AutomationEngine.ControllerAttributes;
+using DataLayer.Models.FormBuilder;
 using DataLayer.Models.TableBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.SqlServer.Server;
 using Services;
@@ -14,6 +16,7 @@ namespace AutomationEngine.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [CheckAccess]
     public class EntityController : ControllerBase
     {
         private readonly IEntityService _entityService;

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataLayer.Models.WorkFlow
+namespace DataLayer.Models.WorkFlows
 {
     public class WorkFlow_User
     {
@@ -15,8 +15,6 @@ namespace DataLayer.Models.WorkFlow
         public string WorkFlowState { get; set; }
 
         public int UserId { get; set; }
-        [ForeignKey(nameof(UserId))]
-        public User User { get; set; }
 
         public int WorkFlowId { get; set; }
         [ForeignKey(nameof(WorkFlowId))]

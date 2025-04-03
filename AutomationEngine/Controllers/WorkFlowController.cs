@@ -2,7 +2,8 @@
 using Services;
 using ViewModels;
 using ViewModels.ViewModels.WorkFlow;
-using DataLayer.Models.WorkFlow;
+using DataLayer.Models.WorkFlows;
+using AutomationEngine.ControllerAttributes;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 
@@ -10,6 +11,7 @@ namespace AutomationEngine.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [CheckAccess]
 
     public class WorkFlowController : Controller
     {

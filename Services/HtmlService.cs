@@ -1,5 +1,5 @@
 ﻿using System.Text.RegularExpressions;
-using DataLayer.Context;
+using DataLayer.DbContext;
 using HtmlAgilityPack;
 
 namespace Services
@@ -14,8 +14,8 @@ namespace Services
 
     public class HtmlService : IHtmlService
     {
-        private readonly DbContext _context;
-        public HtmlService(DbContext context)
+        private readonly Context _context;
+        public HtmlService(Context context)
         {
             _context = context;
         }

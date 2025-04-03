@@ -27,6 +27,5 @@ namespace Tools.TextTools
             return Regex.IsMatch(input, pattern) ? Regex.IsMatch(input, pattern) :
                  throw new CustomException<string>(new ValidationDto<string>(false, "Defult", "CorruptedString", input), 500);
         }
-
     }
 }

@@ -1,5 +1,5 @@
-﻿using DataLayer.Context;
-using DataLayer.Models.WorkFlow;
+﻿using DataLayer.DbContext;
+using DataLayer.Models.WorkFlows;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
@@ -21,13 +21,14 @@ namespace Services
         Task<WorkFlow_User> GetWorFlowUserById(int id);
         Task<ListDto<WorkFlow_User>> GetAllWorFlowUsers(int pageSize, int pageNumber);
         Task<ValidationDto<WorkFlow_User>> WorkFlowValidation(WorkFlow_User workFlowUser);
+         Task<WorkFlow_User> GetWorFlowUserByWorkflowAndUserId(int WorkflowId, int userId);
         Task<ValidationDto<string>> SaveChangesAsync();
     }
 
     public class WorkFlowUserService : IWorkFlowUserService
     {
-        private readonly DataLayer.Context.DbContext _context;
-        public WorkFlowUserService(DataLayer.Context.DbContext context)
+        private readonly DataLayer.DbContext.Context _context;
+        public WorkFlowUserService(DataLayer.DbContext.Context context)
         {
             _context = context;
         }
@@ -54,6 +55,12 @@ namespace Services
             return fetchModel;
         }
 
+           public async Task<WorkFlow_User> GetWorFlowUserByWorkflowAndUserId(int WorkflowId, int userId)
+        {
+            var fetchModel = await _context.WorkFlow_User.FirstAsync(x => x.UserId == userId && x.WorkFlowId == WorkflowId);
+            return fetchModel;
+        }
+
         public async Task InsertWorFlowUser(WorkFlow_User workFlow)
         {
             await _context.WorkFlow_User.AddAsync(workFlow);
@@ -73,7 +80,7 @@ namespace Services
         public async Task<ValidationDto<WorkFlow_User>> WorkFlowValidation(WorkFlow_User workFlowUser)
         {
             if (workFlowUser == null) return new ValidationDto<WorkFlow_User>(false, "Form", "CorruptedForm", workFlowUser);
-            if (workFlowUser.User == null) return new ValidationDto<WorkFlow_User>(false, "Form", "CorruptedForm", workFlowUser);
+            if (workFlowUser.UserId == null) return new ValidationDto<WorkFlow_User>(false, "Form", "CorruptedForm", workFlowUser);
             if (workFlowUser.WorkFlowState == null) return new ValidationDto<WorkFlow_User>(false, "Form", "CorruptedForm", workFlowUser);
             if (workFlowUser.WorkFlow == null) return new ValidationDto<WorkFlow_User>(false, "Form", "CorruptedForm", workFlowUser);
 

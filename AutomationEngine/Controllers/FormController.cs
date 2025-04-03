@@ -7,11 +7,14 @@ using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using DataLayer.Models.TableBuilder;
 using Tools;
+using AutomationEngine.ControllerAttributes;
+using DataLayer.Models.Enums;
 
 namespace AutomationEngine.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [CheckAccess]
     public class FormController : ControllerBase
     {
         private readonly IFormService _formService;

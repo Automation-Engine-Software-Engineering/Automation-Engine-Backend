@@ -7,11 +7,13 @@ using Microsoft.SqlServer.Server;
 using ViewModels;
 using Microsoft.IdentityModel.Tokens;
 using ViewModels.ViewModels.Table;
+using AutomationEngine.ControllerAttributes;
 
 namespace AutomationEngine.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [CheckAccess]
     public class TableController : ControllerBase
     {
         private readonly IPropertyService _properptyService;

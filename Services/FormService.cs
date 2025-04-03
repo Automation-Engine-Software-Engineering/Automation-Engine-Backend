@@ -1,5 +1,5 @@
 ﻿using System.Text.RegularExpressions;
-using DataLayer.Context;
+using DataLayer.DbContext;
 using DataLayer.Models.FormBuilder;
 using DataLayer.Models.TableBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
@@ -30,10 +30,10 @@ namespace Services
 
     public class FormService : IFormService
     {
-        private readonly DataLayer.Context.DbContext _context;
+        private readonly DataLayer.DbContext.Context _context;
         private readonly DynamicDbContext _dynamicDbContext;
         private readonly IHtmlService _htmlService;
-        public FormService(DataLayer.Context.DbContext context, DynamicDbContext dynamicDbContext, IHtmlService htmlService)
+        public FormService(DataLayer.DbContext.Context context, DynamicDbContext dynamicDbContext, IHtmlService htmlService)
         {
             _context = context;
             _dynamicDbContext = dynamicDbContext;
@@ -207,7 +207,7 @@ namespace Services
                 var condition = await _htmlService.getTagAttributesValue(tag, "data-condition");
                 var filter = await _htmlService.getTagAttributesValue(tag, "data-filter");
 
-                var table = _context.Entity.FirstOrDefault(x => x.Id == int.Parse(tableId));
+                var table = await _context.Entity.FirstOrDefaultAsync(x => x.Id == int.Parse(tableId));
                 // var query = $"select * from {table.TableName} where" + filter;
                 var query = $"select * from {table.TableName}" ;
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
@@ -246,7 +246,7 @@ namespace Services
                 condition = condition.Replace("}}", "");
                 var filter = await _htmlService.getTagAttributesValue(tag, "data-filter");
 
-                var table = _context.Entity.FirstOrDefault(x => x.Id == int.Parse(filter));
+                var table = await _context.Entity.FirstOrDefaultAsync(x => x.Id == int.Parse(filter));
                 var query = $"select " + condition + $" from {table.TableName}";
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
 

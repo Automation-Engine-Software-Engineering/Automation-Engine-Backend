@@ -1,4 +1,4 @@
-﻿using DataLayer.Context;
+﻿using DataLayer.DbContext;
 using DataLayer.Models.TableBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
@@ -24,10 +24,10 @@ namespace Services
 
     public class PropertyService : IPropertyService
     {
-        private readonly DataLayer.Context.DbContext _context;
+        private readonly DataLayer.DbContext.Context _context;
         private readonly DynamicDbContext _dynamicDbContext;
 
-        public PropertyService(DataLayer.Context.DbContext context, DynamicDbContext dynamicDbContext)
+        public PropertyService(DataLayer.DbContext.Context context, DynamicDbContext dynamicDbContext)
         {
             _context = context;
             _dynamicDbContext = dynamicDbContext;
