@@ -100,9 +100,12 @@ headers.AddRange(["Content-Type", "Authorization", "User-Agent"]);
 builder.Services.AddCors(options => options.AddPolicy("PublishPolicy",
 builder =>
 {
-    builder.WithHeaders(headers.ToArray())
+    builder
+    .AllowAnyHeader()
+           //.WithHeaders(headers.ToArray())
+           //.WithOrigins(audience)
            .WithMethods("GET", "POST")
-           .WithOrigins(audience)
+           .AllowAnyOrigin()
            .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
 }));
 
