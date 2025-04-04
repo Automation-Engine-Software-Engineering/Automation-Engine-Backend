@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using Services;
 using System.Text;
 using Tools.AuthoraizationTools;
+using Tools.CustomMiddlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -76,7 +77,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.RequireHttpsMetadata = true;
     });
 
-builder.Services.AddScoped<DataLayer.DbContext.Context>();
+builder.Services.AddScoped<Context>();
 builder.Services.AddScoped<DynamicDbContext>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IFormService, FormService>();
@@ -89,6 +90,7 @@ builder.Services.AddScoped<IRoleUserService, RoleUserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IHtmlService, HtmlService>();
 builder.Services.AddSingleton<TokenGenerator>();
+builder.Services.AddSingleton<EncryptionTool>();
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
@@ -106,9 +108,14 @@ builder =>
            //.WithOrigins(audience)
            .WithMethods("GET", "POST")
            .AllowAnyOrigin()
-           .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
+           .SetPreflightMaxAge(TimeSpan.FromMinutes(15));
 }));
 
+builder.Services.AddAntiforgery(options =>
+{
+    options.Cookie.Name = "X-CSRF-TOKEN";
+    options.Cookie.HttpOnly = true;
+});
 
 var app = builder.Build();
 
@@ -116,8 +123,15 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
 }
+else
+{
+    app.UseHsts();
+}
 app.UseCors("PublishPolicy");
+
 app.UseMiddleware<CustomMiddleware>();
+app.UseMiddleware<CspMiddleware>();
+
 app.UseSwagger();
 app.UseSwaggerUI();
 

@@ -4,6 +4,7 @@ using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using Services;
 using System.Net.Http;
@@ -23,12 +24,16 @@ namespace AutomationEngine.Controllers
         private readonly IRoleService _roleService;
         private readonly IUserService _userService;
         private readonly TokenGenerator _tokenGenerator;
+        private readonly IConfiguration _configuration;
+        private readonly EncryptionTool _encryptionTool;
 
-        public AuthenticationController(IRoleService roleService, IUserService userService, TokenGenerator tokenGenerator)
+        public AuthenticationController(IRoleService roleService, IUserService userService, TokenGenerator tokenGenerator, IConfiguration configuration,EncryptionTool encryptionTool)
         {
             _roleService = roleService;
             _userService = userService;
             _tokenGenerator = tokenGenerator;
+            _configuration = configuration;
+            _encryptionTool = encryptionTool;
         }
 
         // POST: api/Login/{userName}  
@@ -51,6 +56,26 @@ namespace AutomationEngine.Controllers
             await _userService.UpdateUser(userRoleId.User);
             await _userService.SaveChangesAsync();
 
+            var issuer = _configuration["JWTSettings:Issuer"];
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddMinutes(15),
+                MaxAge = TimeSpan.FromMinutes(15),
+                Domain = issuer,
+                IsEssential = true,
+                Path = "/api",
+            };
+
+            var encryptedValue = _encryptionTool.EncryptCookie(accessToken);
+            Response.Cookies.Append("access_token", accessToken, cookieOptions);
+
+            cookieOptions.Expires = DateTimeOffset.UtcNow.AddMonths(1);
+            cookieOptions.MaxAge = TimeSpan.FromDays(30);
+
+            Response.Cookies.Append("refresh_token", refreshToken, cookieOptions);
 
             var result = new TokenResultViewModel
             {
@@ -60,7 +85,11 @@ namespace AutomationEngine.Controllers
             };
             return (new ResultViewModel { Data = result, Message = new ValidationDto<TokenResultViewModel>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
-
+        //TODO : کلیم ها رو از ولیدیشن اش بگیرم و سر کانتکست بزارمش و اینام ها رو تغییر بدم به کلاس برای کلیم ها 
+        //محدود کردن تعداد لاگین‌های ناموفق: تنظیم Secure Flag برای تمام کوکی‌ها:
+        //مطمئن شوید که تمام کوکی‌های سایت فقط از طریق HTTPS منتقل می‌شوند.
+        //استفاده از Anti-CSRF Tokens:
+        //در فرم‌ها از توکن‌های ضد CSRF برای جلوگیری از حملات Cross-Site استفاده کنید.
 
         // POST: api/RefreshToken
         [HttpPost("GenerateToken")]
