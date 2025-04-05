@@ -59,23 +59,29 @@ namespace AutomationEngine.Controllers
             var issuer = _configuration["JWTSettings:Issuer"];
             var cookieOptions = new CookieOptions
             {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
+                HttpOnly = false,
+                Secure = false,
+                IsEssential = false,
+                //Path = "/api",
                 Expires = DateTimeOffset.UtcNow.AddMinutes(15),
                 MaxAge = TimeSpan.FromMinutes(15),
-                Domain = issuer,
-                IsEssential = true,
-                Path = "/api",
+                //SameSite = SameSiteMode.Strict,
+                //HttpOnly = true,
+                //Secure = true,
+                //Domain = issuer,
+                //IsEssential = true,
+                //Path = "/api",
             };
 
-            var encryptedValue = _encryptionTool.EncryptCookie(accessToken);
-            Response.Cookies.Append("access_token", accessToken, cookieOptions);
+            var encryptedAccessToken = _encryptionTool.EncryptCookie(accessToken);
+            Response.Cookies.Append("access_token", encryptedAccessToken, cookieOptions);
 
             cookieOptions.Expires = DateTimeOffset.UtcNow.AddMonths(1);
             cookieOptions.MaxAge = TimeSpan.FromDays(30);
 
-            Response.Cookies.Append("refresh_token", refreshToken, cookieOptions);
+            var encryptedRefreshToken = _encryptionTool.EncryptCookie(refreshToken);
+            Response.Cookies.Append("refresh_token", encryptedRefreshToken, cookieOptions);
 
             var result = new TokenResultViewModel
             {
@@ -93,8 +99,11 @@ namespace AutomationEngine.Controllers
 
         // POST: api/RefreshToken
         [HttpPost("GenerateToken")]
-        public async Task<ResultViewModel> GenerateToken([FromBody] string refreshToken)
+        public async Task<ResultViewModel> GenerateToken()
         {
+            var encryptedToken = HttpContext.Request.Cookies["refresh_token"];
+            var refreshToken = _encryptionTool.DecryptCookie(encryptedToken);
+
             _tokenGenerator.ValidateToken(refreshToken, true);
             var userId = _tokenGenerator.GetClaimFromToken(refreshToken, ClaimsEnum.UserId.ToString());
             var role = _tokenGenerator.GetClaimFromToken(refreshToken, ClaimsEnum.RoleId.ToString());

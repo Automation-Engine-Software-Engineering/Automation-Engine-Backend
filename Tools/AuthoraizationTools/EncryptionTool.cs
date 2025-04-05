@@ -16,13 +16,17 @@ namespace Tools.AuthoraizationTools
             _protector = provider.CreateProtector("MyCookieProtection");
         }
 
-        public string EncryptCookie(string value)
+        public string? EncryptCookie(string? value)
         {
+            if (value == null)
+                return null;
             return _protector.Protect(value);
         }
 
-        public string DecryptCookie(string encryptedValue)
+        public string? DecryptCookie(string? encryptedValue)
         {
+            if (encryptedValue == null)
+                return null;
             return _protector.Unprotect(encryptedValue);
         }
     }

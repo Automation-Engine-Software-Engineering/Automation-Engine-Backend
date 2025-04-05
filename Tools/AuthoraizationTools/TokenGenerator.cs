@@ -69,7 +69,6 @@ namespace Tools.AuthoraizationTools
                 NotBefore = DateTime.UtcNow,
                 Audience = audience,//دریافت کننده
                 Issuer = issuer,// صادرکننده
-
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -123,7 +122,7 @@ namespace Tools.AuthoraizationTools
                     
                     ClockSkew = TimeSpan.Zero // تأخیر زمانی مجاز
                 },out _);
-
+                //TokenClaims
                 return principal;
             }
             catch(Exception e)

@@ -52,11 +52,15 @@ namespace AutomationEngine.ControllerAttributes
             // گرفتن IUserService از Dependency Injection
             var userService = httpContext.RequestServices.GetService<IUserService>() ?? throw new CustomException("IUserService وجود ندارد");
             var tokenGeneratorService = httpContext.RequestServices.GetService<TokenGenerator>() ?? throw new CustomException("TokenGenerator وجود ندارد");
+            var encryptionToolService = httpContext.RequestServices.GetService<EncryptionTool>() ?? throw new CustomException("EncryptionTool وجود ندارد");
             var workflowService = httpContext.RequestServices.GetService<IWorkFlowService>() ?? throw new CustomException("TokenGenerator وجود ندارد");
 
             // چک کردن توکن
-            var token = httpContext.Request.Headers["Authorization"].ToString();
-            if (token.IsNullOrWhiteSpace())
+            var encryptedToken = httpContext.Request.Cookies["access_token"];
+            var token = encryptionToolService.DecryptCookie(encryptedToken);
+
+
+            if (token == null || token.IsNullOrWhiteSpace())
                 throw new CustomException<object>(new ValidationDto<object>(false, "Authentication", "NotAuthorized", null), 403);
 
             tokenGeneratorService.ValidateToken(token);

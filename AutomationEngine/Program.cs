@@ -111,11 +111,11 @@ builder =>
            .SetPreflightMaxAge(TimeSpan.FromMinutes(15));
 }));
 
-builder.Services.AddAntiforgery(options =>
-{
-    options.Cookie.Name = "X-CSRF-TOKEN";
-    options.Cookie.HttpOnly = true;
-});
+//builder.Services.AddAntiforgery(options =>
+//{
+//    options.Cookie.Name = "X-CSRF-TOKEN";
+//    options.Cookie.HttpOnly = true;
+//});
 
 var app = builder.Build();
 
@@ -130,7 +130,7 @@ else
 app.UseCors("PublishPolicy");
 
 app.UseMiddleware<CustomMiddleware>();
-app.UseMiddleware<CspMiddleware>();
+//app.UseMiddleware<CspMiddleware>();
 
 app.UseSwagger();
 app.UseSwaggerUI();
