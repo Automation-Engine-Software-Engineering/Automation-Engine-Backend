@@ -15,7 +15,7 @@ namespace DataLayer.Models.WorkFlows
         public float Y { get; set; }
         public float Width { get; set; }
         public float Height { get; set; }
-        public string DllName { get; set; }
+        public string? DllName { get; set; }
 
         #region relation
         public int? FormId { get; set; }

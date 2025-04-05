@@ -3,6 +3,7 @@ using DataLayer.DbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20250115100756_convert workflow and form builder to enums")]
+    partial class convertworkflowandformbuildertoenums
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -147,12 +150,6 @@ namespace DataLayer.Migrations
                             Id = 2,
                             RoleId = 1,
                             WorkFlowId = 2
-                        },
-                        new
-                        {
-                            Id = 3,
-                            RoleId = 1,
-                            WorkFlowId = 3
                         });
                 });
 
@@ -350,12 +347,6 @@ namespace DataLayer.Migrations
                             Id = 2,
                             Description = "روندنگار",
                             Name = "روندنگار"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Description = "مدیریت",
-                            Name = "مدیریت"
                         });
                 });
 

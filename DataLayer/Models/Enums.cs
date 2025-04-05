@@ -8,8 +8,9 @@ namespace DataLayer.Models.Enums
 {
     public enum WorkFlowEnum
     {
-        FormBuilder = 1,
-        WorkflowBuilder
+        دبیرحانه = 1,
+        روندنگار = 2 ,
+        مدیریت = 3 
     }
     public enum ClaimsEnum
     {
