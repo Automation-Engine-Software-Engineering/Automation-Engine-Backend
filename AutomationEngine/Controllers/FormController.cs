@@ -12,6 +12,7 @@ using DataLayer.Models.Enums;
 using DataLayer.Models.WorkFlows;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using DataLayer.DbContext;
+using Tools.AuthoraizationTools;
 
 namespace AutomationEngine.Controllers
 {
@@ -25,14 +26,18 @@ namespace AutomationEngine.Controllers
         private readonly IWorkFlowService _workFlowService;
         private readonly IPropertyService _propertyService;
         private readonly DynamicDbContext _dynamicDbContext;
+        private readonly TokenGenerator _tokenGenerator;
+        private readonly IWorkFlowRoleService _workFlowRoleService;
 
-        public FormController(IFormService formService, IWorkFlowUserService workFlowUserService, IWorkFlowService workFlowService, IPropertyService propertyService, DynamicDbContext dynamicDbContext)
+        public FormController(IFormService formService, IWorkFlowUserService workFlowUserService, IWorkFlowService workFlowService, IPropertyService propertyService, DynamicDbContext dynamicDbContext, TokenGenerator tokenGenerator, IWorkFlowRoleService workFlowRoleService)
         {
             _formService = formService;
             _workFlowUserService = workFlowUserService;
             _workFlowService = workFlowService;
             _propertyService = propertyService;
             _dynamicDbContext = dynamicDbContext;
+            _tokenGenerator = tokenGenerator;
+            _workFlowRoleService = workFlowRoleService;
         }
 
         // POST: api/form/create  
@@ -255,7 +260,7 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/{formId}/updateBody  
         [HttpPost("{formId}/sendFormData")]
-        public async Task<ResultViewModel> SendFormData(int formId, int userId, int workflowUserId, [FromBody] List<(int id, object content)> formData)
+        public async Task<ResultViewModel> SendFormData(int formId, int workflowUserId, [FromBody] List<(int id, object content)> formData)
         {
             if (formId == 0 && workflowUserId == 0 && formData.Any(x => x.id == 0))
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedFormData", formId), 500);
@@ -268,12 +273,20 @@ namespace AutomationEngine.Controllers
             if (form == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedNotfound", formId), 500);
 
-            if (userId != workflowUser.UserId) // userId == userJWT
+            var token = HttpContext.Request.Headers["Authorization"].ToString();
+            var userId = int.Parse(_tokenGenerator.GetClaimFromToken(token, ClaimsEnum.UserId.ToString()));
+
+            if (userId != workflowUser.UserId)
                 throw new CustomException<int>(new ValidationDto<int>(false, "User", "CorruptedUser", formId), 500);
 
             var workflow = await _workFlowService.GetWorFlowByIdIncNodesAsync(workflowUser.WorkFlowId);
             if (workflow == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowRoleFound", formId), 500);
+
+            var RoleId = int.Parse(_tokenGenerator.GetClaimFromToken(token, ClaimsEnum.RoleId.ToString()));
+            var workflowRole = await _workFlowRoleService.ExistAllWorFlowRolesBuRoleId(RoleId, workflow.Id);
+            if (!workflowRole)
+                throw new CustomException<int>(new ValidationDto<int>(false, "Warning", "NotAuthorized", formId), 500);
 
             var currentNode = workflow.Nodes.FirstOrDefault(x => x.Id == workflowUser.WorkFlowState);
             if (currentNode.FormId != formId)
@@ -283,6 +296,7 @@ namespace AutomationEngine.Controllers
             foreach (var prop in formData)
             {
                 var property = await _propertyService.GetColumnByIdAsync(prop.id);
+
 
                 if (entites.Any(x => x == property.Entity))
                 {

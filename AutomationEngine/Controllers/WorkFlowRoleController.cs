@@ -11,6 +11,8 @@ using FrameWork.Model.DTO;
 using Microsoft.IdentityModel.Tokens;
 using Tools.TextTools;
 using DataLayer.Models.MainEngine;
+using Tools.AuthoraizationTools;
+using DataLayer.Models.Enums;
 
 namespace AutomationEngine.Controllers
 {
@@ -20,9 +22,11 @@ namespace AutomationEngine.Controllers
     public class WorkFlowRoleController : Controller
     {
         private readonly IWorkFlowRoleService _WorkFlowRoleService;
-        public WorkFlowRoleController(IWorkFlowRoleService WorkFlowRoleService, IWorkFlowService workFlowService)
+        private readonly TokenGenerator _tokenGenerator;
+        public WorkFlowRoleController(IWorkFlowRoleService WorkFlowRoleService, IWorkFlowService workFlowService, TokenGenerator tokenGenerator)
         {
             _WorkFlowRoleService = WorkFlowRoleService;
+            _tokenGenerator = tokenGenerator;
         }
 
         // POST: api/form/create  
@@ -125,7 +129,7 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
                 throw new CustomException<ListDto<Role_WorkFlow>>(new ValidationDto<ListDto<Role_WorkFlow>>(false, "Form", "CorruptedInvalidPage", forms), 500);
 
-            return (new ResultViewModel { Data = forms, Message = new ValidationDto<ListDto<Role_WorkFlow>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<Role_WorkFlow>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/{id}  
@@ -148,9 +152,9 @@ namespace AutomationEngine.Controllers
             return (new ResultViewModel { Data = form, Message = new ValidationDto<Role_WorkFlow>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
- // GET: api/form/{id}  
-        [HttpGet("RoleWorkflow/{RoleId}")]
-        public async Task<ResultViewModel> GetRoleWorkflowBuRoleId(int RoleId, int pageSize, int pageNumber)
+        // GET: api/form/{id}  
+        [HttpGet("RoleWorkflow")]
+        public async Task<ResultViewModel> GetRoleWorkflowBuRoleId(int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -158,6 +162,8 @@ namespace AutomationEngine.Controllers
                 pageNumber = 1;
 
             //is validation model
+            var token = HttpContext.Request.Headers["Authorization"].ToString();
+            var RoleId = int.Parse(_tokenGenerator.GetClaimFromToken(token, ClaimsEnum.RoleId.ToString()));
             if (RoleId == 0)
                 throw new CustomException<int>(new ValidationDto<int>(false, "WorkflowRole", "CorruptedWorkflowRole", RoleId), 500);
 
@@ -166,11 +172,14 @@ namespace AutomationEngine.Controllers
             if (RoleUser == null)
                 throw new CustomException<ListDto<Role_WorkFlow>>(new ValidationDto<ListDto<Role_WorkFlow>>(false, "WorkflowRole", "CorruptedWorkflowRole", RoleUser), 500);
 
+            var workflows = new List<Role_WorkFlow>();
+            workflows = RoleUser.Data.ToList();
+
             //is valid data
             if ((((pageSize * pageNumber) - RoleUser.TotalCount) > pageSize) && (pageSize * pageNumber) > RoleUser.TotalCount)
                 throw new CustomException<ListDto<Role_WorkFlow>>(new ValidationDto<ListDto<Role_WorkFlow>>(false, "Form", "CorruptedInvalidPage", RoleUser), 500);
 
-            return (new ResultViewModel { Data = RoleUser, Message = new ValidationDto<ListDto<Role_WorkFlow>>(true, "Success", "Success", RoleUser).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel { Data = workflows, ListNumber = RoleUser.ListNumber, ListSize = RoleUser.ListSize ,  TotalCount = RoleUser.TotalCount, Message = new ValidationDto<ListDto<Role_WorkFlow>>(true, "Success", "Success", RoleUser).GetMessage(200), Status = true, StatusCode = 200 });
         }
     }
 }

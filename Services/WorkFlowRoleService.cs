@@ -22,6 +22,7 @@ namespace Services
         Task<Role_WorkFlow> GetWorFlowRoleById(int id);
         Task<ListDto<Role_WorkFlow>> GetAllWorFlowRoles(int pageSize, int pageNumber);
         Task<ListDto<Role_WorkFlow>> GetAllWorFlowRolesBuRoleId(int RoleId, int pageSize, int pageNumber);
+        Task<bool> ExistAllWorFlowRolesBuRoleId(int RoleId, int WorkFlowId);
         Task<ValidationDto<Role_WorkFlow>> WorkFlowRoleValidation(Role_WorkFlow workFlowUser);
         Task<ValidationDto<string>> SaveChangesAsync();
     }
@@ -55,7 +56,8 @@ namespace Services
         public async Task<ListDto<Role_WorkFlow>> GetAllWorFlowRolesBuRoleId(int RoleId, int pageSize, int pageNumber)
         {
             //create query
-            var query = _context.Role_WorkFlows.Where(x => x.RoleId == RoleId);
+            var query = _context.Role_WorkFlows
+            .Include(x => x.WorkFlow).Where(x => x.RoleId == RoleId);
 
             //get Value and count
             var count = query.Count();
@@ -104,6 +106,12 @@ namespace Services
             {
                 return new ValidationDto<string>(false, "Form", "CorruptedForm", ex.Message);
             }
+        }
+
+        public async Task<bool> ExistAllWorFlowRolesBuRoleId(int RoleId, int WorkFlowId)
+        {
+            var result = await _context.Role_WorkFlows.AnyAsync(x => x.RoleId == RoleId && x.WorkFlowId == WorkFlowId);
+            return result;
         }
     }
 }

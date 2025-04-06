@@ -3,6 +3,7 @@ using DataLayer.DbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20250115084350_testf")]
+    partial class testf
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -147,12 +150,6 @@ namespace DataLayer.Migrations
                             Id = 2,
                             RoleId = 1,
                             WorkFlowId = 2
-                        },
-                        new
-                        {
-                            Id = 3,
-                            RoleId = 1,
-                            WorkFlowId = 3
                         });
                 });
 
@@ -268,6 +265,7 @@ namespace DataLayer.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("DllName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("FormId")
@@ -342,20 +340,14 @@ namespace DataLayer.Migrations
                         new
                         {
                             Id = 1,
-                            Description = "دبیرحانه",
-                            Name = "دبیرحانه"
+                            Description = "Form Builder",
+                            Name = "Form Builder"
                         },
                         new
                         {
                             Id = 2,
-                            Description = "روندنگار",
-                            Name = "روندنگار"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Description = "مدیریت",
-                            Name = "مدیریت"
+                            Description = "Workflow Builder",
+                            Name = "Workflow Builder"
                         });
                 });
 

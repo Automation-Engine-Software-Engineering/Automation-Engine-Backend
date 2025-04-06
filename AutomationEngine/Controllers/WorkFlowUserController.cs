@@ -10,6 +10,8 @@ using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.IdentityModel.Tokens;
 using Tools.TextTools;
+using Tools.AuthoraizationTools;
+using DataLayer.Models.Enums;
 
 namespace AutomationEngine.Controllers
 {
@@ -20,11 +22,13 @@ namespace AutomationEngine.Controllers
     {
         private readonly IWorkFlowUserService _WorkFlowUserService;
         private readonly IWorkFlowService _workFlowService;
+        private readonly TokenGenerator _tokenGenerator;
 
-        public WorkFlowUserController(IWorkFlowUserService WorkFlowUserService, IWorkFlowService workFlowService)
+        public WorkFlowUserController(IWorkFlowUserService WorkFlowUserService, IWorkFlowService workFlowService, TokenGenerator tokenGenerator)
         {
             _WorkFlowUserService = WorkFlowUserService;
             _workFlowService = workFlowService;
+            _tokenGenerator = tokenGenerator;
         }
         // POST: api/form/create  
         [HttpPost("create")]
@@ -35,10 +39,14 @@ namespace AutomationEngine.Controllers
 
             var workFlow = await _workFlowService.GetWorFlowByIdAsync(workFlowUser.WorkFlowId);
 
+            var token = HttpContext.Request.Headers["Authorization"].ToString();
+            var UserId = int.Parse(_tokenGenerator.GetClaimFromToken(token, ClaimsEnum.UserId.ToString()));
+
             var result = new WorkFlow_User()
             {
-                UserId = workFlowUser.UserId,
+                UserId = UserId,
                 WorkFlowId = workFlowUser.WorkFlowId,
+                WorkFlow = workFlow,
                 WorkFlowState = workFlow.Nodes.FirstOrDefault(x => x.LastNodeId.IsNullOrEmpty()).Id
             };
 
@@ -65,10 +73,13 @@ namespace AutomationEngine.Controllers
 
             var workFlow = await _workFlowService.GetWorFlowByIdAsync(workFlowUser.WorkFlowId);
 
+            var token = HttpContext.Request.Headers["Authorization"].ToString();
+            var UserId = int.Parse(_tokenGenerator.GetClaimFromToken(token, ClaimsEnum.UserId.ToString()));
+
             var result = new WorkFlow_User()
             {
                 Id = workFlowUser.Id,
-                UserId = workFlowUser.UserId,
+                UserId = UserId,
                 WorkFlowId = workFlowUser.WorkFlowId,
                 WorkFlowState = workFlow.Nodes.FirstOrDefault().Id
             };
@@ -109,7 +120,7 @@ namespace AutomationEngine.Controllers
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
 
-            return (new ResultViewModel { Data = null, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
+            return (new ResultViewModel { Data = fetchForm, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/all  
@@ -127,7 +138,7 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
                 throw new CustomException<ListDto<WorkFlow_User>>(new ValidationDto<ListDto<WorkFlow_User>>(false, "Form", "CorruptedInvalidPage", forms), 500);
 
-            return (new ResultViewModel { Data = forms, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
+            return (new ResultViewModel { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/{id}  
@@ -152,15 +163,18 @@ namespace AutomationEngine.Controllers
 
         // GET: api/form/{id}  
         [HttpGet("workflow")]
-        public async Task<ResultViewModel> GetWorkFlowUserByUserAndWorkflowId(int workFlowId, int userId)
+        public async Task<ResultViewModel> GetWorkFlowUserByUserAndWorkflowId(int workFlowId)
         {                        //is validation model
             if (workFlowId == 0)
                 throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "CorruptedUserWorkflow", workFlowId), 500);
 
+            var token = HttpContext.Request.Headers["Authorization"].ToString();
+            var userId = int.Parse(_tokenGenerator.GetClaimFromToken(token, ClaimsEnum.UserId.ToString()));
+
             //initial action
             var workflowUser = await _WorkFlowUserService.GetWorFlowUserByWorkflowAndUserId(workFlowId, userId);
             if (workflowUser == null)
-                throw new CustomException<WorkFlow_User>(new ValidationDto<WorkFlow_User>(false, "UserWorkflow", "CorruptedUserWorkflow", workflowUser), 500);
+                return (new ResultViewModel { Data = null, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
 
             var validationModel = await _WorkFlowUserService.WorkFlowValidation(workflowUser);
             if (!validationModel.IsSuccess)

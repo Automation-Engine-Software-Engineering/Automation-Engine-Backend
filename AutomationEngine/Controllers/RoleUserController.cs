@@ -11,6 +11,8 @@ using FrameWork.Model.DTO;
 using Microsoft.IdentityModel.Tokens;
 using Tools.TextTools;
 using DataLayer.Models.MainEngine;
+using Tools.AuthoraizationTools;
+using DataLayer.Models.Enums;
 
 namespace AutomationEngine.Controllers
 {
@@ -20,9 +22,11 @@ namespace AutomationEngine.Controllers
     public class RoleUserController : Controller
     {
         private readonly IRoleUserService _RoleUserService;
-        public RoleUserController(IRoleUserService RoleUserService)
+        private readonly TokenGenerator _tokenGenerator;
+        public RoleUserController(IRoleUserService RoleUserService, TokenGenerator tokenGenerator)
         {
             RoleUserService = _RoleUserService;
+            _tokenGenerator = tokenGenerator;
         }
 
         // POST: api/form/create  
@@ -124,7 +128,7 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
                 throw new CustomException<ListDto<Role_User>>(new ValidationDto<ListDto<Role_User>>(false, "Form", "CorruptedInvalidPage", forms), 500);
 
-            return (new ResultViewModel { Data = forms, Message = new ValidationDto<ListDto<Role_User>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel {Data = forms.Data , ListNumber = forms.ListNumber , ListSize = forms.ListSize , TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<Role_User>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/{id}  
@@ -148,15 +152,17 @@ namespace AutomationEngine.Controllers
         }
 
         // GET: api/form/{id}  
-        [HttpGet("RoleUser/{UserId}")]
-        public async Task<ResultViewModel> GetRoleUserBuUserId(int UserId, int pageSize, int pageNumber)
+        [HttpGet("RoleUser")]
+        public async Task<ResultViewModel> GetRoleUserBuUserId(int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
             if (pageNumber < 1)
                 pageNumber = 1;
 
-            //is validation model
+            var token = HttpContext.Request.Headers["Authorization"].ToString();
+            var UserId = int.Parse(_tokenGenerator.GetClaimFromToken(token, ClaimsEnum.UserId.ToString()));
+
             if (UserId == 0)
                 throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "CorruptedUserWorkflow", UserId), 500);
 
@@ -169,7 +175,7 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - RoleUser.TotalCount) > pageSize) && (pageSize * pageNumber) > RoleUser.TotalCount)
                 throw new CustomException<ListDto<Role_User>>(new ValidationDto<ListDto<Role_User>>(false, "Form", "CorruptedInvalidPage", RoleUser), 500);
 
-            return (new ResultViewModel { Data = RoleUser, Message = new ValidationDto<ListDto<Role_User>>(true, "Success", "Success", RoleUser).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel { Data = RoleUser.Data , ListNumber = RoleUser.ListNumber , ListSize = RoleUser.ListSize , TotalCount = RoleUser.TotalCount, Message = new ValidationDto<ListDto<Role_User>>(true, "Success", "Success", RoleUser).GetMessage(200), Status = true, StatusCode = 200 });
         }
     }
 }
