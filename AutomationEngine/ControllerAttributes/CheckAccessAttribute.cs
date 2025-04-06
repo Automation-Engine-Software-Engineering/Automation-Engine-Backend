@@ -15,6 +15,7 @@ using System.Security.Claims;
 using System.Text;
 using Tools.AuthoraizationTools;
 using Tools.TextTools;
+using ViewModels.ViewModels.AuthenticationDtos;
 
 namespace AutomationEngine.ControllerAttributes
 {
@@ -39,37 +40,56 @@ namespace AutomationEngine.ControllerAttributes
     }
     public static class Authorization
     {
-        public static async Task Authorize(HttpContext httpContext, int? workflowId = null)
+        public static async Task<TokenClaims> Authorize(this HttpContext httpContext, int? workflowId = null)
         {
-            //ویندوز: cmd: set ASPNETCORE_ENVIRONMENT = Production
-            var environment = httpContext.RequestServices.GetService<IWebHostEnvironment>();
-            if (environment != null && environment.IsDevelopment())
-            {
-                // در حالت Development هیچ چکی انجام نمی‌شود
-                //return;
-            }
-
             // گرفتن IUserService از Dependency Injection
             var userService = httpContext.RequestServices.GetService<IUserService>() ?? throw new CustomException("IUserService وجود ندارد");
             var tokenGeneratorService = httpContext.RequestServices.GetService<TokenGenerator>() ?? throw new CustomException("TokenGenerator وجود ندارد");
             var encryptionToolService = httpContext.RequestServices.GetService<EncryptionTool>() ?? throw new CustomException("EncryptionTool وجود ندارد");
             var workflowService = httpContext.RequestServices.GetService<IWorkFlowService>() ?? throw new CustomException("TokenGenerator وجود ندارد");
 
+
+
+            //ویندوز: cmd: set ASPNETCORE_ENVIRONMENT = Production
+            var environment = httpContext.RequestServices.GetService<IWebHostEnvironment>();
+            if (environment != null && environment.IsDevelopment())
+            {
+                var tokenAuthorization = httpContext.Request.Headers["Authorization"].ToString();
+                // در حالت Development هیچ چکی انجام نمی‌شود
+                var claimsAuthorization = tokenGeneratorService.ValidateToken(tokenAuthorization, false,false);
+                var userIdAuthorization = claimsAuthorization.FindFirstValue(nameof(TokenClaims.UserId));
+                var roleIdAuthorization = claimsAuthorization.FindFirstValue(nameof(TokenClaims.RoleId));
+
+                // مقداردهی کلاس TokenClaims
+                var tokenClaim = new TokenClaims
+                {
+                    UserId = userIdAuthorization != null ? int.Parse(userIdAuthorization) : 0,
+                    RoleId = roleIdAuthorization != null ? int.Parse(roleIdAuthorization) : 0,
+                    Token = tokenAuthorization
+                };
+                return tokenClaim;
+            }
             // چک کردن توکن
             var encryptedToken = httpContext.Request.Cookies["access_token"];
             var token = encryptionToolService.DecryptCookie(encryptedToken);
 
-
             if (token == null || token.IsNullOrWhiteSpace())
                 throw new CustomException<object>(new ValidationDto<object>(false, "Authentication", "NotAuthorized", null), 403);
 
-            tokenGeneratorService.ValidateToken(token);
+            var claims = tokenGeneratorService.ValidateToken(token);
 
-            // بررسی IP و UserAgent
-            var userIdClaim = tokenGeneratorService.GetClaimFromToken(token, ClaimsEnum.UserId.ToString());
+            var userIdClaim = claims.FindFirstValue(nameof(TokenClaims.UserId));
+            var roleIdClaim = claims.FindFirstValue(nameof(TokenClaims.RoleId));
 
-            var userId = int.Parse(userIdClaim ?? "0");
-            var user = await userService.GetUserById(userId);
+            // مقداردهی کلاس TokenClaims
+            var tokenClaims = new TokenClaims
+            {
+                UserId = userIdClaim != null ? int.Parse(userIdClaim) : 0,
+                RoleId = roleIdClaim != null ? int.Parse(roleIdClaim) : 0,
+                Token = token
+            };
+
+            var user = await userService.GetUserById(tokenClaims.UserId);
 
             if (user == null)
                 throw new CustomException("کاربر یافت نشد");
@@ -82,17 +102,78 @@ namespace AutomationEngine.ControllerAttributes
             }
 
             // چک کردن دسترسی به Workflow
-            var roles = tokenGeneratorService.GetClaimFromToken(token, ClaimsEnum.RoleId.ToString());
+            var roleId = tokenClaims.RoleId;
 
             if (workflowId != null)
             {
                 var workflow = await workflowService.GetWorFlowIncRolesById(workflowId.Value);
-                var hasAccess = workflow.Role_WorkFlows.Any(x => x.RoleId.ToString() == roles);
+                var hasAccess = workflow.Role_WorkFlows.Any(x => x.RoleId == roleId);
                 if (!hasAccess)
                 {
                     throw new CustomException<(string, string)>(new ValidationDto<(string, string)>(false, "Authentication", "NotAuthorized", (currentIp, currentUserAgent)), 403);
                 }
             }
+            return tokenClaims;
+        }
+        public static async Task<TokenClaims> AuthorizeRefreshToken(this HttpContext httpContext)
+        {
+            // گرفتن IUserService از Dependency Injection
+            var userService = httpContext.RequestServices.GetService<IUserService>() ?? throw new CustomException("IUserService وجود ندارد");
+            var tokenGeneratorService = httpContext.RequestServices.GetService<TokenGenerator>() ?? throw new CustomException("TokenGenerator وجود ندارد");
+            var encryptionToolService = httpContext.RequestServices.GetService<EncryptionTool>() ?? throw new CustomException("EncryptionTool وجود ندارد");
+
+            //ویندوز: cmd: set ASPNETCORE_ENVIRONMENT = Production
+            var environment = httpContext.RequestServices.GetService<IWebHostEnvironment>();
+            if (environment != null && environment.IsDevelopment())
+            {
+                var tokenAuthorization = httpContext.Request.Headers["Authorization"].ToString();
+                // در حالت Development هیچ چکی انجام نمی‌شود
+                var claimsAuthorization = tokenGeneratorService.ValidateToken(tokenAuthorization, true, false);
+                var userId = claimsAuthorization.FindFirstValue(nameof(TokenClaims.UserId));
+                var roleId = claimsAuthorization.FindFirstValue(nameof(TokenClaims.RoleId));
+
+                // مقداردهی کلاس TokenClaims
+                var tokenClaim = new TokenClaims
+                {
+                    UserId = userId != null ? int.Parse(userId) : 0,
+                    RoleId = roleId != null ? int.Parse(roleId) : 0,
+                    Token = tokenAuthorization
+                };
+                return tokenClaim;
+            }
+            // چک کردن توکن
+            var encryptedToken = httpContext.Request.Cookies["access_token"];
+            var token = encryptionToolService.DecryptCookie(encryptedToken);
+
+            if (token == null || token.IsNullOrWhiteSpace())
+                throw new CustomException<object>(new ValidationDto<object>(false, "Authentication", "NotAuthorized", null), 403);
+
+            var claims = tokenGeneratorService.ValidateToken(token);
+
+            var userIdClaim = claims.FindFirstValue(nameof(TokenClaims.UserId));
+            var roleIdClaim = claims.FindFirstValue(nameof(TokenClaims.RoleId));
+
+            // مقداردهی کلاس TokenClaims
+            var tokenClaims = new TokenClaims
+            {
+                UserId = userIdClaim != null ? int.Parse(userIdClaim) : 0,
+                RoleId = roleIdClaim != null ? int.Parse(roleIdClaim) : 0,
+                Token = token
+            };
+
+            var user = await userService.GetUserById(tokenClaims.UserId);
+
+            if (user == null)
+                throw new CustomException("کاربر یافت نشد");
+
+            var currentIp = httpContext.GetIP();
+            var currentUserAgent = httpContext.GetUserAgent();
+            if (user.IP != currentIp || user.UserAgent != currentUserAgent)
+            {
+                throw new CustomException<(string, string)>(new ValidationDto<(string, string)>(false, "Authentication", "NotAuthorized", (currentIp, currentUserAgent)), 403);
+            }
+
+            return tokenClaims;
         }
     }
 }

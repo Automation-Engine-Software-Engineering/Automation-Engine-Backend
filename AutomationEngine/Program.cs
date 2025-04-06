@@ -99,41 +99,61 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 
 var headers = RequestHeaderHandler.ipHeaders.ToList();
 headers.AddRange(["Content-Type", "Authorization", "User-Agent"]);
-builder.Services.AddCors(options => options.AddPolicy("PublishPolicy",
-builder =>
-{
-    builder
-    .AllowAnyHeader()
-           //.WithHeaders(headers.ToArray())
-           //.WithOrigins(audience)
-           .WithMethods("GET", "POST")
-           .AllowAnyOrigin()
-           .SetPreflightMaxAge(TimeSpan.FromMinutes(15));
-}));
-
-//builder.Services.AddAntiforgery(options =>
+//builder.Services.AddCors(options => options.AddPolicy("PublishPolicy",
+//builder =>
 //{
-//    options.Cookie.Name = "X-CSRF-TOKEN";
-//    options.Cookie.HttpOnly = true;
-//});
+//    builder
+//    .AllowAnyHeader()
+//           //.WithHeaders(headers.ToArray())
+//           //.WithOrigins(audience)
+//           .WithMethods("GET", "POST")
+//           .AllowAnyOrigin()
+//           .SetPreflightMaxAge(TimeSpan.FromMinutes(15));
+//}));
+
+builder.Services.AddAntiforgery(options =>
+{
+    options.Cookie.Name = "X-CSRF-TOKEN";
+    options.Cookie.HttpOnly = true;
+});
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 else
 {
     app.UseHsts();
+    app.UseMiddleware<CspMiddleware>();
 }
+app.UseCors(builder =>
+{
+    if (app.Environment.IsDevelopment())
+    {
+        // تنظیمات CORS در محیط Development
+        builder
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowAnyOrigin()
+            .SetPreflightMaxAge(TimeSpan.FromDays(15));
+    }
+    else
+    {
+        builder
+          .WithHeaders(headers.ToArray())
+          .WithOrigins(audience)
+          .WithMethods("GET", "POST")
+          .AllowAnyOrigin()
+          .SetPreflightMaxAge(TimeSpan.FromMinutes(15));
+    }
+});
 app.UseCors("PublishPolicy");
 
 app.UseMiddleware<CustomMiddleware>();
-//app.UseMiddleware<CspMiddleware>();
-
-app.UseSwagger();
-app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 

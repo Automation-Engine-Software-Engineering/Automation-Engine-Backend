@@ -30,9 +30,9 @@ namespace Tools.AuthoraizationTools
             var claims = new List<Claim> { new Claim("UserId", userId) };//TODO : ClaimsEnum
             if (role != null)
                 claims.Add(new Claim("RoleId", role));//TODO : ClaimsEnum
-            var accessTokenExpireInMinute = int.Parse(_configuration["JWTSettings:AccessTokenExpireInMinute"]);
+            var accessTokenLifetime = TimeSpan.Parse(_configuration["JWTSettings:AccessTokenExpireTimespan"]);
 
-            var token = GenerateToken("JWTSettings:AccessTokenSecret", DateTime.UtcNow.AddMinutes(accessTokenExpireInMinute), claims);
+            var token = GenerateToken("JWTSettings:AccessTokenSecret", DateTime.UtcNow.Add(accessTokenLifetime), claims);
             return token;
         }
         public string GenerateRefreshToken(string userId, string? role)
@@ -40,9 +40,9 @@ namespace Tools.AuthoraizationTools
             var claims = new List<Claim> { new Claim("UserId", userId) };//TODO : ClaimsEnum
             if (role != null)
                 claims.Add(new Claim("RoleId", role));//TODO : ClaimsEnum
-            var refreshTokenExpireInDay = int.Parse(_configuration["JWTSettings:RefreshTokenExpireInDay"]);
+            var refreshTokenLifetime = TimeSpan.Parse(_configuration["JWTSettings:RefreshTokenExpireTimespan"]);
 
-            var token = GenerateToken("JWTSettings:RefreshTokenSecret", DateTime.UtcNow.AddDays(refreshTokenExpireInDay), claims);
+            var token = GenerateToken("JWTSettings:RefreshTokenSecret", DateTime.UtcNow.Add(refreshTokenLifetime), claims);
             return token;
         }
         private string GenerateToken(string secretConfigPath, DateTime expires, List<Claim>? claims = null)
@@ -76,22 +76,24 @@ namespace Tools.AuthoraizationTools
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-        public string? GetClaimFromToken(string inputToken, string claimType) // TODO : ClaimsEnum.UserId.ToString() change to ClaimsEnum
-        {
-            var token = inputToken.Trim();
-            if (token.Contains("Bearer "))
-                token = inputToken.Substring("Bearer ".Length);
+        //private string? GetClaimFromToken(string inputToken, string claimType) // TODO : ClaimsEnum.UserId.ToString() change to ClaimsEnum
+        //{
+        //    var token = inputToken.Trim();
+        //    if (token.Contains("Bearer "))
+        //        token = inputToken.Substring("Bearer ".Length);
 
-            var jwtHandler = new JwtSecurityTokenHandler();
-            if (!jwtHandler.CanReadToken(token))
-                return null;
+        //    var jwtHandler = new JwtSecurityTokenHandler();
+        //    if (!jwtHandler.CanReadToken(token))
+        //        return null;
 
-            var jwtToken = jwtHandler.ReadJwtToken(token);
-            var claim = jwtToken.Claims.FirstOrDefault(c => c.Type == claimType);
-            return claim?.Value;
-        }
-        public ClaimsPrincipal ValidateToken(string token, bool isRefreshToken = false)
+        //    var jwtToken = jwtHandler.ReadJwtToken(token);
+        //    var claim = jwtToken.Claims.FirstOrDefault(c => c.Type == claimType);
+        //    return claim?.Value;
+        //}
+        public ClaimsPrincipal? ValidateToken(string token, bool isRefreshToken = false, bool checkValidation = true)
         {
+            if (token == null)
+                throw new CustomException(new ValidationDto<string>(false, "Authentication", "NotAuthorized", token).GetMessage(403));
             var refreshToken = token.Trim();
             if (refreshToken.Contains("Bearer "))
                 refreshToken = token.Substring("Bearer ".Length);
@@ -112,22 +114,34 @@ namespace Tools.AuthoraizationTools
 
             try
             {
-                var principal = tokenHandler.ValidateToken(refreshToken, new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = issuer,
-                    ValidAudience = audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey ?? "")),
-                    
-                    ClockSkew = TimeSpan.Zero // تأخیر زمانی مجاز
-                },out _);
-                //TokenClaims
+                ClaimsPrincipal? principal = null;
+                if (checkValidation)
+                    principal = tokenHandler.ValidateToken(refreshToken, new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = issuer,
+                        ValidAudience = audience,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey ?? "")),
+                        
+                        ClockSkew = TimeSpan.Zero // تأخیر زمانی مجاز
+                    }, out _);
+                else
+                    principal = tokenHandler.ValidateToken(refreshToken, new TokenValidationParameters
+                    {
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        ValidateLifetime = false,
+                        ValidateIssuerSigningKey = false,
+                        
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey ?? "")),
+                    }, out _);
+
                 return principal;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw new CustomException(new ValidationDto<string>(false, "Authentication", "NotAuthorized", refreshToken).GetMessage(403));
             }

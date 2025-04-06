@@ -160,14 +160,13 @@ namespace AutomationEngine.Controllers
             if (pageNumber < 1)
                 pageNumber = 1;
 
-            var token = HttpContext.Request.Headers["Authorization"].ToString();
-            var UserId = int.Parse(_tokenGenerator.GetClaimFromToken(token, ClaimsEnum.UserId.ToString()));
-
-            if (UserId == 0)
-                throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "CorruptedUserWorkflow", UserId), 500);
+            var claims = await HttpContext.Authorize();
+           
+            if (claims.UserId == 0)
+                throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "CorruptedUserWorkflow", claims.UserId), 500);
 
             //initial action
-            var RoleUser = await _RoleUserService.GetRoleUserByUserId(UserId, pageSize, pageNumber);
+            var RoleUser = await _RoleUserService.GetRoleUserByUserId(claims.UserId, pageSize, pageNumber);
             if (RoleUser == null)
                 throw new CustomException<ListDto<Role_User>>(new ValidationDto<ListDto<Role_User>>(false, "UserWorkflow", "CorruptedUserWorkflow", RoleUser), 500);
 

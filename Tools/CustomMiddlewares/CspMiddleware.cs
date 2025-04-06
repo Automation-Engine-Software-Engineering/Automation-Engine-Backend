@@ -18,24 +18,12 @@ namespace Tools.CustomMiddlewares
 
         public async Task InvokeAsync(HttpContext context)
         {
-            if (context.Request.Path.StartsWithSegments("/swagger"))
+            // تنظیم CSP برای سایر مسیرها
+            context.Response.OnStarting(() =>
             {
-                context.Response.OnStarting(() =>
-                {
-                    context.Response.Headers.Add("Content-Security-Policy", "script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; object-src 'none';");
-                    return Task.CompletedTask;
-                });
-            }
-            else
-            {
-                // تنظیم CSP برای سایر مسیرها
-                context.Response.OnStarting(() =>
-                {
-                    context.Response.Headers.Add("Content-Security-Policy", "script-src 'self'; style-src 'self'; object-src 'none';");
-                    return Task.CompletedTask;
-                });
-            }
-
+                context.Response.Headers.Add("Content-Security-Policy", "script-src 'self'; style-src 'self'; object-src 'none';");
+                return Task.CompletedTask;
+            });
             await _next(context);
         }
     }

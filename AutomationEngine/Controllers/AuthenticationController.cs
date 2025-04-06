@@ -57,31 +57,28 @@ namespace AutomationEngine.Controllers
             await _userService.SaveChangesAsync();
 
             var issuer = _configuration["JWTSettings:Issuer"];
-            var accessTokenExpireInMinute = int.Parse(_configuration["JWTSettings:AccessTokenExpireInMinute"]);
-            var refreshTokenExpireInDay = int.Parse(_configuration["JWTSettings:RefreshTokenExpireInDay"]);
+            var Secure = bool.Parse(_configuration["JWTSettings:Secure"]);
+            var accessTokenLifetime = TimeSpan.Parse(_configuration["JWTSettings:AccessTokenExpireTimespan"]);
+            var refreshTokenLifetime = TimeSpan.Parse(_configuration["JWTSettings:RefreshTokenExpireTimespan"]);
+
 
             var cookieOptions = new CookieOptions
             {
+                Expires = DateTimeOffset.UtcNow.Add(accessTokenLifetime),
+                MaxAge = accessTokenLifetime,
                 SameSite = SameSiteMode.None,
-                HttpOnly = false,
-                Secure = false,
-                IsEssential = false,
-                //Path = "/api",
-                Expires = DateTimeOffset.UtcNow.AddMinutes(accessTokenExpireInMinute),
-                MaxAge = TimeSpan.FromMinutes(accessTokenExpireInMinute),
-                //SameSite = SameSiteMode.Strict,
-                //HttpOnly = true,
-                //Secure = true,
-                //Domain = issuer,
-                //IsEssential = true,
-                //Path = "/api",
+                HttpOnly = true,
+                Secure = Secure,
+                Domain = issuer,
+                IsEssential = true,
+                Path = "/api",
             };
 
             var encryptedAccessToken = _encryptionTool.EncryptCookie(accessToken);
             Response.Cookies.Append("access_token", encryptedAccessToken, cookieOptions);
 
-            cookieOptions.Expires = DateTimeOffset.UtcNow.AddDays(refreshTokenExpireInDay);
-            cookieOptions.MaxAge = TimeSpan.FromDays(refreshTokenExpireInDay);
+            cookieOptions.Expires = DateTimeOffset.UtcNow.Add(refreshTokenLifetime);
+            cookieOptions.MaxAge = refreshTokenLifetime;
 
             var encryptedRefreshToken = _encryptionTool.EncryptCookie(refreshToken);
             Response.Cookies.Append("refresh_token", encryptedRefreshToken, cookieOptions);
@@ -99,18 +96,13 @@ namespace AutomationEngine.Controllers
         [HttpPost("GenerateToken")]
         public async Task<ResultViewModel> GenerateToken()
         {
-            var encryptedToken = HttpContext.Request.Cookies["refresh_token"];
-            var refreshToken = _encryptionTool.DecryptCookie(encryptedToken);
+            var claims = await HttpContext.AuthorizeRefreshToken();
+            var user = await _userService.GetUserById(claims.UserId);
 
-            _tokenGenerator.ValidateToken(refreshToken, true);
-            var userId = _tokenGenerator.GetClaimFromToken(refreshToken, ClaimsEnum.UserId.ToString());
-            var role = _tokenGenerator.GetClaimFromToken(refreshToken, ClaimsEnum.RoleId.ToString());
-            var user = await _userService.GetUserById(int.Parse(userId ?? "0"));
+            if (user.RefreshToken != claims.Token)
+                throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "Login", claims.Token), 401);
 
-            if (user.RefreshToken != refreshToken)
-                throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "Login", refreshToken), 401);
-
-            var newAccessToken = _tokenGenerator.GenerateAccessToken(userId, role);
+            var newAccessToken = _tokenGenerator.GenerateAccessToken(claims.UserId.ToString(), claims.RoleId.ToString());
 
             return (new ResultViewModel { Data = newAccessToken, Message = new ValidationDto<string>(true, "Success", "Success", newAccessToken).GetMessage(200), Status = true, StatusCode = 200 });
         }
@@ -138,9 +130,8 @@ namespace AutomationEngine.Controllers
         [CheckAccess]
         public async Task<ResultViewModel> GetUser()
         {
-            var token = HttpContext.Request.Headers["Authorization"].ToString();
-            var userId = _tokenGenerator.GetClaimFromToken(token, ClaimsEnum.UserId.ToString());
-            var user = await _userService.GetUserById(int.Parse(userId ?? "0"));
+            var claims = await HttpContext.Authorize();
+            var user = await _userService.GetUserById(claims.UserId);
             var data = new UserDashboardViewModel
             {
                 Id = user.Id,
