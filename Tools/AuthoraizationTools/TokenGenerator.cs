@@ -30,8 +30,9 @@ namespace Tools.AuthoraizationTools
             var claims = new List<Claim> { new Claim("UserId", userId) };//TODO : ClaimsEnum
             if (role != null)
                 claims.Add(new Claim("RoleId", role));//TODO : ClaimsEnum
+            var accessTokenExpireInMinute = int.Parse(_configuration["JWTSettings:AccessTokenExpireInMinute"]);
 
-            var token = GenerateToken("JWTSettings:AccessTokenSecret", DateTime.UtcNow.AddMinutes(15), claims);
+            var token = GenerateToken("JWTSettings:AccessTokenSecret", DateTime.UtcNow.AddMinutes(accessTokenExpireInMinute), claims);
             return token;
         }
         public string GenerateRefreshToken(string userId, string? role)
@@ -39,8 +40,9 @@ namespace Tools.AuthoraizationTools
             var claims = new List<Claim> { new Claim("UserId", userId) };//TODO : ClaimsEnum
             if (role != null)
                 claims.Add(new Claim("RoleId", role));//TODO : ClaimsEnum
+            var refreshTokenExpireInDay = int.Parse(_configuration["JWTSettings:RefreshTokenExpireInDay"]);
 
-            var token = GenerateToken("JWTSettings:RefreshTokenSecret", DateTime.UtcNow.AddMonths(1), claims);
+            var token = GenerateToken("JWTSettings:RefreshTokenSecret", DateTime.UtcNow.AddDays(refreshTokenExpireInDay), claims);
             return token;
         }
         private string GenerateToken(string secretConfigPath, DateTime expires, List<Claim>? claims = null)

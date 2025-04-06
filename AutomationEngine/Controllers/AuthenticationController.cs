@@ -57,6 +57,9 @@ namespace AutomationEngine.Controllers
             await _userService.SaveChangesAsync();
 
             var issuer = _configuration["JWTSettings:Issuer"];
+            var accessTokenExpireInMinute = int.Parse(_configuration["JWTSettings:AccessTokenExpireInMinute"]);
+            var refreshTokenExpireInDay = int.Parse(_configuration["JWTSettings:RefreshTokenExpireInDay"]);
+
             var cookieOptions = new CookieOptions
             {
                 SameSite = SameSiteMode.None,
@@ -64,8 +67,8 @@ namespace AutomationEngine.Controllers
                 Secure = false,
                 IsEssential = false,
                 //Path = "/api",
-                Expires = DateTimeOffset.UtcNow.AddMinutes(15),
-                MaxAge = TimeSpan.FromMinutes(15),
+                Expires = DateTimeOffset.UtcNow.AddMinutes(accessTokenExpireInMinute),
+                MaxAge = TimeSpan.FromMinutes(accessTokenExpireInMinute),
                 //SameSite = SameSiteMode.Strict,
                 //HttpOnly = true,
                 //Secure = true,
@@ -77,8 +80,8 @@ namespace AutomationEngine.Controllers
             var encryptedAccessToken = _encryptionTool.EncryptCookie(accessToken);
             Response.Cookies.Append("access_token", encryptedAccessToken, cookieOptions);
 
-            cookieOptions.Expires = DateTimeOffset.UtcNow.AddMonths(1);
-            cookieOptions.MaxAge = TimeSpan.FromDays(30);
+            cookieOptions.Expires = DateTimeOffset.UtcNow.AddDays(refreshTokenExpireInDay);
+            cookieOptions.MaxAge = TimeSpan.FromDays(refreshTokenExpireInDay);
 
             var encryptedRefreshToken = _encryptionTool.EncryptCookie(refreshToken);
             Response.Cookies.Append("refresh_token", encryptedRefreshToken, cookieOptions);
@@ -91,11 +94,6 @@ namespace AutomationEngine.Controllers
             };
             return (new ResultViewModel { Data = result, Message = new ValidationDto<TokenResultViewModel>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
-        //TODO : کلیم ها رو از ولیدیشن اش بگیرم و سر کانتکست بزارمش و اینام ها رو تغییر بدم به کلاس برای کلیم ها 
-        //محدود کردن تعداد لاگین‌های ناموفق: تنظیم Secure Flag برای تمام کوکی‌ها:
-        //مطمئن شوید که تمام کوکی‌های سایت فقط از طریق HTTPS منتقل می‌شوند.
-        //استفاده از Anti-CSRF Tokens:
-        //در فرم‌ها از توکن‌های ضد CSRF برای جلوگیری از حملات Cross-Site استفاده کنید.
 
         // POST: api/RefreshToken
         [HttpPost("GenerateToken")]
