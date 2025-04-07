@@ -4,6 +4,7 @@ using DataLayer.Models.WorkFlows;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -11,19 +12,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tools;
+using ViewModels.ViewModels.WorkFlow;
 
 namespace Services
 {
     public interface IWorkFlowRoleService
     {
         Task InsertWorFlowRole(Role_WorkFlow workFlow);
+        Task<ListDto<Role_WorkFlow>> GetAllWorFlowRolesByRoleId(int RoleId, int pageSize, int pageNumber);
+        Task InsertRengeWorFlowRole(List<Role_WorkFlow> workFlows);
         Task UpdateWorFlowRole(Role_WorkFlow workFlow);
         Task DeleteWorFlowRole(int id);
         Task<Role_WorkFlow> GetWorFlowRoleById(int id);
         Task<ListDto<Role_WorkFlow>> GetAllWorFlowRoles(int pageSize, int pageNumber);
-        Task<ListDto<Role_WorkFlow>> GetAllWorFlowRolesBuRoleId(int RoleId, int pageSize, int pageNumber);
+        Task<ListDto<WorkflowAccess>> GetAllWorFlowRolesAndRole(int workFlowId, int pageSize, int pageNumber);
+        Task<ListDto<WorkflowAccess>> GetAllWorFlowRolesAndWorkflow(int RoleId, int pageSize, int pageNumber);
         Task<bool> ExistAllWorFlowRolesBuRoleId(int RoleId, int WorkFlowId);
         Task<ValidationDto<Role_WorkFlow>> WorkFlowRoleValidation(Role_WorkFlow workFlowUser);
+        Task ReplaceWorFlowRolesByRoleId(int roleId,List<int> workFlowIds);
+        Task ReplaceWorFlowRolesByWorkFlowId(int workFlowId,List<int> roleIds);
         Task<ValidationDto<string>> SaveChangesAsync();
     }
 
@@ -53,7 +60,7 @@ namespace Services
         }
 
 
-        public async Task<ListDto<Role_WorkFlow>> GetAllWorFlowRolesBuRoleId(int RoleId, int pageSize, int pageNumber)
+        public async Task<ListDto<Role_WorkFlow>> GetAllWorFlowRolesByRoleId(int RoleId, int pageSize, int pageNumber)
         {
             //create query
             var query = _context.Role_WorkFlows
@@ -76,6 +83,35 @@ namespace Services
             await _context.Role_WorkFlows.AddAsync(workFlow);
         }
 
+
+        public async Task InsertRengeWorFlowRole(List<Role_WorkFlow> workFlows)
+        {
+            await _context.Role_WorkFlows.AddRangeAsync(workFlows);
+        }
+        public async Task ReplaceWorFlowRolesByRoleId(int roleId,List<int> workFlowIds)
+        {
+            var roleWorkflows = await _context.Role_WorkFlows.Where(x=>x.RoleId == roleId).ToListAsync();
+            _context.Role_WorkFlows.RemoveRange(roleWorkflows);
+
+            var newRoleWorkflows = workFlowIds.Select(x=>new Role_WorkFlow{
+                RoleId = roleId,
+                WorkFlowId = x
+            }).ToList();
+            await InsertRengeWorFlowRole(newRoleWorkflows);
+        }
+
+        public async Task ReplaceWorFlowRolesByWorkFlowId(int workFlowId,List<int> roleIds)
+        {
+            var roleWorkflows = await _context.Role_WorkFlows.Where(x=>x.WorkFlowId == workFlowId).ToListAsync();
+            _context.Role_WorkFlows.RemoveRange(roleWorkflows);
+
+            var newRoleWorkflows = roleIds.Select(x=>new Role_WorkFlow{
+                RoleId = x,
+                WorkFlowId = workFlowId
+            }).ToList();
+            await InsertRengeWorFlowRole(newRoleWorkflows);
+        }
+
         public async Task UpdateWorFlowRole(Role_WorkFlow workFlow)
         {
             var result = await _context.WorkFlow_User.FirstAsync(x => x.Id == workFlow.Id);
@@ -89,8 +125,8 @@ namespace Services
         public async Task<ValidationDto<Role_WorkFlow>> WorkFlowRoleValidation(Role_WorkFlow workFlowUser)
         {
             if (workFlowUser == null) return new ValidationDto<Role_WorkFlow>(false, "WorkflowRole", "CorruptedWorkflowRole", workFlowUser);
-            if (workFlowUser.WorkFlowId == 0 || workFlowUser.WorkFlow == null) return new ValidationDto<Role_WorkFlow>(false, "WorkflowRole", "CorruptedWorkflow", workFlowUser);
-            if (workFlowUser.RoleId == 0 || workFlowUser.Role == null) return new ValidationDto<Role_WorkFlow>(false, "WorkflowRole", "CorruptedRole", workFlowUser);
+            if (workFlowUser.WorkFlowId == 0) return new ValidationDto<Role_WorkFlow>(false, "WorkflowRole", "CorruptedWorkflow", workFlowUser);
+            if (workFlowUser.RoleId == 0 ) return new ValidationDto<Role_WorkFlow>(false, "WorkflowRole", "CorruptedRole", workFlowUser);
 
             return new ValidationDto<Role_WorkFlow>(true, "Success", "Success", workFlowUser);
         }
@@ -112,6 +148,31 @@ namespace Services
         {
             var result = await _context.Role_WorkFlows.AnyAsync(x => x.RoleId == RoleId && x.WorkFlowId == WorkFlowId);
             return result;
+        }
+
+        public async Task<ListDto<WorkflowAccess>> GetAllWorFlowRolesAndRole(int workFlowId, int pageSize, int pageNumber)
+        {
+            var Workflows = await _context.Roles.Include(x => x.role_WorkFlows)
+            .ToListAsync();
+
+            var result = Workflows.Select(x => new WorkflowAccess() { Id = x.Id, Name = x.Name, IsAccess = x.role_WorkFlows.Any(x => x.WorkFlowId == workFlowId) ? true : false }).ToList();
+
+            var list = new ListDto<WorkflowAccess>(result, result.Count, pageSize = pageSize, pageNumber = pageNumber);
+
+            return list;
+        }
+
+        
+        public async Task<ListDto<WorkflowAccess>> GetAllWorFlowRolesAndWorkflow(int roleId, int pageSize, int pageNumber)
+        {
+            var Workflows = await _context.WorkFlow.Include(x => x.Role_WorkFlows)
+            .ToListAsync();
+
+            var result = Workflows.Select(x => new WorkflowAccess() { Id = x.Id, Name = x.Name, IsAccess = x.Role_WorkFlows.Any(x => x.RoleId == roleId) ? true : false }).ToList();
+
+            var list = new ListDto<WorkflowAccess>(result, result.Count, pageSize = pageSize, pageNumber = pageNumber);
+
+            return list;
         }
     }
 }

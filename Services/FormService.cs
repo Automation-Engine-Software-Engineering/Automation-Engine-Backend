@@ -239,15 +239,15 @@ namespace Services
             tags = await _htmlService.FindeHtmlTag(htmlBody, tagName, attributes);
             foreach (var tag in tags)
             {
-               // var tableId = await _htmlService.getTagAttributesValue(tag, "data-tableid");
+                var tableId = await _htmlService.getTagAttributesValue(tag, "data-tableid");
 
                 var condition = await _htmlService.getTagAttributesValue(tag, "data-condition");
                 condition = condition.Replace("{{", "");
                 condition = condition.Replace("}}", "");
                 var filter = await _htmlService.getTagAttributesValue(tag, "data-filter");
 
-                var table = await _context.Entity.FirstOrDefaultAsync(x => x.Id == int.Parse(filter));
-                var query = $"select " + condition + $" from {table.TableName}";
+                var table = await _context.Entity.FirstOrDefaultAsync(x => x.Id == int.Parse(tableId));
+                var query = $"select " + condition + $" from [dbo].[{table.TableName}]";
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
 
                 if (data != null || data.TotalCount != 0)

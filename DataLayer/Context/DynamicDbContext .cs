@@ -77,7 +77,7 @@ namespace DataLayer.DbContext
                         {
                             var parameter = command.CreateParameter();
                             parameter.ParameterName = param.ParameterName;
-                            parameter.Value = param.ParameterValue ; // Handle null values
+                            parameter.Value = string.IsNullOrEmpty(param.ParameterValue) ? DBNull.Value : param.ParameterValue;
                             command.Parameters.Add(parameter);
                         }
                     }
@@ -103,7 +103,7 @@ namespace DataLayer.DbContext
         public DbConnection GetDbConnection()
         {
             // Ensure the connection string is properly set
-            var connectionString = _configuration.GetConnectionString("DynamicServer"); // Use your configuration
+            var connectionString = _configuration.GetConnectionString("Dynamic"); // Use your configuration
             if (string.IsNullOrEmpty(connectionString))
             {
                 throw new InvalidOperationException("Connection string is not set.");
@@ -112,5 +112,6 @@ namespace DataLayer.DbContext
             // Return a new connection instance
             return new SqlConnection(connectionString);
         }
+
     }
 }
