@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Tools.AuthoraizationTools;
 using Tools.TextTools;
+using ViewModels.ViewModels.WorkFlow;
 
 namespace Services
 {
@@ -28,6 +29,7 @@ namespace Services
         Task<ListDto<Role>> GetAllRolesAsync(int pageSize, int pageNumber);
         Task<ValidationDto<Role>> RoleValidationAsync(Role role);
         Task<ValidationDto<string>> SaveChangesAsync();
+        Task<ListDto<WorkflowAccess>> GetAllUserforRoleAccess(int roleId, int pageSize, int pageNumber);
     }
     public class RoleService : IRoleService
     {
@@ -143,5 +145,24 @@ namespace Services
                 return new ValidationDto<string>(false, "Error", "SaveFailed", ex.Message);
             }
         }
+
+
+        public async Task<ListDto<WorkflowAccess>> GetAllUserforRoleAccess(int roleId, int pageSize, int pageNumber)
+        {
+            var roles = await _context.Roles.Include(x => x.role_User)
+            .FirstOrDefaultAsync(x => x.Id == roleId);
+
+            var users = await _dynamicContext.User.Skip((pageNumber - 1) * pageSize).Take(pageSize)
+            .ToListAsync();
+
+
+            var result = users.Select(x => new WorkflowAccess() { Id = x.Id, Name = x.Name, IsAccess =  roles.role_User.Any(xx => xx.UserId == x.Id) ? true : false  , UserName = x.UserName}).ToList();
+
+            var list = new ListDto<WorkflowAccess>(result, result.Count, pageSize = pageSize, pageNumber = pageNumber);
+
+            return list;
+        }
+
+
     }
 }

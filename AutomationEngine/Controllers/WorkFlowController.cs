@@ -278,12 +278,23 @@ namespace AutomationEngine.Controllers
             var node = workFlow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkFlowState);
 
             if (state == 1)
-                workflowUser.WorkFlowState = workFlow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkFlowState).NextNode.Id;
+            {
+                if (node.NextNodeId == null)
+                    throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "CorruptedWorkflowNextNode", WorkFlowUserId), 500);
+
+                workflowUser.WorkFlowState = node.NextNode.Id;
+            }
             else if (state == 2)
-                workflowUser.WorkFlowState = workFlow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkFlowState).LastNode.Id;
+            {
+                if (node.LastNodeId == null)
+                    throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "CorruptedWorkflowLastNode", WorkFlowUserId), 500);
+
+                workflowUser.WorkFlowState = node.LastNode.Id;
+            }
             else if (state == 3)
                 await _workFlowUserService.DeleteWorFlowUser(workflowUser.Id);
 
+            await _workFlowUserService.SaveChangesAsync();
             return (new ResultViewModel { Data = node, Message = new ValidationDto<Node>(true, "Success", "Success", node).GetMessage(200), Status = true, StatusCode = 200 });
         }
     }

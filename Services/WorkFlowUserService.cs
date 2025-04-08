@@ -52,6 +52,7 @@ namespace Services
         public async Task<WorkFlow_User> GetWorFlowUserById(int id)
         {
             var fetchModel = await _context.WorkFlow_User.Include(x => x.WorkFlow)
+            .ThenInclude(x => x.Nodes)
             .FirstAsync(x => x.Id == id);
             return fetchModel;
         }
