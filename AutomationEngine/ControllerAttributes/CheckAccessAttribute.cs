@@ -1,6 +1,6 @@
 ﻿using DataLayer.DbContext;
-using DataLayer.Models.Enums;
-using DataLayer.Models.WorkFlows;
+using Entities.Models.Enums;
+using Entities.Models.WorkFlows;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.AspNetCore.Http;
@@ -56,15 +56,15 @@ namespace AutomationEngine.ControllerAttributes
             {
                 var tokenAuthorization = httpContext.Request.Headers["Authorization"].ToString();
                 // در حالت Development هیچ چکی انجام نمی‌شود
-                var claimsAuthorization = tokenGeneratorService.ValidateToken(tokenAuthorization, false,false);
+                var claimsAuthorization = tokenGeneratorService.ValidateToken(tokenAuthorization, false, false);
                 var userIdAuthorization = claimsAuthorization.FindFirstValue(nameof(TokenClaims.UserId));
                 var roleIdAuthorization = claimsAuthorization.FindFirstValue(nameof(TokenClaims.RoleId));
 
                 // مقداردهی کلاس TokenClaims
                 var tokenClaim = new TokenClaims
                 {
-                    UserId = userIdAuthorization != null ? int.Parse(userIdAuthorization) : 0,
-                    RoleId = roleIdAuthorization != null ? int.Parse(roleIdAuthorization) : 0,
+                    UserId = userIdAuthorization.IsNullOrWhiteSpace() ? 0 : int.Parse(userIdAuthorization),
+                    RoleId = roleIdAuthorization.IsNullOrWhiteSpace() ? 0 : int.Parse(roleIdAuthorization),
                     Token = tokenAuthorization
                 };
                 return tokenClaim;
@@ -84,8 +84,8 @@ namespace AutomationEngine.ControllerAttributes
             // مقداردهی کلاس TokenClaims
             var tokenClaims = new TokenClaims
             {
-                UserId = userIdClaim != null ? int.Parse(userIdClaim) : 0,
-                RoleId = roleIdClaim != null ? int.Parse(roleIdClaim) : 0,
+                UserId = userIdClaim.IsNullOrWhiteSpace() ? 0 : int.Parse(userIdClaim),
+                RoleId = roleIdClaim.IsNullOrWhiteSpace() ? 0 : int.Parse(roleIdClaim),
                 Token = token
             };
 
@@ -98,7 +98,7 @@ namespace AutomationEngine.ControllerAttributes
             var currentUserAgent = httpContext.GetUserAgent();
             if (user.IP != currentIp || user.UserAgent != currentUserAgent)
             {
-                throw new CustomException<(string, string)>(new ValidationDto<(string, string)>(false, "Authentication", "NotAuthorized", (currentIp, currentUserAgent)),403);
+                throw new CustomException<(string, string)>(new ValidationDto<(string, string)>(false, "Authentication", "NotAuthorized", (currentIp, currentUserAgent)), 403);
             }
 
             // چک کردن دسترسی به Workflow
@@ -135,8 +135,8 @@ namespace AutomationEngine.ControllerAttributes
                 // مقداردهی کلاس TokenClaims
                 var tokenClaim = new TokenClaims
                 {
-                    UserId = userId != null ? int.Parse(userId) : 0,
-                    RoleId = roleId != null ? int.Parse(roleId) : 0,
+                    UserId = userId.IsNullOrWhiteSpace() ? 0 : int.Parse(userId),
+                    RoleId = roleId.IsNullOrWhiteSpace() ? 0 : int.Parse(roleId),
                     Token = tokenAuthorization
                 };
                 return tokenClaim;
@@ -156,8 +156,8 @@ namespace AutomationEngine.ControllerAttributes
             // مقداردهی کلاس TokenClaims
             var tokenClaims = new TokenClaims
             {
-                UserId = userIdClaim != null ? int.Parse(userIdClaim) : 0,
-                RoleId = roleIdClaim != null ? int.Parse(roleIdClaim) : 0,
+                UserId = userIdClaim.IsNullOrWhiteSpace() ? 0 : int.Parse(userIdClaim),
+                RoleId = roleIdClaim.IsNullOrWhiteSpace() ? 0 : int.Parse(roleIdClaim),
                 Token = token
             };
 

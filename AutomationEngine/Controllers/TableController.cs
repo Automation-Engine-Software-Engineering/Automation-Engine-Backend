@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Services;
-using DataLayer.Models.TableBuilder;
+using Entities.Models.TableBuilder;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.SqlServer.Server;

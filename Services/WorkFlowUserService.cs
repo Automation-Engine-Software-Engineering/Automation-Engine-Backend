@@ -1,5 +1,5 @@
 ﻿using DataLayer.DbContext;
-using DataLayer.Models.WorkFlows;
+using Entities.Models.WorkFlows;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;

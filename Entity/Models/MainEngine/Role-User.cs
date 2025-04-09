@@ -1,4 +1,4 @@
-﻿namespace DataLayer.Models.MainEngine
+﻿namespace Entities.Models.MainEngine
 {
     public class Role_User
     {

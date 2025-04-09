@@ -2,7 +2,7 @@
 using Services;
 using ViewModels;
 using ViewModels.ViewModels.WorkFlow;
-using DataLayer.Models.WorkFlows;
+using Entities.Models.WorkFlows;
 using AutomationEngine.ControllerAttributes;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;

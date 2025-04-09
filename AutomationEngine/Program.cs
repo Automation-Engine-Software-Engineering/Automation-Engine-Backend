@@ -1,5 +1,5 @@
-﻿using DataLayer.DbContext;
-using FrameWork.ExeptionHandler.CustomMiddleware;
+﻿using AutomationEngine.CustomMiddlewares;
+using DataLayer.DbContext;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +8,6 @@ using Microsoft.OpenApi.Models;
 using Services;
 using System.Text;
 using Tools.AuthoraizationTools;
-using Tools.CustomMiddlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +16,8 @@ var audience = builder.Configuration["JWTSettings:Audience"] ?? throw new Custom
 var accessTokenSecret = builder.Configuration["JWTSettings:AccessTokenSecret"] ?? throw new CustomException("Audience در appsettings یافت نشد");
 var issuer = builder.Configuration["JWTSettings:Issuer"] ?? throw new CustomException("Issuer در appsettings یافت نشد");
 
-
+var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+Console.WriteLine($"Current Environment: {environment}");
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -99,17 +99,6 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 
 var headers = RequestHeaderHandler.ipHeaders.ToList();
 headers.AddRange(["Content-Type", "Authorization", "User-Agent"]);
-//builder.Services.AddCors(options => options.AddPolicy("PublishPolicy",
-//builder =>
-//{
-//    builder
-//    .AllowAnyHeader()
-//           //.WithHeaders(headers.ToArray())
-//           //.WithOrigins(audience)
-//           .WithMethods("GET", "POST")
-//           .AllowAnyOrigin()
-//           .SetPreflightMaxAge(TimeSpan.FromMinutes(15));
-//}));
 
 builder.Services.AddAntiforgery(options =>
 {
@@ -129,6 +118,7 @@ else
 {
     app.UseHsts();
     app.UseMiddleware<CspMiddleware>();
+    app.UseHttpsRedirection();
 }
 app.UseCors(builder =>
 {
@@ -151,12 +141,8 @@ app.UseCors(builder =>
           .SetPreflightMaxAge(TimeSpan.FromMinutes(15));
     }
 });
-app.UseCors("PublishPolicy");
 
-app.UseMiddleware<CustomMiddleware>();
-
-app.UseHttpsRedirection();
-
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthorization();
 
 app.UseStaticFiles();

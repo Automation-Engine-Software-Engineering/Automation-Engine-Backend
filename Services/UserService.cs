@@ -1,6 +1,6 @@
 ﻿using DataLayer.DbContext;
-using DataLayer.Models.MainEngine;
-using DataLayer.Models.WorkFlows;
+using Entities.Models.MainEngine;
+using Entities.Models.WorkFlows;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;

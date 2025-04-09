@@ -93,7 +93,7 @@ namespace Tools.AuthoraizationTools
         public ClaimsPrincipal? ValidateToken(string token, bool isRefreshToken = false, bool checkValidation = true)
         {
             if (token == null)
-                throw new CustomException(new ValidationDto<string>(false, "Authentication", "NotAuthorized", token).GetMessage(403));
+                throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "NotAuthorized", token),403);
             var refreshToken = token.Trim();
             if (refreshToken.Contains("Bearer "))
                 refreshToken = token.Substring("Bearer ".Length);

@@ -1,11 +1,11 @@
-﻿using DataLayer.Models.WorkFlows;
+﻿using Entities.Models.WorkFlows;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataLayer.Models.MainEngine
+namespace Entities.Models.MainEngine
 {
     public class Role
     {

@@ -1,6 +1,6 @@
 ﻿using AutomationEngine.ControllerAttributes;
-using DataLayer.Models.FormBuilder;
-using DataLayer.Models.TableBuilder;
+using Entities.Models.FormBuilder;
+using Entities.Models.TableBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.AspNetCore.Authorization;

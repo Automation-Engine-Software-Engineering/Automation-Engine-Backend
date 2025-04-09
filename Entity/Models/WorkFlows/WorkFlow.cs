@@ -1,11 +1,11 @@
-﻿using DataLayer.Models.MainEngine;
+﻿using Entities.Models.MainEngine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataLayer.Models.WorkFlows
+namespace Entities.Models.WorkFlows
 {
     public class WorkFlow
     {

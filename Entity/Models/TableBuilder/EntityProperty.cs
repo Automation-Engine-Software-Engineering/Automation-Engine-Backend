@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
-namespace DataLayer.Models.TableBuilder
+namespace Entities.Models.TableBuilder
 {
     [Description("The column of each table (entity)")]
     public class EntityProperty
@@ -36,19 +35,5 @@ namespace DataLayer.Models.TableBuilder
         [ForeignKey(nameof(EntityId))]
         public Entity? Entity { get; set; }
         #endregion
-    }
-
-    public enum PropertyType
-    {
-        INT = 1,
-        Float = 2,
-        NvarcharShort = 3,
-        NvarcharLong = 4,
-        BIT = 5,
-        Time = 6,
-        binaryLong = 7,
-        Color = 8 ,
-        Email =9,
-        Password = 10 
     }
 }

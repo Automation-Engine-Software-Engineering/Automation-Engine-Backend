@@ -1,7 +1,7 @@
 ﻿using DataLayer.DbContext;
-using DataLayer.Models.FormBuilder;
-using DataLayer.Models.TableBuilder;
-using DataLayer.Models.WorkFlows;
+using Entities.Models.FormBuilder;
+using Entities.Models.TableBuilder;
+using Entities.Models.WorkFlows;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;

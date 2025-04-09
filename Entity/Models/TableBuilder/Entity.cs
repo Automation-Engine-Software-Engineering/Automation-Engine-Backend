@@ -1,7 +1,7 @@
-﻿using DataLayer.Models.FormBuilder;
+﻿using Entities.Models.FormBuilder;
 using System.ComponentModel;
 
-namespace DataLayer.Models.TableBuilder
+namespace Entities.Models.TableBuilder
 {
     [Description("the table of database")]
     public class Entity

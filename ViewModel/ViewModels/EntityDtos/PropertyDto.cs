@@ -1,4 +1,4 @@
-﻿using DataLayer.Models.TableBuilder;
+﻿using Entities.Models.TableBuilder;
 using System;
 using System.Collections.Generic;
 using System.Linq;

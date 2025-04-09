@@ -1,8 +1,11 @@
 ﻿using AutomationEngine.ControllerAttributes;
-using DataLayer.Models.Enums;
+using Azure.Core;
+using Entities.Models.Enums;
+using Entities.Models.MainEngine;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
@@ -26,14 +29,42 @@ namespace AutomationEngine.Controllers
         private readonly TokenGenerator _tokenGenerator;
         private readonly IConfiguration _configuration;
         private readonly EncryptionTool _encryptionTool;
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        //private readonly string _issuer;
+        //private readonly bool _secure;
+        //private readonly TimeSpan _accessTokenLifetime;
+        //private readonly TimeSpan _refreshTokenLifetime;
+        private readonly CookieOptions _accessTokenCookieOptions;
+        private readonly CookieOptions _refreshTokenCookieOptions;
 
-        public AuthenticationController(IRoleService roleService, IUserService userService, TokenGenerator tokenGenerator, IConfiguration configuration,EncryptionTool encryptionTool)
+        public AuthenticationController(IRoleService roleService, IUserService userService, TokenGenerator tokenGenerator, IConfiguration configuration, EncryptionTool encryptionTool, IWebHostEnvironment webHostEnvironment)
         {
             _roleService = roleService;
             _userService = userService;
             _tokenGenerator = tokenGenerator;
             _configuration = configuration;
             _encryptionTool = encryptionTool;
+            _webHostEnvironment = webHostEnvironment;
+
+            var _issuer = _configuration["JWTSettings:Issuer"];
+            var _secure = bool.Parse(_configuration["JWTSettings:Secure"]);
+            var _accessTokenLifetime = TimeSpan.Parse(_configuration["JWTSettings:AccessTokenExpireTimespan"]);
+            var _refreshTokenLifetime = TimeSpan.Parse(_configuration["JWTSettings:RefreshTokenExpireTimespan"]);
+            var cookieOptions = new CookieOptions
+            {
+                Expires = DateTimeOffset.UtcNow.Add(_accessTokenLifetime),
+                MaxAge = _accessTokenLifetime,
+                SameSite = SameSiteMode.None,
+                HttpOnly = true,
+                Secure = _secure,
+                Domain = _issuer,
+                IsEssential = true,
+                Path = "/api",
+            };
+            _accessTokenCookieOptions = cookieOptions;
+            cookieOptions.Expires = DateTimeOffset.UtcNow.Add(_refreshTokenLifetime);
+            cookieOptions.MaxAge = _refreshTokenLifetime;
+            _refreshTokenCookieOptions = cookieOptions;
         }
 
         // POST: api/Login/{userName}  
@@ -45,55 +76,30 @@ namespace AutomationEngine.Controllers
             var userAgent = HttpContext.GetUserAgent();
             var userRoleId = await _roleService.Login(userName, password);
 
-            string userId = userRoleId.User.Id.ToString();
-            string? roleId = userRoleId.RoleId.ToString();
-            var accessToken = _tokenGenerator.GenerateAccessToken(userId, roleId);
-            var refreshToken = _tokenGenerator.GenerateRefreshToken(userId, roleId);
-
+            var tokens = GenerateTokens(userRoleId.User, userRoleId.RoleId);
             userRoleId.User.IP = ip;
             userRoleId.User.UserAgent = userAgent;
-            userRoleId.User.RefreshToken = refreshToken;
+            userRoleId.User.RefreshToken = tokens.RefreshToken;
+
             await _userService.UpdateUser(userRoleId.User);
             await _userService.SaveChangesAsync();
 
-            var issuer = _configuration["JWTSettings:Issuer"];
-            var Secure = bool.Parse(_configuration["JWTSettings:Secure"]);
-            var accessTokenLifetime = TimeSpan.Parse(_configuration["JWTSettings:AccessTokenExpireTimespan"]);
-            var refreshTokenLifetime = TimeSpan.Parse(_configuration["JWTSettings:RefreshTokenExpireTimespan"]);
-
-
-            var cookieOptions = new CookieOptions
+            var needNewPassword = userRoleId.User.Password.IsNullOrEmpty();
+            var result = new TokenResultViewModel();
+            if (_webHostEnvironment.IsDevelopment())
             {
-                Expires = DateTimeOffset.UtcNow.Add(accessTokenLifetime),
-                MaxAge = accessTokenLifetime,
-                SameSite = SameSiteMode.None,
-                HttpOnly = true,
-                Secure = Secure,
-                Domain = issuer,
-                IsEssential = true,
-                Path = "/api",
-            };
+                result.AccessToken = tokens.AccessToken;
+                result.RefreshToken = tokens.RefreshToken;
+                result.NeedNewPassword = needNewPassword;
+            }
+            else
+                result.NeedNewPassword = needNewPassword;
 
-            var encryptedAccessToken = _encryptionTool.EncryptCookie(accessToken);
-            Response.Cookies.Append("access_token", encryptedAccessToken, cookieOptions);
-
-            cookieOptions.Expires = DateTimeOffset.UtcNow.Add(refreshTokenLifetime);
-            cookieOptions.MaxAge = refreshTokenLifetime;
-
-            var encryptedRefreshToken = _encryptionTool.EncryptCookie(refreshToken);
-            Response.Cookies.Append("refresh_token", encryptedRefreshToken, cookieOptions);
-
-            var result = new TokenResultViewModel
-            {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken,
-                NeedNewPassword = userRoleId.User.Password.IsNullOrEmpty(),
-            };
             return (new ResultViewModel { Data = result, Message = new ValidationDto<TokenResultViewModel>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/RefreshToken
-        [HttpPost("GenerateToken")]
+        [HttpGet("GenerateToken")]
         public async Task<ResultViewModel> GenerateToken()
         {
             var claims = await HttpContext.AuthorizeRefreshToken();
@@ -102,9 +108,40 @@ namespace AutomationEngine.Controllers
             if (user.RefreshToken != claims.Token)
                 throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "Login", claims.Token), 401);
 
-            var newAccessToken = _tokenGenerator.GenerateAccessToken(claims.UserId.ToString(), claims.RoleId.ToString());
+            var tokens = GenerateTokens(user, claims.RoleId);
 
-            return (new ResultViewModel { Data = newAccessToken, Message = new ValidationDto<string>(true, "Success", "Success", newAccessToken).GetMessage(200), Status = true, StatusCode = 200 });
+            var needNewPassword = user.Password.IsNullOrEmpty();
+            var result = new TokenResultViewModel();
+            if (_webHostEnvironment.IsDevelopment())
+            {
+                result.AccessToken = tokens.AccessToken;
+                result.RefreshToken = tokens.RefreshToken;
+                result.NeedNewPassword = needNewPassword;
+            }
+            else
+                result.NeedNewPassword = needNewPassword;
+
+            return (new ResultViewModel { Data = result, Message = new ValidationDto<string>(true, "Success", "Success", tokens.AccessToken).GetMessage(200), Status = true, StatusCode = 200 });
+        }
+        [HttpPost("Logout")]
+        public async Task<ResultViewModel> Logout()
+        {
+            var claims = await HttpContext.AuthorizeRefreshToken();
+
+            if (string.IsNullOrEmpty(claims.Token) || claims.UserId == 0)
+                throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "Login", claims.Token), 401);
+
+            var user = await _userService.GetUserById(claims.UserId);
+            if (user != null)
+            {
+                user.RefreshToken = null;
+
+                await _userService.UpdateUser(user);
+                await _userService.SaveChangesAsync();
+            }
+            Response.Cookies.Delete("access_token");
+            Response.Cookies.Delete("refresh_token");
+            return new ResultViewModel();
         }
 
         // POST: api/ChangePassword/{userName}  
@@ -126,7 +163,7 @@ namespace AutomationEngine.Controllers
         }
 
         // POST: api/ChangePassword/{userName}  
-        [HttpPost("User")]
+        [HttpGet("User")]
         [CheckAccess]
         public async Task<ResultViewModel> GetUser()
         {
@@ -137,7 +174,25 @@ namespace AutomationEngine.Controllers
                 Id = user.Id,
                 Name = user.Name
             };
-            return (new ResultViewModel {Data = data, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
+            return (new ResultViewModel { Data = data, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
+        }
+        private (string AccessToken, string RefreshToken) GenerateTokens(User User, int? RoleId)
+        {
+            string userId = User.Id.ToString();
+            string? roleId = RoleId.ToString();
+            var accessToken = _tokenGenerator.GenerateAccessToken(userId, roleId);
+            var refreshToken = _tokenGenerator.GenerateRefreshToken(userId, roleId);
+
+            SetCookies(accessToken,refreshToken);
+            return (accessToken, refreshToken);
+        }
+        private void SetCookies(string accessToken, string refreshToken)
+        {
+            var encryptedAccessToken = _encryptionTool.EncryptCookie(accessToken);
+            Response.Cookies.Append("access_token", encryptedAccessToken, _accessTokenCookieOptions);
+
+            var encryptedRefreshToken = _encryptionTool.EncryptCookie(refreshToken);
+            Response.Cookies.Append("refresh_token", encryptedRefreshToken, _refreshTokenCookieOptions);
         }
     }
 }

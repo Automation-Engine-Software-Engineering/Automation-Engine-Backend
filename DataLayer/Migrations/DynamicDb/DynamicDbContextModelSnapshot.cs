@@ -21,7 +21,7 @@ namespace DataLayer.Migrations.DynamicDb
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("DataLayer.Models.MainEngine.User", b =>
+            modelBuilder.Entity("Entities.Models.MainEngine.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

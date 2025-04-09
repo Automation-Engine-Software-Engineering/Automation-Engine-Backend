@@ -1,15 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Services;
-using DataLayer.Models.FormBuilder;
+using Entities.Models.FormBuilder;
 using ViewModels;
 using ViewModels.ViewModels.FormBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
-using DataLayer.Models.TableBuilder;
+using Entities.Models.TableBuilder;
 using Tools;
 using AutomationEngine.ControllerAttributes;
-using DataLayer.Models.Enums;
-using DataLayer.Models.WorkFlows;
+using Entities.Models.Enums;
+using Entities.Models.WorkFlows;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using DataLayer.DbContext;
 using Tools.AuthoraizationTools;
@@ -284,7 +284,7 @@ namespace AutomationEngine.Controllers
 
             var workflowRole = await _workFlowRoleService.ExistAllWorFlowRolesBuRoleId(claims.RoleId, workflow.Id);
             if (!workflowRole)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Warning", "NotAuthorized", formId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Warning", "NotAuthorized", formId), 403);
 
             var currentNode = workflow.Nodes.FirstOrDefault(x => x.Id == workflowUser.WorkFlowState);
             if (currentNode.FormId != formId)

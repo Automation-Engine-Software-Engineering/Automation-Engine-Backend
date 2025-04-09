@@ -1,4 +1,4 @@
-﻿using DataLayer.Models.WorkFlows;
+﻿using Entities.Models.WorkFlows;
 using Microsoft.AspNetCore.Mvc;
 using Services;
 using ViewModels.ViewModels.WorkFlow;
@@ -6,10 +6,10 @@ using ViewModels;
 using Tools.AuthoraizationTools;
 using ViewModels.ViewModels.RoleDtos;
 using Newtonsoft.Json.Linq;
-using DataLayer.Models.MainEngine;
+using Entities.Models.MainEngine;
 using Tools.TextTools;
 using AutomationEngine.ControllerAttributes;
-using DataLayer.Models.Enums;
+using Entities.Models.Enums;
 using ViewModels.ViewModels.AuthenticationDtos;
 using FrameWork.Model.DTO;
 using FrameWork.ExeptionHandler.ExeptionModel;

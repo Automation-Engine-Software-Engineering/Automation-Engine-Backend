@@ -24,7 +24,7 @@ namespace DataLayer.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("DataLayer.Models.FormBuilder.Form", b =>
+            modelBuilder.Entity("Entities.Models.FormBuilder.Form", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -66,7 +66,7 @@ namespace DataLayer.Migrations
                     b.ToTable("Form");
                 });
 
-            modelBuilder.Entity("DataLayer.Models.MainEngine.Role", b =>
+            modelBuilder.Entity("Entities.Models.MainEngine.Role", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -95,7 +95,7 @@ namespace DataLayer.Migrations
                         });
                 });
 
-            modelBuilder.Entity("DataLayer.Models.MainEngine.Role_User", b =>
+            modelBuilder.Entity("Entities.Models.MainEngine.Role_User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -116,7 +116,7 @@ namespace DataLayer.Migrations
                     b.ToTable("Role_Users");
                 });
 
-            modelBuilder.Entity("DataLayer.Models.MainEngine.Role_WorkFlow", b =>
+            modelBuilder.Entity("Entities.Models.MainEngine.Role_WorkFlow", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -153,7 +153,7 @@ namespace DataLayer.Migrations
                         });
                 });
 
-            modelBuilder.Entity("DataLayer.Models.MainEngine.User", b =>
+            modelBuilder.Entity("Entities.Models.MainEngine.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -188,7 +188,7 @@ namespace DataLayer.Migrations
                     b.ToTable("User");
                 });
 
-            modelBuilder.Entity("DataLayer.Models.TableBuilder.Entity", b =>
+            modelBuilder.Entity("Entities.Models.TableBuilder.Entity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -212,7 +212,7 @@ namespace DataLayer.Migrations
                     b.ToTable("Entity");
                 });
 
-            modelBuilder.Entity("DataLayer.Models.TableBuilder.EntityProperty", b =>
+            modelBuilder.Entity("Entities.Models.TableBuilder.EntityProperty", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -259,7 +259,7 @@ namespace DataLayer.Migrations
                     b.ToTable("Property");
                 });
 
-            modelBuilder.Entity("DataLayer.Models.WorkFlows.Node", b =>
+            modelBuilder.Entity("Entities.Models.WorkFlows.Node", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -312,7 +312,7 @@ namespace DataLayer.Migrations
                     b.ToTable("Node");
                 });
 
-            modelBuilder.Entity("DataLayer.Models.WorkFlows.WorkFlow", b =>
+            modelBuilder.Entity("Entities.Models.WorkFlows.WorkFlow", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -347,7 +347,7 @@ namespace DataLayer.Migrations
                         });
                 });
 
-            modelBuilder.Entity("DataLayer.Models.WorkFlows.WorkFlow_User", b =>
+            modelBuilder.Entity("Entities.Models.WorkFlows.WorkFlow_User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -387,9 +387,9 @@ namespace DataLayer.Migrations
                     b.ToTable("EntityForm");
                 });
 
-            modelBuilder.Entity("DataLayer.Models.MainEngine.Role_User", b =>
+            modelBuilder.Entity("Entities.Models.MainEngine.Role_User", b =>
                 {
-                    b.HasOne("DataLayer.Models.MainEngine.Role", "Role")
+                    b.HasOne("Entities.Models.MainEngine.Role", "Role")
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -398,15 +398,15 @@ namespace DataLayer.Migrations
                     b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("DataLayer.Models.MainEngine.Role_WorkFlow", b =>
+            modelBuilder.Entity("Entities.Models.MainEngine.Role_WorkFlow", b =>
                 {
-                    b.HasOne("DataLayer.Models.MainEngine.Role", "Role")
+                    b.HasOne("Entities.Models.MainEngine.Role", "Role")
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DataLayer.Models.WorkFlows.WorkFlow", "WorkFlow")
+                    b.HasOne("Entities.Models.WorkFlows.WorkFlow", "WorkFlow")
                         .WithMany("Role_WorkFlows")
                         .HasForeignKey("WorkFlowId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -417,9 +417,9 @@ namespace DataLayer.Migrations
                     b.Navigation("WorkFlow");
                 });
 
-            modelBuilder.Entity("DataLayer.Models.TableBuilder.EntityProperty", b =>
+            modelBuilder.Entity("Entities.Models.TableBuilder.EntityProperty", b =>
                 {
-                    b.HasOne("DataLayer.Models.TableBuilder.Entity", "Entity")
+                    b.HasOne("Entities.Models.TableBuilder.Entity", "Entity")
                         .WithMany("Properties")
                         .HasForeignKey("EntityId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -428,23 +428,23 @@ namespace DataLayer.Migrations
                     b.Navigation("Entity");
                 });
 
-            modelBuilder.Entity("DataLayer.Models.WorkFlows.Node", b =>
+            modelBuilder.Entity("Entities.Models.WorkFlows.Node", b =>
                 {
-                    b.HasOne("DataLayer.Models.FormBuilder.Form", "Form")
+                    b.HasOne("Entities.Models.FormBuilder.Form", "Form")
                         .WithMany()
                         .HasForeignKey("FormId");
 
-                    b.HasOne("DataLayer.Models.WorkFlows.Node", "LastNode")
+                    b.HasOne("Entities.Models.WorkFlows.Node", "LastNode")
                         .WithMany()
                         .HasForeignKey("LastNodeId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("DataLayer.Models.WorkFlows.Node", "NextNode")
+                    b.HasOne("Entities.Models.WorkFlows.Node", "NextNode")
                         .WithMany()
                         .HasForeignKey("NextNodeId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("DataLayer.Models.WorkFlows.WorkFlow", "WorkFlow")
+                    b.HasOne("Entities.Models.WorkFlows.WorkFlow", "WorkFlow")
                         .WithMany("Nodes")
                         .HasForeignKey("WorkflowId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -459,9 +459,9 @@ namespace DataLayer.Migrations
                     b.Navigation("WorkFlow");
                 });
 
-            modelBuilder.Entity("DataLayer.Models.WorkFlows.WorkFlow_User", b =>
+            modelBuilder.Entity("Entities.Models.WorkFlows.WorkFlow_User", b =>
                 {
-                    b.HasOne("DataLayer.Models.WorkFlows.WorkFlow", "WorkFlow")
+                    b.HasOne("Entities.Models.WorkFlows.WorkFlow", "WorkFlow")
                         .WithMany("workFlowUser")
                         .HasForeignKey("WorkFlowId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -472,25 +472,25 @@ namespace DataLayer.Migrations
 
             modelBuilder.Entity("EntityForm", b =>
                 {
-                    b.HasOne("DataLayer.Models.TableBuilder.Entity", null)
+                    b.HasOne("Entities.Models.TableBuilder.Entity", null)
                         .WithMany()
                         .HasForeignKey("EntitiesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DataLayer.Models.FormBuilder.Form", null)
+                    b.HasOne("Entities.Models.FormBuilder.Form", null)
                         .WithMany()
                         .HasForeignKey("FormsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("DataLayer.Models.TableBuilder.Entity", b =>
+            modelBuilder.Entity("Entities.Models.TableBuilder.Entity", b =>
                 {
                     b.Navigation("Properties");
                 });
 
-            modelBuilder.Entity("DataLayer.Models.WorkFlows.WorkFlow", b =>
+            modelBuilder.Entity("Entities.Models.WorkFlows.WorkFlow", b =>
                 {
                     b.Navigation("Nodes");
 

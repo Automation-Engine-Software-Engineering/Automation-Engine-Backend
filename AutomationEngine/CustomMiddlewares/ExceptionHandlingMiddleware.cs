@@ -9,14 +9,16 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using FrameWork.ExeptionHandler.ExeptionModel;
+using ViewModels.ViewModels.WorkFlow;
+using FrameWork;
 
-namespace FrameWork.ExeptionHandler.CustomMiddleware
+namespace AutomationEngine.CustomMiddlewares
 {
-    public class CustomMiddleware
+    public class ExceptionHandlingMiddleware
     {
         private readonly RequestDelegate _next;
 
-        public CustomMiddleware(RequestDelegate next)
+        public ExceptionHandlingMiddleware(RequestDelegate next)
         {
             _next = next;
         }
@@ -30,9 +32,13 @@ namespace FrameWork.ExeptionHandler.CustomMiddleware
             }
             catch (CustomException ex)
             {
-                object outPut = new ResultViewModel() { message = ex.Message, status = false, data = ex, statusCode = ex.StatusId };
-                string jsonString = JsonConvert.SerializeObject(outPut);
+                var output = new ResultViewModel() { message = ex.Message, status = false, statusCode = ex.StatusId };
 
+                var environment = context.RequestServices.GetService<IWebHostEnvironment>();
+                if (environment != null && environment.IsDevelopment())
+                    output.data = ex;
+
+                string jsonString = JsonConvert.SerializeObject(output);
                 // Convert JSON string to byte array  
                 byte[] byteArray = Encoding.UTF8.GetBytes(jsonString);
                 context.Response.ContentType = "application/json"; // set content type
@@ -41,9 +47,13 @@ namespace FrameWork.ExeptionHandler.CustomMiddleware
             }
             catch (Exception ex)
             {
-                object outPut = new ResultViewModel() { message = "خطایی در عملیات رخ داده است (درصورت اطمینان از صحت داده های خود و تکرار مجدد با پشتیبانی تماس حاصل نمایید)", status = false, statusCode = 503, data = ex };
-                string jsonString = JsonConvert.SerializeObject(outPut);
+                var output = new ResultViewModel() { message = "خطایی در عملیات رخ داده است (درصورت اطمینان از صحت داده های خود و تکرار مجدد با پشتیبانی تماس حاصل نمایید)", status = false, statusCode = 503, data = ex };
 
+                var environment = context.RequestServices.GetService<IWebHostEnvironment>();
+                if (environment != null && environment.IsDevelopment())
+                    output.data = ex;
+
+                string jsonString = JsonConvert.SerializeObject(output);
                 // Convert JSON string to byte array  
                 byte[] byteArray = Encoding.UTF8.GetBytes(jsonString);
                 context.Response.ContentType = "application/json"; // set content type

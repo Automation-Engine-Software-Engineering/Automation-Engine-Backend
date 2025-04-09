@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-using DataLayer.Models.TableBuilder;
+using Entities.Models.TableBuilder;
 using ViewModels.ViewModels.Entity;
 
 namespace ViewModels.ViewModels.FormBuilder

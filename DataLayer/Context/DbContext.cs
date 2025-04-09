@@ -1,8 +1,8 @@
-﻿using DataLayer.Models.Enums;
-using DataLayer.Models.FormBuilder;
-using DataLayer.Models.MainEngine;
-using DataLayer.Models.TableBuilder;
-using DataLayer.Models.WorkFlows;
+﻿using Entities.Models.Enums;
+using Entities.Models.FormBuilder;
+using Entities.Models.MainEngine;
+using Entities.Models.TableBuilder;
+using Entities.Models.WorkFlows;
 using Microsoft.EntityFrameworkCore;
 using Tools.TextTools;
 

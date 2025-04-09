@@ -1,5 +1,5 @@
 ﻿using DataLayer.DbContext;
-using DataLayer.Models.TableBuilder;
+using Entities.Models.TableBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;

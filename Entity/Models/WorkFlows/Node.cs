@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using DataLayer.Models.FormBuilder;
+using Entities.Models.FormBuilder;
 
-namespace DataLayer.Models.WorkFlows
+namespace Entities.Models.WorkFlows
 {
     public class Node
     {
@@ -35,10 +35,5 @@ namespace DataLayer.Models.WorkFlows
         [ForeignKey(nameof(WorkflowId))]
         public WorkFlow WorkFlow { get; set; }
         #endregion
-    }
-
-    public enum UnknownType
-    {
-        form = 1, dynamic = 2
     }
 }

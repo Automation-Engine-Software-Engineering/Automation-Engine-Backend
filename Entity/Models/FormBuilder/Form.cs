@@ -1,7 +1,7 @@
-﻿using DataLayer.Models.TableBuilder;
+﻿using Entities.Models.TableBuilder;
 using System.ComponentModel;
 
-namespace DataLayer.Models.FormBuilder
+namespace Entities.Models.FormBuilder
 {
     [Description("Each form that have entity and property")]
     public class Form

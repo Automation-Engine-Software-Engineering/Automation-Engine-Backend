@@ -5,7 +5,7 @@ namespace FrameWork.ExeptionHandler.ExeptionModel
     public class CustomException : Exception
     {
         public int StatusId { get; set; }
-        public CustomException(string Message) : base(Message) { }
+        public CustomException(string Message) : base(Message) { StatusId = 503; }
     }
     public class CustomException<T> : CustomException
     {

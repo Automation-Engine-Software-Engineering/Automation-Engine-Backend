@@ -1,6 +1,6 @@
 ﻿using DataLayer.DbContext;
-using DataLayer.Models.FormBuilder;
-using DataLayer.Models.TableBuilder;
+using Entities.Models.FormBuilder;
+using Entities.Models.TableBuilder;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
