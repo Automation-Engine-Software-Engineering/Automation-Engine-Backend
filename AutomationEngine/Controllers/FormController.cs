@@ -288,18 +288,16 @@ namespace AutomationEngine.Controllers
             if (form == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedNotfound", formId), 500);
 
-            var token = HttpContext.Request.Headers["Authorization"].ToString();
-            var userId = int.Parse(_tokenGenerator.GetClaimFromToken(token, ClaimsEnum.UserId.ToString()));
+            var claims = await HttpContext.Authorize();
 
-            if (userId != workflowUser.UserId)
+            if (claims.UserId != workflowUser.UserId)
                 throw new CustomException<int>(new ValidationDto<int>(false, "User", "CorruptedUser", formId), 500);
 
             var workflow = await _workFlowService.GetWorFlowByIdIncNodesAsync(workflowUser.WorkFlowId);
             if (workflow == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowRoleFound", formId), 500);
 
-            var RoleId = int.Parse(_tokenGenerator.GetClaimFromToken(token, ClaimsEnum.RoleId.ToString()));
-            var workflowRole = await _workFlowRoleService.ExistAllWorFlowRolesBuRoleId(RoleId, workflow.Id);
+            var workflowRole = await _workFlowRoleService.ExistAllWorFlowRolesBuRoleId(claims.RoleId, workflow.Id);
             if (!workflowRole)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Warning", "NotAuthorized", formId), 500);
 

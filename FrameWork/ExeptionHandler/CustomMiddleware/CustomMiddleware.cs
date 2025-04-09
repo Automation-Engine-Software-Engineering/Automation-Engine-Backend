@@ -36,7 +36,7 @@ namespace FrameWork.ExeptionHandler.CustomMiddleware
                 // Convert JSON string to byte array  
                 byte[] byteArray = Encoding.UTF8.GetBytes(jsonString);
                 context.Response.ContentType = "application/json"; // set content type
-                context.Response.StatusCode = (int)HttpStatusCode.Accepted; // status code you want to return
+                context.Response.StatusCode = ex.StatusId; // status code you want to return
                 await context.Response.Body.WriteAsync(byteArray, 0, byteArray.Length, CancellationToken.None);
             }
             catch (Exception ex)
@@ -47,7 +47,7 @@ namespace FrameWork.ExeptionHandler.CustomMiddleware
                 // Convert JSON string to byte array  
                 byte[] byteArray = Encoding.UTF8.GetBytes(jsonString);
                 context.Response.ContentType = "application/json"; // set content type
-                context.Response.StatusCode = (int)HttpStatusCode.Accepted; // status code you want to return
+                context.Response.StatusCode = 503; // status code you want to return
                 await context.Response.Body.WriteAsync(byteArray, 0, byteArray.Length, CancellationToken.None);
             }
         }

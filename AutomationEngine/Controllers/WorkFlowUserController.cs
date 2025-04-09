@@ -39,12 +39,11 @@ namespace AutomationEngine.Controllers
 
             var workFlow = await _workFlowService.GetWorFlowByIdAsync(workFlowUser.WorkFlowId);
 
-            var token = HttpContext.Request.Headers["Authorization"].ToString();
-            var UserId = int.Parse(_tokenGenerator.GetClaimFromToken(token, ClaimsEnum.UserId.ToString()));
-
+            var claims = await HttpContext.Authorize();
+         
             var result = new WorkFlow_User()
             {
-                UserId = UserId,
+                UserId = claims.UserId,
                 WorkFlowId = workFlowUser.WorkFlowId,
                 WorkFlow = workFlow,
                 WorkFlowState = workFlow.Nodes.FirstOrDefault(x => x.LastNodeId.IsNullOrEmpty()).Id
@@ -73,13 +72,11 @@ namespace AutomationEngine.Controllers
 
             var workFlow = await _workFlowService.GetWorFlowByIdAsync(workFlowUser.WorkFlowId);
 
-            var token = HttpContext.Request.Headers["Authorization"].ToString();
-            var UserId = int.Parse(_tokenGenerator.GetClaimFromToken(token, ClaimsEnum.UserId.ToString()));
-
+            var claims = await HttpContext.Authorize();
             var result = new WorkFlow_User()
             {
                 Id = workFlowUser.Id,
-                UserId = UserId,
+                UserId = claims.UserId,
                 WorkFlowId = workFlowUser.WorkFlowId,
                 WorkFlowState = workFlow.Nodes.FirstOrDefault().Id
             };
@@ -168,11 +165,9 @@ namespace AutomationEngine.Controllers
             if (workFlowId == 0)
                 throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "CorruptedUserWorkflow", workFlowId), 500);
 
-            var token = HttpContext.Request.Headers["Authorization"].ToString();
-            var userId = int.Parse(_tokenGenerator.GetClaimFromToken(token, ClaimsEnum.UserId.ToString()));
-
+            var claims = await HttpContext.Authorize();
             //initial action
-            var workflowUser = await _WorkFlowUserService.GetWorFlowUserByWorkflowAndUserId(workFlowId, userId);
+            var workflowUser = await _WorkFlowUserService.GetWorFlowUserByWorkflowAndUserId(workFlowId, claims.UserId);
             if (workflowUser == null)
                 return (new ResultViewModel { Data = null, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
 
