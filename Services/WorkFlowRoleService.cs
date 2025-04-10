@@ -153,6 +153,7 @@ namespace Services
         public async Task<ListDto<WorkflowAccess>> GetAllWorFlowRolesAndRole(int workFlowId, int pageSize, int pageNumber)
         {
             var Workflows = await _context.Roles.Include(x => x.role_WorkFlows)
+            .Skip((pageNumber - 1) * pageSize).Take(pageSize)
             .ToListAsync();
 
             var result = Workflows.Select(x => new WorkflowAccess() { Id = x.Id, Name = x.Name, IsAccess = x.role_WorkFlows.Any(x => x.WorkFlowId == workFlowId) ? true : false }).ToList();
@@ -166,6 +167,7 @@ namespace Services
         public async Task<ListDto<WorkflowAccess>> GetAllWorFlowRolesAndWorkflow(int roleId, int pageSize, int pageNumber)
         {
             var Workflows = await _context.WorkFlow.Include(x => x.Role_WorkFlows)
+            .Skip((pageNumber - 1) * pageSize).Take(pageSize)
             .ToListAsync();
 
             var result = Workflows.Select(x => new WorkflowAccess() { Id = x.Id, Name = x.Name, IsAccess = x.Role_WorkFlows.Any(x => x.RoleId == roleId) ? true : false }).ToList();

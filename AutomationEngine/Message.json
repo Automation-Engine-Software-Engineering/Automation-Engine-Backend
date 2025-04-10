@@ -26,6 +26,8 @@
         "CorruptedWorkflow": "خطا در اطلاعات گردشکار وجود دارد",
         "CorruptedWorkflowName": "خطا در نام گردشکار وجود دارد",
         "CorruptedWorkflowDes": "خطا در توضیحات گردشکار وجود دارد",
+        "CorruptedWorkflowNextNode": "گره بعدی وجود ندارد",
+        "CorruptedWorkflowLastNode": "گره قبلی وجود ندارد",
         "NoWorkflowFound": "گردشکار یافت نشد"
       },
       "WorkflowRole": {

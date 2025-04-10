@@ -21,7 +21,7 @@ namespace Services
         Task<ListDto<Form>> GetAllFormsAsync(int pageSize, int pageNumber);
         Task UpdateFormBodyAsync(int formId, string htmlContent);
         Task SetTheParameter(List<(int entityId, int propertyId, object value)> data);
-        Task<string> GetFormpreview(int formId);
+        Task<string> GetFormpreview(Form form);
         Task<ValidationDto<Form>> FormValidationAsync(Form form);
         Task<ValidationDto<string>> SaveChangesAsync();
         Task<bool> IsFormExistAsync(int formId);
@@ -52,11 +52,6 @@ namespace Services
 
             //transfer model
             fetchModel.Name = form.Name;
-            fetchModel.SizeHeight = form.SizeHeight;
-            fetchModel.IsAutoHeight = form.IsAutoHeight;
-            fetchModel.SizeWidth = form.SizeWidth;
-            fetchModel.BackgroundImgPath = form.BackgroundImgPath;
-            fetchModel.BackgroundColor = form.BackgroundColor;
             fetchModel.Description = form.Description;
 
             _context.Form.Update(fetchModel);
@@ -187,11 +182,10 @@ namespace Services
                 _dynamicDbContext.ExecuteSqlRawAsync(query);
             });
         }
-        public async Task<string> GetFormpreview(int formId)
+        public async Task<string> GetFormpreview(Form form)
         {
-            var form = await _context.Form.FirstOrDefaultAsync(x => x.Id == formId);
             if (form.HtmlFormBody == null)
-                return "<span>طراحی شده توسط پارسه آذین مبین<span>";
+                return "<span>طراحی شده توسط بینا زر اندیش پارس<span>";
 
             var htmlBody = form.HtmlFormBody.ToString();
             htmlBody = htmlBody.Replace("disabled", "");
@@ -244,6 +238,7 @@ namespace Services
                 var condition = await _htmlService.getTagAttributesValue(tag, "data-condition");
                 condition = condition.Replace("{{", "");
                 condition = condition.Replace("}}", "");
+                condition = condition.Replace("و", ",");
                 var filter = await _htmlService.getTagAttributesValue(tag, "data-filter");
 
                 var table = await _context.Entity.FirstOrDefaultAsync(x => x.Id == int.Parse(tableId));
@@ -283,8 +278,6 @@ namespace Services
         {
             if (form == null) return new ValidationDto<Form>(false, "Form", "CorruptedForm", form);
             if (form.Name == null || !form.Name.IsValidString()) return new ValidationDto<Form>(false, "Form", "CorruptedFormName", form);
-            if (form.SizeWidth == 0) return new ValidationDto<Form>(false, "Form", "CorruptedFormSize", form);
-            if (form.SizeHeight == 0 ^ form.IsAutoHeight) return new ValidationDto<Form>(false, "Form", "CorruptedFormSize", form);
             return new ValidationDto<Form>(true, "Success", "Success", form);
         }
         public async Task<ValidationDto<string>> SaveChangesAsync()

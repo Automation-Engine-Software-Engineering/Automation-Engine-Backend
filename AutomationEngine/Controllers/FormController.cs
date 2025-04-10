@@ -46,9 +46,9 @@ namespace AutomationEngine.Controllers
         {
             if (form == null)
                 throw new CustomException<Form>(new ValidationDto<Form>(false, "Form", "CorruptedForm", null), 500);
+
             //transfer model
-            var result = new Form(form.Name, form.Description, form.SizeHeight, form.BackgroundImgPath, form.SizeWidth
-            , form.HtmlFormBody, form.IsAutoHeight, form.BackgroundColor, form.IsRepeatedImage);
+            var result = new Form(form.Name, form.Description, form.HtmlFormBody);
 
             //is validation model
             if (form.Id != 0)
@@ -90,14 +90,8 @@ namespace AutomationEngine.Controllers
             var result = new Form(
                 form.Name ?? fetchForm.Name,
                 form.Description ?? fetchForm.Description,
-                form.SizeHeight ?? fetchForm.SizeHeight,
-                await UploadImage.UploadFormBackgroundImage(form.BackgroundImg) ?? fetchForm.BackgroundImgPath,
-                form.SizeWidth ?? fetchForm.SizeWidth,
-                form.HtmlFormBody ?? fetchForm.HtmlFormBody,
-                form.IsAutoHeight ?? fetchForm.IsAutoHeight,
-                form.BackgroundColor ?? fetchForm.BackgroundColor,
-                form.IsRepeatedImage ?? fetchForm.IsRepeatedImage
-            );
+                form.HtmlFormBody ?? fetchForm.HtmlFormBody
+             );
             result.Id = formId;
 
             var validationModel = await _formService.FormValidationAsync(result);
@@ -209,9 +203,30 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedForm", formId), 500);
 
             //initial action
-            var formBody = await _formService.GetFormpreview(formId);
+            var form = await _formService.GetFormByIdAsync(formId);
+            var formBody = await _formService.GetFormpreview(form);
             if (formBody == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedNotfound", formId), 500);
+
+            return (new ResultViewModel { Data = formBody, Message = new ValidationDto<string>(true, "Success", "Success", formBody).GetMessage(200), Status = true, StatusCode = 200 });
+        }
+
+
+        // GET: api/form/{id}  
+        [HttpGet("previewByWorkFlowUserId")]
+        public async Task<ResultViewModel> GetPreviewByWorkFlowUserId(int workflowUserId)
+        {
+            //is validation model
+            if (workflowUserId == 0)
+                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedForm", workflowUserId), 500);
+
+            //initial action
+            var workflowUser = await _workFlowUserService.GetWorFlowUserById(workflowUserId);
+            var node = workflowUser.WorkFlow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkFlowState);
+            var form = await _formService.GetFormByIdAsync(node.FormId.Value);
+            var formBody = await _formService.GetFormpreview(form);
+            if (formBody == null)
+                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedNotfound", node.FormId.Value), 500);
 
             return (new ResultViewModel { Data = formBody, Message = new ValidationDto<string>(true, "Success", "Success", formBody).GetMessage(200), Status = true, StatusCode = 200 });
         }

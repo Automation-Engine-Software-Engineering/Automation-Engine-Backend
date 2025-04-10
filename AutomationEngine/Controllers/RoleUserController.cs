@@ -23,10 +23,12 @@ namespace AutomationEngine.Controllers
     {
         private readonly IRoleUserService _RoleUserService;
         private readonly TokenGenerator _tokenGenerator;
-        public RoleUserController(IRoleUserService RoleUserService, TokenGenerator tokenGenerator)
+        private readonly IRoleService _roleService;
+        public RoleUserController(IRoleUserService RoleUserService, TokenGenerator tokenGenerator, IRoleService roleService)
         {
             RoleUserService = _RoleUserService;
             _tokenGenerator = tokenGenerator;
+            _roleService = roleService;
         }
 
         // POST: api/form/create  
@@ -152,7 +154,7 @@ namespace AutomationEngine.Controllers
         }
 
         // GET: api/form/{id}  
-        [HttpGet("RoleUser")]
+        [HttpGet("RoleUserById")]
         public async Task<ResultViewModel> GetRoleUserBuUserId(int pageSize, int pageNumber)
         {
             if (pageSize > 100)
@@ -175,6 +177,24 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<ListDto<Role_User>>(new ValidationDto<ListDto<Role_User>>(false, "Form", "CorruptedInvalidPage", RoleUser), 500);
 
             return (new ResultViewModel { Data = RoleUser.Data , ListNumber = RoleUser.ListNumber , ListSize = RoleUser.ListSize , TotalCount = RoleUser.TotalCount, Message = new ValidationDto<ListDto<Role_User>>(true, "Success", "Success", RoleUser).GetMessage(200), Status = true, StatusCode = 200 });
+        }
+
+            // GET: api/form/all  
+        [HttpGet("User")]
+        public async Task<ResultViewModel> GetAllROleUserAndUser(int roleId, int pageSize, int pageNumber)
+        {
+            if (pageSize > 100)
+                pageSize = 100;
+            if (pageNumber < 1)
+                pageNumber = 1;
+
+            ListDto<WorkflowAccess> forms = await _roleService.GetAllUserforRoleAccess(roleId, pageSize, pageNumber);
+
+            //is valid data
+            if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
+                throw new CustomException<ListDto<WorkflowAccess>>(new ValidationDto<ListDto<WorkflowAccess>>(false, "Form", "CorruptedInvalidPage", forms), 500);
+
+            return (new ResultViewModel { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<WorkflowAccess>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
         }
     }
 }

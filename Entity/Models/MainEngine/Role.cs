@@ -13,5 +13,6 @@ namespace Entities.Models.MainEngine
         public string Name { get; set; }
         public string Description { get; set; }
         public List<Role_WorkFlow> role_WorkFlows{ get; set; }
+        public List<Role_User> role_User{ get; set; }
     }
 }
