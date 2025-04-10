@@ -1,4 +1,5 @@
 ﻿using DataLayer.DbContext;
+using Entities.Models.Enums;
 using Entities.Models.TableBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
@@ -70,7 +71,7 @@ namespace Services
                     parameters.Add(("@Type", "BIT"));
                     break;
                     
-                case PropertyType.binaryLong:
+                case PropertyType.BinaryLong:
                     parameters.Add(("@Type", "binary(max)"));
                     break;
                     

@@ -6,6 +6,7 @@ using Entities.Models.WorkFlows;
 using AutomationEngine.ControllerAttributes;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
+using Entities.Models.Enums;
 
 namespace AutomationEngine.Controllers
 {
@@ -80,7 +81,7 @@ namespace AutomationEngine.Controllers
                 Id = x.Id,
                 Icon = x.Data.Icon,
                 Name = x.Data.Name,
-                Type = x.Data.Type == 1 ? UnknownType.form : UnknownType.dynamic,
+                Type = x.Data.Type == 1 ? UnknownType.Form : UnknownType.Dynamic,
                 X = x.Position.X,
                 Y = x.Position.Y,
                 Width = x.Position.Width,
@@ -204,7 +205,7 @@ namespace AutomationEngine.Controllers
             dto.Nodes = fetchModel.Nodes.Select(x => new NodeDto()
             {
                 Id = x.Id,
-                Data = new Data() { Icon = x.Icon, Name = x.Name, Type = x.Type == UnknownType.form ? 1 : 2 },
+                Data = new Data() { Icon = x.Icon, Name = x.Name, Type = x.Type == UnknownType.Form ? 1 : 2 },
                 Position = new position() { X = x.X, Y = x.Y, Width = x.Width, Height = x.Height },
                 Type = "custom"
             }).ToList();

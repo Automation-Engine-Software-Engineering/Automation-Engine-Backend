@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using Entities.Models.Enums;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Entities.Models.TableBuilder

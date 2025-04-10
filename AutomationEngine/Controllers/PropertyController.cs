@@ -1,4 +1,5 @@
 ﻿using AutomationEngine.ControllerAttributes;
+using Entities.Models.Enums;
 using Entities.Models.TableBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
