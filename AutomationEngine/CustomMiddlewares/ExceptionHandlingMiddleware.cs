@@ -57,7 +57,23 @@ namespace AutomationEngine.CustomMiddlewares
                 // Convert JSON string to byte array  
                 byte[] byteArray = Encoding.UTF8.GetBytes(jsonString);
                 context.Response.ContentType = "application/json"; // set content type
-                context.Response.StatusCode = 503; // status code you want to return
+                int statusCode = 503;
+                switch (ex)
+                {
+                    case ArgumentNullException argNullEx:
+                        statusCode = 400; // Bad Request
+                        break;
+                    case UnauthorizedAccessException unauthorizedEx:
+                        statusCode = 401; // Unauthorized
+                        break;
+                    case KeyNotFoundException keyNotFoundEx:
+                        statusCode = 404; // Not Found
+                        break;
+                    case InvalidOperationException invalidOpEx:
+                        statusCode = 405; // Method Not Allowed
+                        break;
+                }
+                context.Response.StatusCode = statusCode; // status code to return
                 await context.Response.Body.WriteAsync(byteArray, 0, byteArray.Length, CancellationToken.None);
             }
         }

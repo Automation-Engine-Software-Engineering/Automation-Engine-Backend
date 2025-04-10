@@ -42,13 +42,11 @@ namespace AutomationEngine.ControllerAttributes
     {
         public static async Task<TokenClaims> Authorize(this HttpContext httpContext, int? workflowId = null)
         {
-            // گرفتن IUserService از Dependency Injection
+            // گرفتن از Dependency Injection
             var userService = httpContext.RequestServices.GetService<IUserService>() ?? throw new CustomException("IUserService وجود ندارد");
             var tokenGeneratorService = httpContext.RequestServices.GetService<TokenGenerator>() ?? throw new CustomException("TokenGenerator وجود ندارد");
             var encryptionToolService = httpContext.RequestServices.GetService<EncryptionTool>() ?? throw new CustomException("EncryptionTool وجود ندارد");
             var workflowService = httpContext.RequestServices.GetService<IWorkFlowService>() ?? throw new CustomException("TokenGenerator وجود ندارد");
-
-
 
             //ویندوز: cmd: set ASPNETCORE_ENVIRONMENT = Production
             var environment = httpContext.RequestServices.GetService<IWebHostEnvironment>();
@@ -57,10 +55,9 @@ namespace AutomationEngine.ControllerAttributes
                 var tokenAuthorization = httpContext.Request.Headers["Authorization"].ToString();
                 // در حالت Development هیچ چکی انجام نمی‌شود
                 var claimsAuthorization = tokenGeneratorService.ValidateToken(tokenAuthorization, false, false);
-                var userIdAuthorization = claimsAuthorization.FindFirstValue(nameof(TokenClaims.UserId));
-                var roleIdAuthorization = claimsAuthorization.FindFirstValue(nameof(TokenClaims.RoleId));
+                var userIdAuthorization = claimsAuthorization?.FindFirstValue(nameof(TokenClaims.UserId));
+                var roleIdAuthorization = claimsAuthorization?.FindFirstValue(nameof(TokenClaims.RoleId));
 
-                // مقداردهی کلاس TokenClaims
                 var tokenClaim = new TokenClaims
                 {
                     UserId = userIdAuthorization.IsNullOrWhiteSpace() ? 0 : int.Parse(userIdAuthorization),
@@ -81,7 +78,6 @@ namespace AutomationEngine.ControllerAttributes
             var userIdClaim = claims.FindFirstValue(nameof(TokenClaims.UserId));
             var roleIdClaim = claims.FindFirstValue(nameof(TokenClaims.RoleId));
 
-            // مقداردهی کلاس TokenClaims
             var tokenClaims = new TokenClaims
             {
                 UserId = userIdClaim.IsNullOrWhiteSpace() ? 0 : int.Parse(userIdClaim),
@@ -117,7 +113,7 @@ namespace AutomationEngine.ControllerAttributes
         }
         public static async Task<TokenClaims> AuthorizeRefreshToken(this HttpContext httpContext)
         {
-            // گرفتن IUserService از Dependency Injection
+            // گرفتن از Dependency Injection
             var userService = httpContext.RequestServices.GetService<IUserService>() ?? throw new CustomException("IUserService وجود ندارد");
             var tokenGeneratorService = httpContext.RequestServices.GetService<TokenGenerator>() ?? throw new CustomException("TokenGenerator وجود ندارد");
             var encryptionToolService = httpContext.RequestServices.GetService<EncryptionTool>() ?? throw new CustomException("EncryptionTool وجود ندارد");
@@ -127,12 +123,11 @@ namespace AutomationEngine.ControllerAttributes
             if (environment != null && environment.IsDevelopment())
             {
                 var tokenAuthorization = httpContext.Request.Headers["Authorization"].ToString();
-                // در حالت Development هیچ چکی انجام نمی‌شود
+                // در حالت Development هیچ چکی انجام نمی شود
                 var claimsAuthorization = tokenGeneratorService.ValidateToken(tokenAuthorization, true, false);
                 var userId = claimsAuthorization.FindFirstValue(nameof(TokenClaims.UserId));
-                var roleId = claimsAuthorization.FindFirstValue(nameof(TokenClaims.RoleId));
+                var roleId = claimsAuthorization?.FindFirstValue(nameof(TokenClaims.RoleId));
 
-                // مقداردهی کلاس TokenClaims
                 var tokenClaim = new TokenClaims
                 {
                     UserId = userId.IsNullOrWhiteSpace() ? 0 : int.Parse(userId),
@@ -142,18 +137,17 @@ namespace AutomationEngine.ControllerAttributes
                 return tokenClaim;
             }
             // چک کردن توکن
-            var encryptedToken = httpContext.Request.Cookies["access_token"];
+            var encryptedToken = httpContext.Request.Cookies["refresh_token"];
             var token = encryptionToolService.DecryptCookie(encryptedToken);
 
             if (token == null || token.IsNullOrWhiteSpace())
                 throw new CustomException<object>(new ValidationDto<object>(false, "Authentication", "NotAuthorized", null), 403);
 
-            var claims = tokenGeneratorService.ValidateToken(token);
+            var claims = tokenGeneratorService.ValidateToken(token,true);
 
             var userIdClaim = claims.FindFirstValue(nameof(TokenClaims.UserId));
             var roleIdClaim = claims.FindFirstValue(nameof(TokenClaims.RoleId));
 
-            // مقداردهی کلاس TokenClaims
             var tokenClaims = new TokenClaims
             {
                 UserId = userIdClaim.IsNullOrWhiteSpace() ? 0 : int.Parse(userIdClaim),

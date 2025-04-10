@@ -93,7 +93,7 @@ namespace Tools.AuthoraizationTools
         public ClaimsPrincipal? ValidateToken(string token, bool isRefreshToken = false, bool checkValidation = true)
         {
             if (token == null)
-                throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "NotAuthorized", token),403);
+                throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "NotAuthorized", token), 403);
             var refreshToken = token.Trim();
             if (refreshToken.Contains("Bearer "))
                 refreshToken = token.Substring("Bearer ".Length);
@@ -125,7 +125,7 @@ namespace Tools.AuthoraizationTools
                         ValidIssuer = issuer,
                         ValidAudience = audience,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey ?? "")),
-                        
+
                         ClockSkew = TimeSpan.Zero // تأخیر زمانی مجاز
                     }, out _);
                 else
@@ -135,7 +135,7 @@ namespace Tools.AuthoraizationTools
                         ValidateAudience = false,
                         ValidateLifetime = false,
                         ValidateIssuerSigningKey = false,
-                        
+
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey ?? "")),
                     }, out _);
 
@@ -143,8 +143,10 @@ namespace Tools.AuthoraizationTools
             }
             catch (Exception e)
             {
-                throw new CustomException(new ValidationDto<string>(false, "Authentication", "NotAuthorized", refreshToken).GetMessage(403));
+                if (checkValidation)
+                    throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "NotAuthorized", refreshToken), 403);
             }
+            return null;
         }
     }
 }
