@@ -16,6 +16,7 @@ namespace Services
         Task RemoveColumnByIdAsync(int propertyId);
         Task<ListDto<EntityProperty>> GetAllColumnsAsync(int pageSize, int pageNumber);
         Task<EntityProperty?> GetColumnByIdAsync(int propertyId);
+        Task<EntityProperty?> GetColumnByIdIncEntityAsync(int propertyId);
         Task<ListDto<Dictionary<string, object>>> GetColumnValuesByIdAsync(int propertyId, int pageSize, int pageNumber);
         Task<ListDto<EntityProperty>> GetAllColumnByEntityIdAsync(int entityId, int pageSize, int pageNumber);
         Task<ListDto<Dictionary<string, object>>> GetAllColumnValuesByEntityIdAsync(int entityId, int pageSize, int pageNumber);
@@ -143,7 +144,12 @@ namespace Services
 
         public async Task<EntityProperty?> GetColumnByIdAsync(int propertyId)
         {
-            var result = await _context.Property.FirstOrDefaultAsync(x => x.Id == propertyId);
+            var result = await _context.Property.FindAsync(propertyId);
+            return result;
+        }
+        public async Task<EntityProperty?> GetColumnByIdIncEntityAsync(int propertyId)
+        {
+            var result = await _context.Property.Include(x=>x.Entity).FirstOrDefaultAsync(x => x.Id == propertyId);
             return result;
         }
 

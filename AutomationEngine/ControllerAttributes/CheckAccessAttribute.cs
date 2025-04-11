@@ -1,6 +1,6 @@
 ﻿using DataLayer.DbContext;
 using Entities.Models.Enums;
-using Entities.Models.WorkFlows;
+using Entities.Models.Workflows;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.AspNetCore.Http;
@@ -21,9 +21,9 @@ namespace AutomationEngine.ControllerAttributes
 {
     public class CheckAccess : Attribute, IAsyncAuthorizationFilter
     {
-        private readonly WorkFlowEnum? _workflow;
+        private readonly WorkflowEnum? _workflow;
 
-        public CheckAccess(WorkFlowEnum workflow)
+        public CheckAccess(WorkflowEnum workflow)
         {
             _workflow = workflow;
         }
@@ -46,7 +46,7 @@ namespace AutomationEngine.ControllerAttributes
             var userService = httpContext.RequestServices.GetService<IUserService>() ?? throw new CustomException("IUserService وجود ندارد");
             var tokenGeneratorService = httpContext.RequestServices.GetService<TokenGenerator>() ?? throw new CustomException("TokenGenerator وجود ندارد");
             var encryptionToolService = httpContext.RequestServices.GetService<EncryptionTool>() ?? throw new CustomException("EncryptionTool وجود ندارد");
-            var workflowService = httpContext.RequestServices.GetService<IWorkFlowService>() ?? throw new CustomException("TokenGenerator وجود ندارد");
+            var workflowService = httpContext.RequestServices.GetService<IWorkflowService>() ?? throw new CustomException("TokenGenerator وجود ندارد");
 
             //ویندوز: cmd: set ASPNETCORE_ENVIRONMENT = Production
             var environment = httpContext.RequestServices.GetService<IWebHostEnvironment>();
@@ -103,7 +103,7 @@ namespace AutomationEngine.ControllerAttributes
             if (workflowId != null)
             {
                 var workflow = await workflowService.GetWorFlowIncRolesById(workflowId.Value);
-                var hasAccess = workflow.Role_WorkFlows.Any(x => x.RoleId == roleId);
+                var hasAccess = workflow.Role_Workflows.Any(x => x.RoleId == roleId);
                 if (!hasAccess)
                 {
                     throw new CustomException<(string, string)>(new ValidationDto<(string, string)>(false, "Authentication", "NotAuthorized", (currentIp, currentUserAgent)), 403);

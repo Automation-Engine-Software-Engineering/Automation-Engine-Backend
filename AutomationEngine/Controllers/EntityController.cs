@@ -213,7 +213,7 @@ namespace AutomationEngine.Controllers
 
         // GET: api/entity/{entityName}/property  
         [HttpGet("{entityId}/property")]
-        public async Task<ResultViewModel> GetAllperopertiesFromEntity(int entityId, int pageSize, int pageNumber)
+        public async Task<ResultViewModel> GetAllPropertiesFromEntity(int entityId, int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -238,7 +238,7 @@ namespace AutomationEngine.Controllers
 
         // GET: api/property/entityId/value
         [HttpGet("{entityId}/property/value")]
-        public async Task<ResultViewModel> GetAllperopertiesValueFromEntity(int entityId, int pageSize, int pageNumber)
+        public async Task<ResultViewModel> GetAllPropertiesValueFromEntity(int entityId, int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;

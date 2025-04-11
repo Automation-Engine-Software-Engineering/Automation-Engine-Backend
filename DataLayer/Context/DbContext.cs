@@ -2,7 +2,7 @@
 using Entities.Models.FormBuilder;
 using Entities.Models.MainEngine;
 using Entities.Models.TableBuilder;
-using Entities.Models.WorkFlows;
+using Entities.Models.Workflows;
 using Microsoft.EntityFrameworkCore;
 using Tools.TextTools;
 
@@ -21,10 +21,10 @@ namespace DataLayer.DbContext
         public DbSet<Role_User> Role_Users { get; set; }
         #endregion
 
-        public DbSet<WorkFlow> WorkFlow { get; set; }
+        public DbSet<Workflow> Workflow { get; set; }
         public DbSet<Node> Node { get; set; }
-        public DbSet<WorkFlow_User> WorkFlow_User { get; set; }
-        public DbSet<Role_WorkFlow> Role_WorkFlows { get; set; }
+        public DbSet<Workflow_User> Workflow_User { get; set; }
+        public DbSet<Role_Workflow> Role_Workflows { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -36,23 +36,23 @@ namespace DataLayer.DbContext
             };
             modelBuilder.Entity<Role>().HasData(adminRole);
 
-            var workFlowSeedData = Enum.GetValues(typeof(WorkFlowEnum))
-                .Cast<WorkFlowEnum>()
-                .Select(e => new WorkFlow
+            var workflowSeedData = Enum.GetValues(typeof(WorkflowEnum))
+                .Cast<WorkflowEnum>()
+                .Select(e => new Workflow
                 {
                     Id = (int)e,
                     Name = e.ToString().InsertSpaces(),
                     Description = e.ToString().InsertSpaces()
                 }).ToArray();
-            modelBuilder.Entity<WorkFlow>().HasData(workFlowSeedData);
+            modelBuilder.Entity<Workflow>().HasData(workflowSeedData);
 
-            var roleWorkFlowSeedData = workFlowSeedData.Select(wf => new Role_WorkFlow
+            var roleWorkflowSeedData = workflowSeedData.Select(wf => new Role_Workflow
             {
                 Id = wf.Id,
-                WorkFlowId = wf.Id,
+                WorkflowId = wf.Id,
                 RoleId = adminRole.Id
             }).ToArray();
-            modelBuilder.Entity<Role_WorkFlow>().HasData(roleWorkFlowSeedData);
+            modelBuilder.Entity<Role_Workflow>().HasData(roleWorkflowSeedData);
 
             modelBuilder.Entity<Node>()
                  .HasOne(n => n.NextNode)
@@ -67,7 +67,7 @@ namespace DataLayer.DbContext
                  .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Node>()
-                 .HasOne(n => n.WorkFlow)
+                 .HasOne(n => n.Workflow)
                  .WithMany(n => n.Nodes)
                  .OnDelete(DeleteBehavior.Cascade);
 

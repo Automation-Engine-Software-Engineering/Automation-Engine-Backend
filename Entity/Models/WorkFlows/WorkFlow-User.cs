@@ -7,17 +7,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Entities.Models.WorkFlows
+namespace Entities.Models.Workflows
 {
-    public class WorkFlow_User
+    public class Workflow_User
     {
         public int Id { get; set; }
-        public string WorkFlowState { get; set; }
+        public string WorkflowState { get; set; }
 
         public int UserId { get; set; }
 
-        public int WorkFlowId { get; set; }
-        [ForeignKey(nameof(WorkFlowId))]
-        public WorkFlow WorkFlow { get; set; }
+        public int WorkflowId { get; set; }
+        [ForeignKey(nameof(WorkflowId))]
+        public Workflow Workflow { get; set; }
     }
 }

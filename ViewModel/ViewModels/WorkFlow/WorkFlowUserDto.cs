@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ViewModels.ViewModels.WorkFlow
+namespace ViewModels.ViewModels.Workflow
 {
-    public class WorkFlowUserDto
+    public class WorkflowUserDto
     {
         public int Id { get; set; }
-        public int WorkFlowId { get; set; }
+        public int WorkflowId { get; set; }
     }
 }

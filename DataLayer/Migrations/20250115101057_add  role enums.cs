@@ -11,13 +11,13 @@ namespace DataLayer.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.InsertData(
-                table: "WorkFlow",
+                table: "Workflow",
                 columns: new[] { "Id", "Description", "Name" },
                 values: new object[] { 3, "مدیریت", "مدیریت" });
 
             migrationBuilder.InsertData(
-                table: "Role_WorkFlows",
-                columns: new[] { "Id", "RoleId", "WorkFlowId" },
+                table: "Role_Workflows",
+                columns: new[] { "Id", "RoleId", "WorkflowId" },
                 values: new object[] { 3, 1, 3 });
         }
 
@@ -25,12 +25,12 @@ namespace DataLayer.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DeleteData(
-                table: "Role_WorkFlows",
+                table: "Role_Workflows",
                 keyColumn: "Id",
                 keyValue: 3);
 
             migrationBuilder.DeleteData(
-                table: "WorkFlow",
+                table: "Workflow",
                 keyColumn: "Id",
                 keyValue: 3);
         }

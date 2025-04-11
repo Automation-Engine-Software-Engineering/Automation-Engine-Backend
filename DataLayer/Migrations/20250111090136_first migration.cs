@@ -82,7 +82,7 @@ namespace DataLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "WorkFlow",
+                name: "Workflow",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -92,7 +92,7 @@ namespace DataLayer.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_WorkFlow", x => x.Id);
+                    table.PrimaryKey("PK_Workflow", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -203,56 +203,56 @@ namespace DataLayer.Migrations
                         principalTable: "Node",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Node_WorkFlow_WorkflowId",
+                        name: "FK_Node_Workflow_WorkflowId",
                         column: x => x.WorkflowId,
-                        principalTable: "WorkFlow",
+                        principalTable: "Workflow",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Role_WorkFlows",
+                name: "Role_Workflows",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    WorkFlowId = table.Column<int>(type: "int", nullable: false),
+                    WorkflowId = table.Column<int>(type: "int", nullable: false),
                     RoleId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Role_WorkFlows", x => x.Id);
+                    table.PrimaryKey("PK_Role_Workflows", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Role_WorkFlows_Roles_RoleId",
+                        name: "FK_Role_Workflows_Roles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "Roles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Role_WorkFlows_WorkFlow_WorkFlowId",
-                        column: x => x.WorkFlowId,
-                        principalTable: "WorkFlow",
+                        name: "FK_Role_Workflows_Workflow_WorkflowId",
+                        column: x => x.WorkflowId,
+                        principalTable: "Workflow",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "WorkFlow_User",
+                name: "Workflow_User",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    WorkFlowState = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    WorkflowState = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    WorkFlowId = table.Column<int>(type: "int", nullable: false)
+                    WorkflowId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_WorkFlow_User", x => x.Id);
+                    table.PrimaryKey("PK_Workflow_User", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_WorkFlow_User_WorkFlow_WorkFlowId",
-                        column: x => x.WorkFlowId,
-                        principalTable: "WorkFlow",
+                        name: "FK_Workflow_User_Workflow_WorkflowId",
+                        column: x => x.WorkflowId,
+                        principalTable: "Workflow",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -263,7 +263,7 @@ namespace DataLayer.Migrations
                 values: new object[] { 1, "مدیر سیستم", "Admin" });
 
             migrationBuilder.InsertData(
-                table: "WorkFlow",
+                table: "Workflow",
                 columns: new[] { "Id", "Description", "Name" },
                 values: new object[,]
                 {
@@ -272,8 +272,8 @@ namespace DataLayer.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "Role_WorkFlows",
-                columns: new[] { "Id", "RoleId", "WorkFlowId" },
+                table: "Role_Workflows",
+                columns: new[] { "Id", "RoleId", "WorkflowId" },
                 values: new object[,]
                 {
                     { 1, 1, 1 },
@@ -316,19 +316,19 @@ namespace DataLayer.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Role_WorkFlows_RoleId",
-                table: "Role_WorkFlows",
+                name: "IX_Role_Workflows_RoleId",
+                table: "Role_Workflows",
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Role_WorkFlows_WorkFlowId",
-                table: "Role_WorkFlows",
-                column: "WorkFlowId");
+                name: "IX_Role_Workflows_WorkflowId",
+                table: "Role_Workflows",
+                column: "WorkflowId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WorkFlow_User_WorkFlowId",
-                table: "WorkFlow_User",
-                column: "WorkFlowId");
+                name: "IX_Workflow_User_WorkflowId",
+                table: "Workflow_User",
+                column: "WorkflowId");
         }
 
         /// <inheritdoc />
@@ -347,13 +347,13 @@ namespace DataLayer.Migrations
                 name: "Role_Users");
 
             migrationBuilder.DropTable(
-                name: "Role_WorkFlows");
+                name: "Role_Workflows");
 
             migrationBuilder.DropTable(
                 name: "User");
 
             migrationBuilder.DropTable(
-                name: "WorkFlow_User");
+                name: "Workflow_User");
 
             migrationBuilder.DropTable(
                 name: "Form");
@@ -365,7 +365,7 @@ namespace DataLayer.Migrations
                 name: "Roles");
 
             migrationBuilder.DropTable(
-                name: "WorkFlow");
+                name: "Workflow");
         }
     }
 }

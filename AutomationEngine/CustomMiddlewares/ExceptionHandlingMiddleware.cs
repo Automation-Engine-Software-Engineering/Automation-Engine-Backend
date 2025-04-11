@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using FrameWork.ExeptionHandler.ExeptionModel;
-using ViewModels.ViewModels.WorkFlow;
+using ViewModels.ViewModels.Workflow;
 using FrameWork;
 
 namespace AutomationEngine.CustomMiddlewares

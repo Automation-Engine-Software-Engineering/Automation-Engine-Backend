@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Entities.Models.Enums;
 using Entities.Models.FormBuilder;
 
-namespace Entities.Models.WorkFlows
+namespace Entities.Models.Workflows
 {
     public class Node
     {
@@ -34,7 +34,7 @@ namespace Entities.Models.WorkFlows
 
         public int WorkflowId { get; set; }
         [ForeignKey(nameof(WorkflowId))]
-        public WorkFlow WorkFlow { get; set; }
+        public Workflow Workflow { get; set; }
         #endregion
     }
 }

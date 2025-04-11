@@ -1,6 +1,6 @@
-﻿namespace ViewModels.ViewModels.WorkFlow
+﻿namespace ViewModels.ViewModels.Workflow
 {
-    public class WorkFlowDto
+    public class WorkflowDto
     {
         public int Id { get; set; }
         public string? Name { get; set; }

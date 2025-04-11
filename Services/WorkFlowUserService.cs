@@ -1,5 +1,5 @@
 ﻿using DataLayer.DbContext;
-using Entities.Models.WorkFlows;
+using Entities.Models.Workflows;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
@@ -13,81 +13,81 @@ using Tools;
 
 namespace Services
 {
-    public interface IWorkFlowUserService
+    public interface IWorkflowUserService
     {
-        Task InsertWorFlowUser(WorkFlow_User workFlow);
-        Task UpdateWorFlowUser(WorkFlow_User workFlow);
+        Task InsertWorFlowUser(Workflow_User workflow);
+        Task UpdateWorFlowUser(Workflow_User workflow);
         Task DeleteWorFlowUser(int id);
-        Task<WorkFlow_User> GetWorFlowUserById(int id);
-        Task<ListDto<WorkFlow_User>> GetAllWorFlowUsers(int pageSize, int pageNumber);
-        Task<ValidationDto<WorkFlow_User>> WorkFlowValidation(WorkFlow_User workFlowUser);
-        Task<WorkFlow_User> GetWorFlowUserByWorkflowAndUserId(int WorkflowId, int userId);
+        Task<Workflow_User> GetWorFlowUserById(int id);
+        Task<ListDto<Workflow_User>> GetAllWorFlowUsers(int pageSize, int pageNumber);
+        Task<ValidationDto<Workflow_User>> WorkflowValidation(Workflow_User workflowUser);
+        Task<Workflow_User> GetWorFlowUserByWorkflowAndUserId(int WorkflowId, int userId);
         Task<ValidationDto<string>> SaveChangesAsync();
     }
 
-    public class WorkFlowUserService : IWorkFlowUserService
+    public class WorkflowUserService : IWorkflowUserService
     {
         private readonly DataLayer.DbContext.Context _context;
-        public WorkFlowUserService(DataLayer.DbContext.Context context)
+        public WorkflowUserService(DataLayer.DbContext.Context context)
         {
             _context = context;
         }
         public async Task DeleteWorFlowUser(int id)
         {
-            var fetchModel = await _context.WorkFlow_User.FirstOrDefaultAsync(x => x.Id == id);
-            _context.WorkFlow_User.Remove(fetchModel);
+            var fetchModel = await _context.Workflow_User.FirstOrDefaultAsync(x => x.Id == id);
+            _context.Workflow_User.Remove(fetchModel);
         }
 
-        public async Task<ListDto<WorkFlow_User>> GetAllWorFlowUsers(int pageSize, int pageNumber)
+        public async Task<ListDto<Workflow_User>> GetAllWorFlowUsers(int pageSize, int pageNumber)
         {
             //create query
-            var query = _context.WorkFlow_User;
+            var query = _context.Workflow_User;
 
             //get Value and count
             var count = query.Count();
             var result = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
-            return new ListDto<WorkFlow_User>(result, count, pageSize, pageNumber);
+            return new ListDto<Workflow_User>(result, count, pageSize, pageNumber);
         }
 
-        public async Task<WorkFlow_User> GetWorFlowUserById(int id)
+        public async Task<Workflow_User> GetWorFlowUserById(int id)
         {
-            var fetchModel = await _context.WorkFlow_User.Include(x => x.WorkFlow)
+            var fetchModel = await _context.Workflow_User.Include(x => x.Workflow)
             .ThenInclude(x => x.Nodes)
             .FirstAsync(x => x.Id == id);
             return fetchModel;
         }
 
-        public async Task<WorkFlow_User> GetWorFlowUserByWorkflowAndUserId(int WorkflowId, int userId)
+        public async Task<Workflow_User> GetWorFlowUserByWorkflowAndUserId(int WorkflowId, int userId)
         {
-            var fetchModel = await _context.WorkFlow_User
-            .Include(x => x.WorkFlow).FirstOrDefaultAsync(x => x.UserId == userId && x.WorkFlowId == WorkflowId);
+            var fetchModel = await _context.Workflow_User
+            .Include(x => x.Workflow).FirstOrDefaultAsync(x => x.UserId == userId && x.WorkflowId == WorkflowId);
             return fetchModel;
         }
 
-        public async Task InsertWorFlowUser(WorkFlow_User workFlow)
+        public async Task InsertWorFlowUser(Workflow_User workflow)
         {
-            await _context.WorkFlow_User.AddAsync(workFlow);
+            await _context.Workflow_User.AddAsync(workflow);
         }
 
-        public async Task UpdateWorFlowUser(WorkFlow_User workFlow)
+        public async Task UpdateWorFlowUser(Workflow_User workflow)
         {
-            var result = await _context.WorkFlow_User.FirstAsync(x => x.Id == workFlow.Id);
+            var result = await _context.Workflow_User.FirstAsync(x => x.Id == workflow.Id);
 
-            var fetchModel = new WorkFlow_User();
-            fetchModel.WorkFlowState = workFlow.WorkFlowState;
-            fetchModel.UserId = workFlow.UserId;
-            fetchModel.WorkFlowId = workFlow.WorkFlowId;
+            var fetchModel = new Workflow_User();
+            fetchModel.WorkflowState = workflow.WorkflowState;
+            fetchModel.UserId = workflow.UserId;
+            fetchModel.WorkflowId = workflow.WorkflowId;
             _context.Update(fetchModel);
         }
 
-        public async Task<ValidationDto<WorkFlow_User>> WorkFlowValidation(WorkFlow_User workFlowUser)
+        public async Task<ValidationDto<Workflow_User>> WorkflowValidation(Workflow_User workflowUser)
         {
-            if (workFlowUser == null) return new ValidationDto<WorkFlow_User>(false, "Form", "CorruptedForm", workFlowUser);
-            if (workFlowUser.UserId == null) return new ValidationDto<WorkFlow_User>(false, "Form", "CorruptedForm", workFlowUser);
-            if (workFlowUser.WorkFlowState == null) return new ValidationDto<WorkFlow_User>(false, "Form", "CorruptedForm", workFlowUser);
-            if (workFlowUser.WorkFlow == null) return new ValidationDto<WorkFlow_User>(false, "Form", "CorruptedForm", workFlowUser);
+            if (workflowUser == null) return new ValidationDto<Workflow_User>(false, "Form", "CorruptedForm", workflowUser);
+            if (workflowUser.UserId == null) return new ValidationDto<Workflow_User>(false, "Form", "CorruptedForm", workflowUser);
+            if (workflowUser.WorkflowState == null) return new ValidationDto<Workflow_User>(false, "Form", "CorruptedForm", workflowUser);
+            if (workflowUser.Workflow == null) return new ValidationDto<Workflow_User>(false, "Form", "CorruptedForm", workflowUser);
 
-            return new ValidationDto<WorkFlow_User>(true, "Success", "Success", workFlowUser);
+            return new ValidationDto<Workflow_User>(true, "Success", "Success", workflowUser);
         }
         public async Task<ValidationDto<string>> SaveChangesAsync()
         {

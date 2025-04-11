@@ -21,7 +21,7 @@ namespace Services
         Task<ListDto<Form>> GetAllFormsAsync(int pageSize, int pageNumber);
         Task UpdateFormBodyAsync(int formId, string htmlContent);
         Task SetTheParameter(List<(int entityId, int propertyId, object value)> data);
-        Task<string> GetFormpreview(Form form);
+        Task<string> GetFormPreview(Form form);
         Task<ValidationDto<Form>> FormValidationAsync(Form form);
         Task<ValidationDto<string>> SaveChangesAsync();
         Task<bool> IsFormExistAsync(int formId);
@@ -182,7 +182,7 @@ namespace Services
                 _dynamicDbContext.ExecuteSqlRawAsync(query);
             });
         }
-        public async Task<string> GetFormpreview(Form form)
+        public async Task<string> GetFormPreview(Form form)
         {
             if (form.HtmlFormBody == null)
                 return "<span>طراحی شده توسط بینا زر اندیش پارس<span>";

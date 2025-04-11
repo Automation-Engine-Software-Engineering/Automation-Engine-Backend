@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ViewModels.ViewModels.WorkFlow
+namespace ViewModels.ViewModels.Workflow
 {
     public class WorkflowAccess
     {

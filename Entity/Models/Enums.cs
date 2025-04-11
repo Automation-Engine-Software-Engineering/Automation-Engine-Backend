@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Entities.Models.Enums
 {
-    public enum WorkFlowEnum
+    public enum WorkflowEnum
     {
         دبیرخانه = 1,
         روندنگار = 2,

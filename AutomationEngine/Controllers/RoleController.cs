@@ -1,7 +1,7 @@
-﻿using Entities.Models.WorkFlows;
+﻿using Entities.Models.Workflows;
 using Microsoft.AspNetCore.Mvc;
 using Services;
-using ViewModels.ViewModels.WorkFlow;
+using ViewModels.ViewModels.Workflow;
 using ViewModels;
 using Tools.AuthoraizationTools;
 using ViewModels.ViewModels.RoleDtos;
@@ -36,7 +36,7 @@ namespace AutomationEngine.Controllers
         public async Task<ResultViewModel> CreateWorkFLow([FromBody] RoleDto role)
         {
             if (role == null)
-                throw new CustomException<WorkFlow>(new ValidationDto<WorkFlow>(false, "Workflow", "CorruptedWorkflow", null), 500);
+                throw new CustomException<Workflow>(new ValidationDto<Workflow>(false, "Workflow", "CorruptedWorkflow", null), 500);
 
             //transfer model
             var result = new Role();
@@ -60,16 +60,16 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/update  
         [HttpPost("update")]
-        public async Task<ResultViewModel> UpdateWorkFlowUser([FromBody] RoleDto role)
+        public async Task<ResultViewModel> UpdateWorkflowUser([FromBody] RoleDto role)
         {
             if (role == null)
                 throw new CustomException<Role_User>(new ValidationDto<Role_User>(false, "Role", "InvalidRole", null), 500);
 
-            var workFlow = await _roleService.GetRoleByIdAsync(role.Id);
+            var workflow = await _roleService.GetRoleByIdAsync(role.Id);
 
             //transfer model
             var result = new Role();
-            result.Id = workFlow.Id;
+            result.Id = workflow.Id;
             result.Name = role.Name;
             result.Description = role.Description;
 
@@ -89,7 +89,7 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/delete  
         [HttpPost("remove")]
-        public async Task<ResultViewModel> RemoveWorkFlowUser([FromBody] int roleId)
+        public async Task<ResultViewModel> RemoveWorkflowUser([FromBody] int roleId)
         {
             //is validation model
             if (roleId == 0)
@@ -115,7 +115,7 @@ namespace AutomationEngine.Controllers
 
         // GET: api/form/all  
         [HttpGet("all")]
-        public async Task<ResultViewModel> GetAllWorkFlowUser(int pageSize, int pageNumber)
+        public async Task<ResultViewModel> GetAllWorkflowUser(int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;

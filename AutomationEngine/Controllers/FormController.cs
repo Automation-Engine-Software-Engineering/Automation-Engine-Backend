@@ -9,7 +9,7 @@ using Entities.Models.TableBuilder;
 using Tools;
 using AutomationEngine.ControllerAttributes;
 using Entities.Models.Enums;
-using Entities.Models.WorkFlows;
+using Entities.Models.Workflows;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using DataLayer.DbContext;
 using Tools.AuthoraizationTools;
@@ -22,22 +22,22 @@ namespace AutomationEngine.Controllers
     public class FormController : ControllerBase
     {
         private readonly IFormService _formService;
-        private readonly IWorkFlowUserService _workFlowUserService;
-        private readonly IWorkFlowService _workFlowService;
+        private readonly IWorkflowUserService _workflowUserService;
+        private readonly IWorkflowService _workflowService;
         private readonly IPropertyService _propertyService;
         private readonly DynamicDbContext _dynamicDbContext;
         private readonly TokenGenerator _tokenGenerator;
-        private readonly IWorkFlowRoleService _workFlowRoleService;
+        private readonly IWorkflowRoleService _workflowRoleService;
 
-        public FormController(IFormService formService, IWorkFlowUserService workFlowUserService, IWorkFlowService workFlowService, IPropertyService propertyService, DynamicDbContext dynamicDbContext, TokenGenerator tokenGenerator, IWorkFlowRoleService workFlowRoleService)
+        public FormController(IFormService formService, IWorkflowUserService workflowUserService, IWorkflowService workflowService, IPropertyService propertyService, DynamicDbContext dynamicDbContext, TokenGenerator tokenGenerator, IWorkflowRoleService workflowRoleService)
         {
             _formService = formService;
-            _workFlowUserService = workFlowUserService;
-            _workFlowService = workFlowService;
+            _workflowUserService = workflowUserService;
+            _workflowService = workflowService;
             _propertyService = propertyService;
             _dynamicDbContext = dynamicDbContext;
             _tokenGenerator = tokenGenerator;
-            _workFlowRoleService = workFlowRoleService;
+            _workflowRoleService = workflowRoleService;
         }
 
         // POST: api/form/create  
@@ -204,7 +204,7 @@ namespace AutomationEngine.Controllers
 
             //initial action
             var form = await _formService.GetFormByIdAsync(formId);
-            var formBody = await _formService.GetFormpreview(form);
+            var formBody = await _formService.GetFormPreview(form);
             if (formBody == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedNotfound", formId), 500);
 
@@ -213,18 +213,18 @@ namespace AutomationEngine.Controllers
 
 
         // GET: api/form/{id}  
-        [HttpGet("previewByWorkFlowUserId")]
-        public async Task<ResultViewModel> GetPreviewByWorkFlowUserId(int workflowUserId)
+        [HttpGet("previewByWorkflowUserId")]
+        public async Task<ResultViewModel> GetPreviewByWorkflowUserId(int workflowUserId)
         {
             //is validation model
             if (workflowUserId == 0)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedForm", workflowUserId), 500);
 
             //initial action
-            var workflowUser = await _workFlowUserService.GetWorFlowUserById(workflowUserId);
-            var node = workflowUser.WorkFlow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkFlowState);
+            var workflowUser = await _workflowUserService.GetWorFlowUserById(workflowUserId);
+            var node = workflowUser.Workflow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkflowState);
             var form = await _formService.GetFormByIdAsync(node.FormId.Value);
-            var formBody = await _formService.GetFormpreview(form);
+            var formBody = await _formService.GetFormPreview(form);
             if (formBody == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedNotfound", node.FormId.Value), 500);
 
@@ -235,15 +235,6 @@ namespace AutomationEngine.Controllers
         [HttpPost("uploadImage")]
         public async Task<ResultViewModel> UploadImageFormContent(IFormFile image)
         {
-            //is validation model
-            //if (formId == 0)
-            //    throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedForm", formId), 500);
-
-            ////initial action
-            //var form = await _formService.IsFormExistAsync(formId);
-            //if (!form)
-            //    throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedNotfound", formId), 500);
-
             var imageUrl = await UploadImage.UploadFormMedia(image);
 
             return (new ResultViewModel { Data = new { imageUrl }, Message = new ValidationDto<string>(true, "Success", "Success", imageUrl).GetMessage(200), Status = true, StatusCode = 200 });
@@ -280,7 +271,7 @@ namespace AutomationEngine.Controllers
             if (formId == 0 && workflowUserId == 0 && formData.Any(x => x.id == 0))
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedFormData", formId), 500);
 
-            var workflowUser = await _workFlowUserService.GetWorFlowUserById(workflowUserId);
+            var workflowUser = await _workflowUserService.GetWorFlowUserById(workflowUserId);
             if (workflowUser == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "NoUserWorkflowFound", workflowUserId), 500);
 
@@ -293,34 +284,36 @@ namespace AutomationEngine.Controllers
             if (claims.UserId != workflowUser.UserId)
                 throw new CustomException<int>(new ValidationDto<int>(false, "User", "CorruptedUser", formId), 500);
 
-            var workflow = await _workFlowService.GetWorFlowByIdIncNodesAsync(workflowUser.WorkFlowId);
+            var workflow = await _workflowService.GetWorFlowByIdIncNodesAsync(workflowUser.WorkflowId);
             if (workflow == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowRoleFound", formId), 500);
 
-            var workflowRole = await _workFlowRoleService.ExistAllWorFlowRolesBuRoleId(claims.RoleId, workflow.Id);
+            var workflowRole = await _workflowRoleService.ExistAllWorFlowRolesBuRoleId(claims.RoleId, workflow.Id);
             if (!workflowRole)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Warning", "NotAuthorized", formId), 403);
 
-            var currentNode = workflow.Nodes.FirstOrDefault(x => x.Id == workflowUser.WorkFlowState);
-            if (currentNode.FormId != formId)
+            var currentNode = workflow.Nodes.FirstOrDefault(x => x.Id == workflowUser.WorkflowState);
+            if (currentNode?.FormId != formId)
                 throw new CustomException<Node>(new ValidationDto<Node>(false, "Form", "CorruptedNotfound", currentNode), 500);
 
             List<Entity> entites = new List<Entity>();
             foreach (var prop in formData)
             {
-                var property = await _propertyService.GetColumnByIdAsync(prop.id);
+                var property = await _propertyService.GetColumnByIdIncEntityAsync(prop.id);
+                if(property == null)
+                    throw new CustomException<int>(new ValidationDto<int>(false, "Property", "PropertyNotFound", formId), 500);
 
-
-                if (entites.Any(x => x == property.Entity))
+                if (entites.Any(x => property != null && x == property.Entity ))
                 {
-                    entites.FirstOrDefault(x => x == property.Entity)
-                    .Properties.Add(property);
+                    entites.First(x => x == property?.Entity).Properties?.Add(property);
                 }
                 else
                 {
                     var entity = property.Entity;
-                    entity.Properties = new List<EntityProperty>();
-                    entity.Properties.Add(property);
+                    if(entity == null)
+                        throw new CustomException<int>(new ValidationDto<int>(false, "Entity", "CorruptedEntityNotFound", formId), 500);
+
+                    entity.Properties = [property];
                 }
             }
 
@@ -331,10 +324,10 @@ namespace AutomationEngine.Controllers
                 var propName = new List<string>();
                 var propValue = new List<string>();
 
-                entity.Properties.ForEach(x =>
+                entity.Properties?.ForEach(x =>
                 {
                     propName.Add(x.PropertyName);
-                    propValue.Add(formData.FirstOrDefault(xx => xx.id == x.Id).content.ToString());
+                    propValue.Add(formData.FirstOrDefault(xx => xx.id == x.Id).content.ToString() ?? "");
                 });
 
                 i = 0;
@@ -357,7 +350,7 @@ namespace AutomationEngine.Controllers
 
                 query += ")";
 
-                _dynamicDbContext.ExecuteSqlRawAsync(query);
+                await _dynamicDbContext.ExecuteSqlRawAsync(query);
             }
 
             return (new ResultViewModel { Data = entites, Message = new ValidationDto<Form>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });

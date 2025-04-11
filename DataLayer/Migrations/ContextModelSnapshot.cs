@@ -113,7 +113,7 @@ namespace DataLayer.Migrations
                     b.ToTable("Role_Users");
                 });
 
-            modelBuilder.Entity("Entities.Models.MainEngine.Role_WorkFlow", b =>
+            modelBuilder.Entity("Entities.Models.MainEngine.Role_Workflow", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -124,35 +124,35 @@ namespace DataLayer.Migrations
                     b.Property<int>("RoleId")
                         .HasColumnType("int");
 
-                    b.Property<int>("WorkFlowId")
+                    b.Property<int>("WorkflowId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("RoleId");
 
-                    b.HasIndex("WorkFlowId");
+                    b.HasIndex("WorkflowId");
 
-                    b.ToTable("Role_WorkFlows");
+                    b.ToTable("Role_Workflows");
 
                     b.HasData(
                         new
                         {
                             Id = 1,
                             RoleId = 1,
-                            WorkFlowId = 1
+                            WorkflowId = 1
                         },
                         new
                         {
                             Id = 2,
                             RoleId = 1,
-                            WorkFlowId = 2
+                            WorkflowId = 2
                         },
                         new
                         {
                             Id = 3,
                             RoleId = 1,
-                            WorkFlowId = 3
+                            WorkflowId = 3
                         });
                 });
 
@@ -262,7 +262,7 @@ namespace DataLayer.Migrations
                     b.ToTable("Property");
                 });
 
-            modelBuilder.Entity("Entities.Models.WorkFlows.Node", b =>
+            modelBuilder.Entity("Entities.Models.Workflows.Node", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -318,7 +318,7 @@ namespace DataLayer.Migrations
                     b.ToTable("Node");
                 });
 
-            modelBuilder.Entity("Entities.Models.WorkFlows.WorkFlow", b =>
+            modelBuilder.Entity("Entities.Models.Workflows.Workflow", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -336,7 +336,7 @@ namespace DataLayer.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("WorkFlow");
+                    b.ToTable("Workflow");
 
                     b.HasData(
                         new
@@ -359,7 +359,7 @@ namespace DataLayer.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Entities.Models.WorkFlows.WorkFlow_User", b =>
+            modelBuilder.Entity("Entities.Models.Workflows.Workflow_User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -370,18 +370,18 @@ namespace DataLayer.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.Property<int>("WorkFlowId")
+                    b.Property<int>("WorkflowId")
                         .HasColumnType("int");
 
-                    b.Property<string>("WorkFlowState")
+                    b.Property<string>("WorkflowState")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("WorkFlowId");
+                    b.HasIndex("WorkflowId");
 
-                    b.ToTable("WorkFlow_User");
+                    b.ToTable("Workflow_User");
                 });
 
             modelBuilder.Entity("EntityForm", b =>
@@ -410,7 +410,7 @@ namespace DataLayer.Migrations
                     b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("Entities.Models.MainEngine.Role_WorkFlow", b =>
+            modelBuilder.Entity("Entities.Models.MainEngine.Role_Workflow", b =>
                 {
                     b.HasOne("Entities.Models.MainEngine.Role", "Role")
                         .WithMany()
@@ -418,15 +418,15 @@ namespace DataLayer.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Entities.Models.WorkFlows.WorkFlow", "WorkFlow")
-                        .WithMany("Role_WorkFlows")
-                        .HasForeignKey("WorkFlowId")
+                    b.HasOne("Entities.Models.Workflows.Workflow", "Workflow")
+                        .WithMany("Role_Workflows")
+                        .HasForeignKey("WorkflowId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Role");
 
-                    b.Navigation("WorkFlow");
+                    b.Navigation("Workflow");
                 });
 
             modelBuilder.Entity("Entities.Models.TableBuilder.EntityProperty", b =>
@@ -440,23 +440,23 @@ namespace DataLayer.Migrations
                     b.Navigation("Entity");
                 });
 
-            modelBuilder.Entity("Entities.Models.WorkFlows.Node", b =>
+            modelBuilder.Entity("Entities.Models.Workflows.Node", b =>
                 {
                     b.HasOne("Entities.Models.FormBuilder.Form", "Form")
                         .WithMany()
                         .HasForeignKey("FormId");
 
-                    b.HasOne("Entities.Models.WorkFlows.Node", "LastNode")
+                    b.HasOne("Entities.Models.Workflows.Node", "LastNode")
                         .WithMany()
                         .HasForeignKey("LastNodeId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("Entities.Models.WorkFlows.Node", "NextNode")
+                    b.HasOne("Entities.Models.Workflows.Node", "NextNode")
                         .WithMany()
                         .HasForeignKey("NextNodeId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("Entities.Models.WorkFlows.WorkFlow", "WorkFlow")
+                    b.HasOne("Entities.Models.Workflows.Workflow", "Workflow")
                         .WithMany("Nodes")
                         .HasForeignKey("WorkflowId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -468,18 +468,18 @@ namespace DataLayer.Migrations
 
                     b.Navigation("NextNode");
 
-                    b.Navigation("WorkFlow");
+                    b.Navigation("Workflow");
                 });
 
-            modelBuilder.Entity("Entities.Models.WorkFlows.WorkFlow_User", b =>
+            modelBuilder.Entity("Entities.Models.Workflows.Workflow_User", b =>
                 {
-                    b.HasOne("Entities.Models.WorkFlows.WorkFlow", "WorkFlow")
-                        .WithMany("workFlowUser")
-                        .HasForeignKey("WorkFlowId")
+                    b.HasOne("Entities.Models.Workflows.Workflow", "Workflow")
+                        .WithMany("workflowUser")
+                        .HasForeignKey("WorkflowId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("WorkFlow");
+                    b.Navigation("Workflow");
                 });
 
             modelBuilder.Entity("EntityForm", b =>
@@ -502,13 +502,13 @@ namespace DataLayer.Migrations
                     b.Navigation("Properties");
                 });
 
-            modelBuilder.Entity("Entities.Models.WorkFlows.WorkFlow", b =>
+            modelBuilder.Entity("Entities.Models.Workflows.Workflow", b =>
                 {
                     b.Navigation("Nodes");
 
-                    b.Navigation("Role_WorkFlows");
+                    b.Navigation("Role_Workflows");
 
-                    b.Navigation("workFlowUser");
+                    b.Navigation("workflowUser");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,6 +1,6 @@
 ﻿using DataLayer.DbContext;
 using Entities.Models.MainEngine;
-using Entities.Models.WorkFlows;
+using Entities.Models.Workflows;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
@@ -12,15 +12,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Tools.AuthoraizationTools;
 using Tools.TextTools;
-using ViewModels.ViewModels.WorkFlow;
+using ViewModels.ViewModels.Workflow;
 
 namespace Services
 {
     public interface IRoleService
     {
         Task<(User User, int? RoleId)> Login(string userName, string password);
-        Task<List<WorkFlow>> GetWorkFlowsByRole(int roleId);
-        Task<List<WorkFlow_User>> GetWorkFlowUsersByRole(int userId);
+        Task<List<Workflow>> GetWorkflowsByRole(int roleId);
+        Task<List<Workflow_User>> GetWorkflowUsersByRole(int userId);
         Task<Role> GetRoleByUser(int userId);
         Task InsertRoleAsync(Role role);
         Task UpdateRoleAsync(Role role);
@@ -51,25 +51,25 @@ namespace Services
             return roleUser.Role;
         }
 
-        public async Task<List<WorkFlow>> GetWorkFlowsByRole(int roleId)
+        public async Task<List<Workflow>> GetWorkflowsByRole(int roleId)
         {
             if (roleId == 0) throw new CustomException("نقش یافت نشد.");
 
-            var RoleWorkFlow = await _context.Role_WorkFlows.Include(x => x.WorkFlow).Where(x => x.RoleId == roleId).ToListAsync()
+            var RoleWorkflow = await _context.Role_Workflows.Include(x => x.Workflow).Where(x => x.RoleId == roleId).ToListAsync()
                 ?? throw new CustomException("نقش یافت نشد.");
 
-            var WorkFlows = RoleWorkFlow.Select(x => x.WorkFlow).ToList();
+            var Workflows = RoleWorkflow.Select(x => x.Workflow).ToList();
 
-            return WorkFlows;
+            return Workflows;
         }
 
-        public async Task<List<WorkFlow_User>> GetWorkFlowUsersByRole(int userId)
+        public async Task<List<Workflow_User>> GetWorkflowUsersByRole(int userId)
         {
             if (userId == 0) throw new CustomException("فرد یافت نشد.");
-            var workFlowUser = await _context.WorkFlow_User.Where(x => x.UserId == userId).ToListAsync()
+            var workflowUser = await _context.Workflow_User.Where(x => x.UserId == userId).ToListAsync()
                 ?? throw new CustomException("نقش یافت نشد.");
 
-            return workFlowUser;
+            return workflowUser;
         }
 
         public async Task<(User User, int? RoleId)> Login(string userName, string password)

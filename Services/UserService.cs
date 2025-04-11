@@ -1,6 +1,6 @@
 ﻿using DataLayer.DbContext;
 using Entities.Models.MainEngine;
-using Entities.Models.WorkFlows;
+using Entities.Models.Workflows;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -15,8 +15,8 @@ namespace Services
 {
     public interface IUserService
     {
-        Task InsertUser(User workFlow);
-        Task UpdateUser(User workFlow);
+        Task InsertUser(User workflow);
+        Task UpdateUser(User workflow);
         Task DeleteUser(int id);
         Task<User> GetUserById(int id);
         Task<List<User>> GetAllUsers();
@@ -57,11 +57,11 @@ namespace Services
             return feachModel;
         }
 
-        public async Task InsertUser(User workFlow)
+        public async Task InsertUser(User workflow)
         {
-            UserValidation(workFlow);
+            UserValidation(workflow);
 
-            await _context.User.AddAsync(workFlow);
+            await _context.User.AddAsync(workflow);
         }
         public async Task UpdateUser(User user)
         {

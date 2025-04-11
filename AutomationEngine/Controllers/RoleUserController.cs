@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using ViewModels.ViewModels.FormBuilder;
 using ViewModels;
-using Entities.Models.WorkFlows;
+using Entities.Models.Workflows;
 using Services;
-using ViewModels.ViewModels.WorkFlow;
+using ViewModels.ViewModels.Workflow;
 using AutomationEngine.ControllerAttributes;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
@@ -38,7 +38,7 @@ namespace AutomationEngine.Controllers
             if (roleUser == null)
                 throw new CustomException<Role_User>(new ValidationDto<Role_User>(false, "RoleUser", "CorruptedRoleUser", null), 500);
 
-            var workFlow = await _RoleUserService.GetRoleUserById(roleUser.Id);
+            var workflow = await _RoleUserService.GetRoleUserById(roleUser.Id);
 
             var result = new Role_User()
             {
@@ -67,7 +67,7 @@ namespace AutomationEngine.Controllers
             if (roleUser == null)
                 throw new CustomException<Role_User>(new ValidationDto<Role_User>(false, "RoleUser", "CorruptedRoleUser", null), 500);
 
-            var workFlow = await _RoleUserService.GetRoleUserById(roleUser.Id);
+            var workflow = await _RoleUserService.GetRoleUserById(roleUser.Id);
 
             var result = new Role_User()
             {
