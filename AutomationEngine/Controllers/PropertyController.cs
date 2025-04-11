@@ -24,6 +24,9 @@ namespace AutomationEngine.Controllers
             _entityService = entityService;
             _propertyService = propertyService;
         }
+        //TODO : محدودیت تغییر رمز
+        //TODO : نوع خروجی مشخص شود
+        //TODO : Ctor مدل ها تغییر یابد
 
         // POST: api/entity/{entityId}/property/add  
         [HttpPost("add")]
@@ -36,7 +39,7 @@ namespace AutomationEngine.Controllers
             if (property == null)
                 throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
 
-            var entity = await _entityService.GetEntitiesByIdAsync(property.EntityId.Value);
+            var entity = await _entityService.GetEntitiesByIdAsync(property.EntityId);
             if (entity == null)
                 throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
 
@@ -59,7 +62,7 @@ namespace AutomationEngine.Controllers
 
             //transfer model
             result.Entity = entity;
-            result.EntityId = property.EntityId.Value;
+            result.EntityId = property.EntityId;
 
             //initial action
             await _propertyService.AddColumnToTableAsync(result);
@@ -78,7 +81,7 @@ namespace AutomationEngine.Controllers
             if (property == null)
                 throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
 
-            var entity = await _entityService.GetEntitiesByIdAsync(property.EntityId.Value);
+            var entity = await _entityService.GetEntitiesByIdAsync(property.EntityId);
             if (entity == null)
                 throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
 
@@ -163,7 +166,7 @@ namespace AutomationEngine.Controllers
 
 
         // GET: api/property/All
-        [HttpGet("All")]
+        [HttpGet("all")]
         public async Task<ResultViewModel> GetAllProperty(int pageSize, int pageNumber)
         {
             var column = await _propertyService.GetAllColumnsAsync(pageSize, pageNumber);

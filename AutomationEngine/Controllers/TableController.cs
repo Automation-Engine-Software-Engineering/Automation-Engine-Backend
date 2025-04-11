@@ -16,24 +16,24 @@ namespace AutomationEngine.Controllers
     [CheckAccess]
     public class TableController : ControllerBase
     {
-        private readonly IPropertyService _properptyService;
+        //private readonly IPropertyService _propertyService;
 
-        public TableController(IPropertyService tableService)
-        {
-            _properptyService = tableService;
-        }
+        //public TableController(IPropertyService tableService)
+        //{
+        //    _propertyService = tableService;
+        //}
 
         // [HttpGet(nameof(GetTable))]
         // public async Task<ResultViewModel> GetTable([FromQuery]TableInputDto tableInput)
         // {
-        //     var properties = await _properptyService.GetColumnValuesAsyncById(tableInput.Id);
+        //     var properties = await _propertyService.GetColumnValuesAsyncById(tableInput.Id);
             
         //     var result = new TableDto()
         //     {
                
         //     };
 
-        //     await _properptyService.SaveChangesAsync();
+        //     await _propertyService.SaveChangesAsync();
         //     return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         // }
     }

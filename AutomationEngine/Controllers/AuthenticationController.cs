@@ -67,8 +67,8 @@ namespace AutomationEngine.Controllers
             _refreshTokenCookieOptions = cookieOptions;
         }
 
-        // POST: api/Login/{userName}  
-        [HttpPost("Login/{userName}")]
+        // POST: api/login/{userName}  
+        [HttpPost("login/{userName}")]
 
         public async Task<ResultViewModel> Login(string userName, [FromBody] string password)
         {
@@ -98,8 +98,8 @@ namespace AutomationEngine.Controllers
             return (new ResultViewModel { Data = result, Message = new ValidationDto<TokenResultViewModel>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
-        // POST: api/RefreshToken
-        [HttpGet("GenerateToken")]
+        // POST: api/generateToken
+        [HttpGet("generateToken")]
         public async Task<ResultViewModel> GenerateToken()
         {
             var claims = await HttpContext.AuthorizeRefreshToken();
@@ -123,7 +123,7 @@ namespace AutomationEngine.Controllers
 
             return (new ResultViewModel { Data = result, Message = new ValidationDto<string>(true, "Success", "Success", tokens.AccessToken).GetMessage(200), Status = true, StatusCode = 200 });
         }
-        [HttpPost("Logout")]
+        [HttpPost("logout")]
         public async Task<ResultViewModel> Logout()
         {
             var claims = await HttpContext.AuthorizeRefreshToken();
@@ -145,7 +145,7 @@ namespace AutomationEngine.Controllers
         }
 
         // POST: api/ChangePassword/{userName}  
-        [HttpPost("ChangePassword/{userName}")]
+        [HttpPost("changePassword/{userName}")]
         [CheckAccess]
         public async Task<ResultViewModel> ChangePassword(string userName, [FromBody] ChangePasswordInputModel input)
         {
@@ -163,7 +163,7 @@ namespace AutomationEngine.Controllers
         }
 
         // POST: api/ChangePassword/{userName}  
-        [HttpGet("User")]
+        [HttpGet("user")]
         [CheckAccess]
         public async Task<ResultViewModel> GetUser()
         {

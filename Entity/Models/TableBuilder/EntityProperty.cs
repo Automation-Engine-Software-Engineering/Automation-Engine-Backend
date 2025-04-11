@@ -7,7 +7,7 @@ namespace Entities.Models.TableBuilder
     [Description("The column of each table (entity)")]
     public class EntityProperty
     {
-        public EntityProperty(string previewName, string propertyName, string description, string defaultValue, PropertyType type, Entity? entity)
+        public EntityProperty(string? previewName, string propertyName, string? description, string? defaultValue, PropertyType type, Entity? entity)
         {
             this.PreviewName = previewName;
             this.PropertyName = propertyName;

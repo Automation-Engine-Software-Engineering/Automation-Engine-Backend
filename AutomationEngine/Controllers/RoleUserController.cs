@@ -21,12 +21,12 @@ namespace AutomationEngine.Controllers
     [CheckAccess]
     public class RoleUserController : Controller
     {
-        private readonly IRoleUserService _RoleUserService;
+        private readonly IRoleUserService _roleUserService;
         private readonly TokenGenerator _tokenGenerator;
         private readonly IRoleService _roleService;
-        public RoleUserController(IRoleUserService RoleUserService, TokenGenerator tokenGenerator, IRoleService roleService)
+        public RoleUserController(IRoleUserService roleUserService, TokenGenerator tokenGenerator, IRoleService roleService)
         {
-            RoleUserService = _RoleUserService;
+            _roleUserService = roleUserService;
             _tokenGenerator = tokenGenerator;
             _roleService = roleService;
         }
@@ -38,7 +38,7 @@ namespace AutomationEngine.Controllers
             if (roleUser == null)
                 throw new CustomException<Role_User>(new ValidationDto<Role_User>(false, "RoleUser", "CorruptedRoleUser", null), 500);
 
-            var workflow = await _RoleUserService.GetRoleUserById(roleUser.Id);
+            var workflow = await _roleUserService.GetRoleUserById(roleUser.Id);
 
             var result = new Role_User()
             {
@@ -50,13 +50,13 @@ namespace AutomationEngine.Controllers
             if (roleUser.Id != 0)
                 throw new CustomException<Role_User>(new ValidationDto<Role_User>(false, "RoleUser", "CorruptedRoleUser", result), 500);
 
-            var validationModel = await _RoleUserService.RoleUserValidation(result);
+            var validationModel = await _roleUserService.RoleUserValidation(result);
             if (!validationModel.IsSuccess)
                 throw new CustomException<Role_User>(validationModel, 500);
 
 
-            await _RoleUserService.InsertRoleUser(result);
-            await _RoleUserService.SaveChangesAsync();
+            await _roleUserService.InsertRoleUser(result);
+            await _roleUserService.SaveChangesAsync();
             return (new ResultViewModel { Data = result, Message = new ValidationDto<Role_User>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
@@ -67,7 +67,7 @@ namespace AutomationEngine.Controllers
             if (roleUser == null)
                 throw new CustomException<Role_User>(new ValidationDto<Role_User>(false, "RoleUser", "CorruptedRoleUser", null), 500);
 
-            var workflow = await _RoleUserService.GetRoleUserById(roleUser.Id);
+            var workflow = await _roleUserService.GetRoleUserById(roleUser.Id);
 
             var result = new Role_User()
             {
@@ -79,13 +79,13 @@ namespace AutomationEngine.Controllers
             if (roleUser.Id == 0)
                 throw new CustomException<Role_User>(new ValidationDto<Role_User>(false, "RoleUser", "CorruptedRoleUser", result), 500);
 
-            var validationModel = await _RoleUserService.RoleUserValidation(result);
+            var validationModel = await _roleUserService.RoleUserValidation(result);
             if (!validationModel.IsSuccess)
                 throw new CustomException<Role_User>(validationModel, 500);
 
 
-            await _RoleUserService.UpdateRoleUser(result);
-            await _RoleUserService.SaveChangesAsync();
+            await _roleUserService.UpdateRoleUser(result);
+            await _roleUserService.SaveChangesAsync();
             return (new ResultViewModel { Data = result, Message = new ValidationDto<Role_User>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
@@ -97,17 +97,17 @@ namespace AutomationEngine.Controllers
             if (roleUserId == 0)
                 throw new CustomException<int>(new ValidationDto<int>(false, "WorkflowRole", "CorruptedWorkflowRole", roleUserId), 500);
 
-            var fetchForm = await _RoleUserService.GetRoleUserById(roleUserId);
+            var fetchForm = await _roleUserService.GetRoleUserById(roleUserId);
             if (fetchForm == null)
                 throw new CustomException<Role_User>(new ValidationDto<Role_User>(false, "WorkflowRole", "CorruptedWorkflowRole", fetchForm), 500);
 
-            var validationModel = await _RoleUserService.RoleUserValidation(fetchForm);
+            var validationModel = await _roleUserService.RoleUserValidation(fetchForm);
             if (!validationModel.IsSuccess)
                 throw new CustomException<Role_User>(validationModel, 500);
 
             //initial action
-            await _RoleUserService.DeleteRoleUser(roleUserId);
-            var saveResult = await _RoleUserService.SaveChangesAsync();
+            await _roleUserService.DeleteRoleUser(roleUserId);
+            var saveResult = await _roleUserService.SaveChangesAsync();
 
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
@@ -124,7 +124,7 @@ namespace AutomationEngine.Controllers
             if (pageNumber < 1)
                 pageNumber = 1;
 
-            var forms = await _RoleUserService.GetAllRoleUsers(pageSize, pageNumber);
+            var forms = await _roleUserService.GetAllRoleUsers(pageSize, pageNumber);
 
             //is valid data
             if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
@@ -141,20 +141,20 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "CorruptedUserWorkflow", roleUserId), 500);
 
             //initial action
-            var RoleUser = await _RoleUserService.GetRoleUserById(roleUserId);
+            var RoleUser = await _roleUserService.GetRoleUserById(roleUserId);
             if (RoleUser == null)
                 throw new CustomException<Role_User>(new ValidationDto<Role_User>(false, "UserWorkflow", "CorruptedUserWorkflow", RoleUser), 500);
 
-            var validationModel = await _RoleUserService.RoleUserValidation(RoleUser);
+            var validationModel = await _roleUserService.RoleUserValidation(RoleUser);
             if (!validationModel.IsSuccess)
                 throw new CustomException<Role_User>(validationModel, 500);
 
-            var form = await _RoleUserService.GetRoleUserById(roleUserId);
+            var form = await _roleUserService.GetRoleUserById(roleUserId);
             return (new ResultViewModel { Data = form, Message = new ValidationDto<Role_User>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/{id}  
-        [HttpGet("RoleUserById")]
+        [HttpGet("roleUserById")]
         public async Task<ResultViewModel> GetRoleUserBuUserId(int pageSize, int pageNumber)
         {
             if (pageSize > 100)
@@ -168,7 +168,7 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "CorruptedUserWorkflow", claims.UserId), 500);
 
             //initial action
-            var RoleUser = await _RoleUserService.GetRoleUserByUserId(claims.UserId, pageSize, pageNumber);
+            var RoleUser = await _roleUserService.GetRoleUserByUserId(claims.UserId, pageSize, pageNumber);
             if (RoleUser == null)
                 throw new CustomException<ListDto<Role_User>>(new ValidationDto<ListDto<Role_User>>(false, "UserWorkflow", "CorruptedUserWorkflow", RoleUser), 500);
 
@@ -180,15 +180,15 @@ namespace AutomationEngine.Controllers
         }
 
             // GET: api/form/all  
-        [HttpGet("User")]
-        public async Task<ResultViewModel> GetAllROleUserAndUser(int roleId, int pageSize, int pageNumber)
+        [HttpGet("user")]
+        public async Task<ResultViewModel> GetAllRoleUserAndUser(int roleId, int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
             if (pageNumber < 1)
                 pageNumber = 1;
 
-            ListDto<WorkflowAccess> forms = await _roleService.GetAllUserforRoleAccess(roleId, pageSize, pageNumber);
+            ListDto<WorkflowAccess> forms = await _roleService.GetAllUserForRoleAccess(roleId, pageSize, pageNumber);
 
             //is valid data
             if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)

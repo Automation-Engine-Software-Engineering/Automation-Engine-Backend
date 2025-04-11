@@ -21,8 +21,10 @@ namespace Tools.TextTools
         }
 
 
-        public static bool IsValidString(this string input)
+        public static bool IsValidString(this string? input)
         {
+            if(input == null)
+                return true;
             string pattern = @"(?<![-_])([a-zA-Z\u0600-\u06FF]+(?:[ _-][a-zA-Z\u0600-\u06FF]+)*)?(?![-_])";
             return Regex.IsMatch(input, pattern) ? Regex.IsMatch(input, pattern) :
                  throw new CustomException<string>(new ValidationDto<string>(false, "Defult", "CorruptedString", input), 500);

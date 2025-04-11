@@ -33,7 +33,7 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/create  
         [HttpPost("create")]
-        public async Task<ResultViewModel> CreateWorkFLow([FromBody] RoleDto role)
+        public async Task<ResultViewModel> CreateWorkflow([FromBody] RoleDto role)
         {
             if (role == null)
                 throw new CustomException<Workflow>(new ValidationDto<Workflow>(false, "Workflow", "CorruptedWorkflow", null), 500);

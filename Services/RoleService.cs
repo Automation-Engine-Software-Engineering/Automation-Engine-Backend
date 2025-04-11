@@ -29,7 +29,7 @@ namespace Services
         Task<ListDto<Role>> GetAllRolesAsync(int pageSize, int pageNumber);
         Task<ValidationDto<Role>> RoleValidationAsync(Role role);
         Task<ValidationDto<string>> SaveChangesAsync();
-        Task<ListDto<WorkflowAccess>> GetAllUserforRoleAccess(int roleId, int pageSize, int pageNumber);
+        Task<ListDto<WorkflowAccess>> GetAllUserForRoleAccess(int roleId, int pageSize, int pageNumber);
     }
     public class RoleService : IRoleService
     {
@@ -147,7 +147,7 @@ namespace Services
         }
 
 
-        public async Task<ListDto<WorkflowAccess>> GetAllUserforRoleAccess(int roleId, int pageSize, int pageNumber)
+        public async Task<ListDto<WorkflowAccess>> GetAllUserForRoleAccess(int roleId, int pageSize, int pageNumber)
         {
             var roles = await _context.Roles.Include(x => x.role_User)
             .FirstOrDefaultAsync(x => x.Id == roleId);

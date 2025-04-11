@@ -27,7 +27,7 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/create  
         [HttpPost("create")]
-        public async Task<ResultViewModel> CreateWorkFLow([FromBody] WorkflowDto workflow)
+        public async Task<ResultViewModel> CreateWorkflow([FromBody] WorkflowDto workflow)
         {
             if (workflow == null)
                 throw new CustomException<Workflow>(new ValidationDto<Workflow>(false, "Workflow", "CorruptedWorkflow", null), 500);
