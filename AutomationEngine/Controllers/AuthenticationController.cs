@@ -110,6 +110,10 @@ namespace AutomationEngine.Controllers
 
             var tokens = GenerateTokens(user, claims.RoleId);
 
+            user.RefreshToken = null;
+            await _userService.UpdateUser(user);
+            await _userService.SaveChangesAsync();
+
             var needNewPassword = user.Password.IsNullOrEmpty();
             var result = new TokenResultViewModel();
             if (_webHostEnvironment.IsDevelopment())
@@ -132,6 +136,9 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "Login", claims.Token), 401);
 
             var user = await _userService.GetUserById(claims.UserId);
+            if (user.RefreshToken != claims.Token)
+                throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "Login", claims.Token), 401);
+
             if (user != null)
             {
                 user.RefreshToken = null;
@@ -183,7 +190,7 @@ namespace AutomationEngine.Controllers
             var accessToken = _tokenGenerator.GenerateAccessToken(userId, roleId);
             var refreshToken = _tokenGenerator.GenerateRefreshToken(userId, roleId);
 
-            SetCookies(accessToken,refreshToken);
+            SetCookies(accessToken, refreshToken);
             return (accessToken, refreshToken);
         }
         private void SetCookies(string accessToken, string refreshToken)
