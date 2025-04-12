@@ -61,9 +61,9 @@ namespace DataLayer.DbContext
                  .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Node>()
-                 .HasOne(n => n.LastNode)
+                 .HasOne(n => n.PreviousNode)
                  .WithMany()
-                 .HasForeignKey(n => n.LastNodeId)
+                 .HasForeignKey(n => n.PreviousNodeId)
                  .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Node>()

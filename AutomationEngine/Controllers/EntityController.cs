@@ -59,7 +59,7 @@ namespace AutomationEngine.Controllers
             {
                 var form = await _formService.GetFormByIdAsync(formId.Value);
                 if (form == null)
-                    throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Form", "CorruptedNotfound", result), 500);
+                    throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Form", "FormNotfound", result), 500);
 
                 await _entityService.CreateEntityAsync(formId.Value, result);
             }
@@ -91,7 +91,7 @@ namespace AutomationEngine.Controllers
 
             var fetchEntity = await _entityService.GetEntitiesByIdAsync(entity.Id);
             if (fetchEntity == null)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntityNotFound", null), 500);
+                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "EntityNotFound", null), 500);
 
             result.TableName.IsValidStringCommand();
 
@@ -110,11 +110,11 @@ namespace AutomationEngine.Controllers
         {
             //is validation model
             if (entityId == 0)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntityNotFound", null), 500);
+                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "EntityNotFound", null), 500);
 
             var fetchEntity = await _entityService.GetEntitiesByIdAsync(entityId);
             if (fetchEntity == null)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntityNotFound", null), 500);
+                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "EntityNotFound", null), 500);
 
             var validationModel = await _entityService.EntityValidation(fetchEntity);
             if (!validationModel.IsSuccess)
@@ -153,13 +153,13 @@ namespace AutomationEngine.Controllers
         {
             //is validation model
             if (entityId == 0)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntityNotFound", null), 500);
+                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "EntityNotFound", null), 500);
 
             //initial action
             var entities = await _entityService.GetEntitiesByIdAsync(entityId);
             var fetchEntity = await _entityService.GetEntitiesByIdAsync(entityId);
             if (fetchEntity == null)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntityNotFound", null), 500);
+                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "EntityNotFound", null), 500);
             var validationModel = await _entityService.EntityValidation(fetchEntity);
             if (!validationModel.IsSuccess)
                 throw new CustomException<Entity>(validationModel, 500);
@@ -179,14 +179,14 @@ namespace AutomationEngine.Controllers
 
         //    //is validation model
         //    if (entityId == 0)
-        //        throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntityNotFound", null), 500);
+        //        throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "EntityNotFound", null), 500);
 
         //    //var entities = await _entityService.GetEntitiesByIdAsync(entityId);
 
         //    //initial action
         //    var fetchEntity = await _entityService.GetEntitiesByIdAsync(entityId);
         //    if (fetchEntity == null)
-        //        throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntityNotFound", null), 500);
+        //        throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "EntityNotFound", null), 500);
 
         //    var validationModel = await _entityService.EntityValidation(fetchEntity);
         //    if (!validationModel.IsSuccess)

@@ -15,13 +15,13 @@ namespace Services
 {
     public interface IWorkflowUserService
     {
-        Task InsertWorFlowUser(Workflow_User workflow);
-        Task UpdateWorFlowUser(Workflow_User workflow);
-        Task DeleteWorFlowUser(int id);
-        Task<Workflow_User> GetWorFlowUserById(int id);
-        Task<ListDto<Workflow_User>> GetAllWorFlowUsers(int pageSize, int pageNumber);
+        Task InsertWorkflowUser(Workflow_User workflow);
+        Task UpdateWorkflowUser(Workflow_User workflow);
+        Task DeleteWorkflowUser(int id);
+        Task<Workflow_User> GetWorkflowUserById(int id);
+        Task<ListDto<Workflow_User>> GetAllWorkflowUsers(int pageSize, int pageNumber);
         Task<ValidationDto<Workflow_User>> WorkflowValidation(Workflow_User workflowUser);
-        Task<Workflow_User> GetWorFlowUserByWorkflowAndUserId(int WorkflowId, int userId);
+        Task<Workflow_User> GetWorkflowUserByWorkflowAndUserId(int WorkflowId, int userId);
         Task<ValidationDto<string>> SaveChangesAsync();
     }
 
@@ -32,13 +32,13 @@ namespace Services
         {
             _context = context;
         }
-        public async Task DeleteWorFlowUser(int id)
+        public async Task DeleteWorkflowUser(int id)
         {
             var fetchModel = await _context.Workflow_User.FirstOrDefaultAsync(x => x.Id == id);
             _context.Workflow_User.Remove(fetchModel);
         }
 
-        public async Task<ListDto<Workflow_User>> GetAllWorFlowUsers(int pageSize, int pageNumber)
+        public async Task<ListDto<Workflow_User>> GetAllWorkflowUsers(int pageSize, int pageNumber)
         {
             //create query
             var query = _context.Workflow_User;
@@ -49,7 +49,7 @@ namespace Services
             return new ListDto<Workflow_User>(result, count, pageSize, pageNumber);
         }
 
-        public async Task<Workflow_User> GetWorFlowUserById(int id)
+        public async Task<Workflow_User> GetWorkflowUserById(int id)
         {
             var fetchModel = await _context.Workflow_User.Include(x => x.Workflow)
             .ThenInclude(x => x.Nodes)
@@ -57,19 +57,19 @@ namespace Services
             return fetchModel;
         }
 
-        public async Task<Workflow_User> GetWorFlowUserByWorkflowAndUserId(int WorkflowId, int userId)
+        public async Task<Workflow_User> GetWorkflowUserByWorkflowAndUserId(int WorkflowId, int userId)
         {
             var fetchModel = await _context.Workflow_User
             .Include(x => x.Workflow).FirstOrDefaultAsync(x => x.UserId == userId && x.WorkflowId == WorkflowId);
             return fetchModel;
         }
 
-        public async Task InsertWorFlowUser(Workflow_User workflow)
+        public async Task InsertWorkflowUser(Workflow_User workflow)
         {
             await _context.Workflow_User.AddAsync(workflow);
         }
 
-        public async Task UpdateWorFlowUser(Workflow_User workflow)
+        public async Task UpdateWorkflowUser(Workflow_User workflow)
         {
             var result = await _context.Workflow_User.FirstAsync(x => x.Id == workflow.Id);
 

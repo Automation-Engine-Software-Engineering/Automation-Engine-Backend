@@ -11,14 +11,14 @@ namespace Services
 {
     public interface IWorkflowService
     {
-        Task InsertWorFlowAsync(Workflow workflow);
-        Task UpdateWorFlowAsync(Workflow workflow);
-        Task DeleteWorFlowAsync(int id);
-        Task DeleteAllNodeOfWorFlowAsync(int id);
-        Task<Workflow> GetWorFlowByIdAsync(int id);
-        Task<Workflow> GetWorFlowIncRolesById(int id);
-        Task<Workflow> GetWorFlowByIdIncNodesAsync(int id);
-        Task<ListDto<Workflow>> GetAllWorFlowsAsync(int pageSize, int pageNumber);
+        Task InsertWorkflowAsync(Workflow workflow);
+        Task UpdateWorkflowAsync(Workflow workflow);
+        Task DeleteWorkflowAsync(int id);
+        Task DeleteAllNodeOfWorkflowAsync(int id);
+        Task<Workflow> GetWorkflowByIdAsync(int id);
+        Task<Workflow> GetWorkflowIncRolesById(int id);
+        Task<Workflow> GetWorkflowByIdIncNodesAsync(int id);
+        Task<ListDto<Workflow>> GetAllWorkflowsAsync(int pageSize, int pageNumber);
         Task<ValidationDto<Workflow>> WorkflowValidationAsync(Workflow workflow);
         Task<ValidationDto<string>> SaveChangesAsync();
         Task<bool> IsWorkflowExistAsync(int formId);
@@ -31,7 +31,7 @@ namespace Services
             _context = context;
         }
 
-        public async Task DeleteWorFlowAsync(int id)
+        public async Task DeleteWorkflowAsync(int id)
         {
             //initialize model
             var result = await _context.Workflow.Include(x => x.Nodes).FirstAsync(x => x.Id == id);
@@ -41,11 +41,11 @@ namespace Services
             _context.Remove(result);
         }
 
-        public async Task DeleteAllNodeOfWorFlowAsync(int id)
+        public async Task DeleteAllNodeOfWorkflowAsync(int id)
         {
             //initialize model
             var result = await _context.Workflow.Include(x => x.Nodes).FirstAsync(x => x.Id == id);
-            result.Nodes.ForEach(x => { x.LastNodeId = null; x.NextNodeId = null; x.NextNode = null; x.LastNode = null; });
+            result.Nodes.ForEach(x => { x.PreviousNodeId = null; x.NextNodeId = null; x.NextNode = null; x.PreviousNode = null; });
             await _context.SaveChangesAsync();
 
             _context.Node.RemoveRange(result.Nodes);
@@ -53,7 +53,7 @@ namespace Services
         }
 
 
-        public async Task<ListDto<Workflow>> GetAllWorFlowsAsync(int pageSize, int pageNumber)
+        public async Task<ListDto<Workflow>> GetAllWorkflowsAsync(int pageSize, int pageNumber)
         {
             //create query
             var query = _context.Workflow.Include(x => x.Nodes);
@@ -67,13 +67,13 @@ namespace Services
 
         
 
-        public async Task<Workflow> GetWorFlowByIdAsync(int id)
+        public async Task<Workflow> GetWorkflowByIdAsync(int id)
         {
             var result = await _context.Workflow.Include(x => x.Nodes).FirstAsync(x => x.Id == id);
             return result;
         }
 
-        public async Task<Workflow> GetWorFlowByIdIncNodesAsync(int id)
+        public async Task<Workflow> GetWorkflowByIdIncNodesAsync(int id)
         {
             var result = await _context.Workflow
             .Include(x => x.Nodes)
@@ -82,12 +82,12 @@ namespace Services
             return result;
         }
 
-        public async Task InsertWorFlowAsync(Workflow workflow)
+        public async Task InsertWorkflowAsync(Workflow workflow)
         {
             await _context.Workflow.AddAsync(workflow);
         }
 
-        public async Task UpdateWorFlowAsync(Workflow workflow)
+        public async Task UpdateWorkflowAsync(Workflow workflow)
         {
             //initialize model
             var fetchModel = await _context.Workflow.FirstAsync(x => x.Id == workflow.Id);
@@ -130,7 +130,7 @@ namespace Services
             return isExist;
         }
 
-        public async Task<Workflow> GetWorFlowIncRolesById(int id)
+        public async Task<Workflow> GetWorkflowIncRolesById(int id)
         {
             var result = await _context.Workflow.Include(x => x.Role_Workflows).FirstAsync(x => x.Id == id);
             return result;

@@ -18,19 +18,19 @@ namespace Services
 {
     public interface IWorkflowRoleService
     {
-        Task InsertWorFlowRole(Role_Workflow workflow);
-        Task<ListDto<Role_Workflow>> GetAllWorFlowRolesByRoleId(int RoleId, int pageSize, int pageNumber);
-        Task InsertRengeWorFlowRole(List<Role_Workflow> workflows);
-        Task UpdateWorFlowRole(Role_Workflow workflow);
-        Task DeleteWorFlowRole(int id);
-        Task<Role_Workflow> GetWorFlowRoleById(int id);
-        Task<ListDto<Role_Workflow>> GetAllWorFlowRoles(int pageSize, int pageNumber);
-        Task<ListDto<WorkflowAccess>> GetAllWorFlowRolesAndRole(int workflowId, int pageSize, int pageNumber);
-        Task<ListDto<WorkflowAccess>> GetAllWorFlowRolesAndWorkflow(int RoleId, int pageSize, int pageNumber);
-        Task<bool> ExistAllWorFlowRolesBuRoleId(int RoleId, int WorkflowId);
+        Task InsertWorkflowRole(Role_Workflow workflow);
+        Task<ListDto<Role_Workflow>> GetAllWorkflowRolesByRoleId(int RoleId, int pageSize, int pageNumber);
+        Task InsertRengeWorkflowRole(List<Role_Workflow> workflows);
+        Task UpdateWorkflowRole(Role_Workflow workflow);
+        Task DeleteWorkflowRole(int id);
+        Task<Role_Workflow> GetWorkflowRoleById(int id);
+        Task<ListDto<Role_Workflow>> GetAllWorkflowRoles(int pageSize, int pageNumber);
+        Task<ListDto<IsAccessModel>> GetRolesAccessByWorkflowId(int workflowId, int pageSize, int pageNumber);
+        Task<ListDto<IsAccessModel>> GetWorkflowsAccessByRoleId(int RoleId, int pageSize, int pageNumber);
+        Task<bool> ExistAllWorkflowRolesBuRoleId(int RoleId, int WorkflowId);
         Task<ValidationDto<Role_Workflow>> WorkflowRoleValidation(Role_Workflow workflowUser);
-        Task ReplaceWorFlowRolesByRoleId(int roleId,List<int> workflowIds);
-        Task ReplaceWorFlowRolesByWorkflowId(int workflowId,List<int> roleIds);
+        Task ReplaceWorkflowRolesByRoleId(int roleId,List<int> workflowIds);
+        Task ReplaceWorkflowRolesByWorkflowId(int workflowId,List<int> roleIds);
         Task<ValidationDto<string>> SaveChangesAsync();
     }
 
@@ -42,13 +42,13 @@ namespace Services
             _context = context;
         }
 
-        public async Task DeleteWorFlowRole(int id)
+        public async Task DeleteWorkflowRole(int id)
         {
             var fetchModel = await _context.Role_Workflows.FirstOrDefaultAsync(x => x.Id == id);
             _context.Role_Workflows.Remove(fetchModel);
         }
 
-        public async Task<ListDto<Role_Workflow>> GetAllWorFlowRoles(int pageSize, int pageNumber)
+        public async Task<ListDto<Role_Workflow>> GetAllWorkflowRoles(int pageSize, int pageNumber)
         {
             //create query
             var query = _context.Role_Workflows;
@@ -60,7 +60,7 @@ namespace Services
         }
 
 
-        public async Task<ListDto<Role_Workflow>> GetAllWorFlowRolesByRoleId(int RoleId, int pageSize, int pageNumber)
+        public async Task<ListDto<Role_Workflow>> GetAllWorkflowRolesByRoleId(int RoleId, int pageSize, int pageNumber)
         {
             //create query
             var query = _context.Role_Workflows
@@ -72,23 +72,23 @@ namespace Services
             return new ListDto<Role_Workflow>(result, count, pageSize, pageNumber);
         }
 
-        public async Task<Role_Workflow> GetWorFlowRoleById(int id)
+        public async Task<Role_Workflow> GetWorkflowRoleById(int id)
         {
             var fetchModel = await _context.Role_Workflows.FirstAsync(x => x.Id == id);
             return fetchModel;
         }
 
-        public async Task InsertWorFlowRole(Role_Workflow workflow)
+        public async Task InsertWorkflowRole(Role_Workflow workflow)
         {
             await _context.Role_Workflows.AddAsync(workflow);
         }
 
 
-        public async Task InsertRengeWorFlowRole(List<Role_Workflow> workflows)
+        public async Task InsertRengeWorkflowRole(List<Role_Workflow> workflows)
         {
             await _context.Role_Workflows.AddRangeAsync(workflows);
         }
-        public async Task ReplaceWorFlowRolesByRoleId(int roleId,List<int> workflowIds)
+        public async Task ReplaceWorkflowRolesByRoleId(int roleId,List<int> workflowIds)
         {
             var roleWorkflows = await _context.Role_Workflows.Where(x=>x.RoleId == roleId).ToListAsync();
             _context.Role_Workflows.RemoveRange(roleWorkflows);
@@ -97,10 +97,10 @@ namespace Services
                 RoleId = roleId,
                 WorkflowId = x
             }).ToList();
-            await InsertRengeWorFlowRole(newRoleWorkflows);
+            await InsertRengeWorkflowRole(newRoleWorkflows);
         }
 
-        public async Task ReplaceWorFlowRolesByWorkflowId(int workflowId,List<int> roleIds)
+        public async Task ReplaceWorkflowRolesByWorkflowId(int workflowId,List<int> roleIds)
         {
             var roleWorkflows = await _context.Role_Workflows.Where(x=>x.WorkflowId == workflowId).ToListAsync();
             _context.Role_Workflows.RemoveRange(roleWorkflows);
@@ -109,10 +109,10 @@ namespace Services
                 RoleId = x,
                 WorkflowId = workflowId
             }).ToList();
-            await InsertRengeWorFlowRole(newRoleWorkflows);
+            await InsertRengeWorkflowRole(newRoleWorkflows);
         }
 
-        public async Task UpdateWorFlowRole(Role_Workflow workflow)
+        public async Task UpdateWorkflowRole(Role_Workflow workflow)
         {
             var result = await _context.Workflow_User.FirstAsync(x => x.Id == workflow.Id);
 
@@ -144,35 +144,35 @@ namespace Services
             }
         }
 
-        public async Task<bool> ExistAllWorFlowRolesBuRoleId(int RoleId, int WorkflowId)
+        public async Task<bool> ExistAllWorkflowRolesBuRoleId(int RoleId, int WorkflowId)
         {
             var result = await _context.Role_Workflows.AnyAsync(x => x.RoleId == RoleId && x.WorkflowId == WorkflowId);
             return result;
         }
 
-        public async Task<ListDto<WorkflowAccess>> GetAllWorFlowRolesAndRole(int workflowId, int pageSize, int pageNumber)
+        public async Task<ListDto<IsAccessModel>> GetRolesAccessByWorkflowId(int workflowId, int pageSize, int pageNumber)
         {
             var Workflows = await _context.Roles.Include(x => x.role_Workflows)
             .Skip((pageNumber - 1) * pageSize).Take(pageSize)
             .ToListAsync();
 
-            var result = Workflows.Select(x => new WorkflowAccess() { Id = x.Id, Name = x.Name, IsAccess = x.role_Workflows.Any(x => x.WorkflowId == workflowId) ? true : false }).ToList();
+            var result = Workflows.Select(x => new IsAccessModel() { Id = x.Id, Name = x.Name, IsAccess = x.role_Workflows.Any(x => x.WorkflowId == workflowId) ? true : false }).ToList();
 
-            var list = new ListDto<WorkflowAccess>(result, result.Count, pageSize = pageSize, pageNumber = pageNumber);
+            var list = new ListDto<IsAccessModel>(result, result.Count, pageSize = pageSize, pageNumber = pageNumber);
 
             return list;
         }
 
         
-        public async Task<ListDto<WorkflowAccess>> GetAllWorFlowRolesAndWorkflow(int roleId, int pageSize, int pageNumber)
+        public async Task<ListDto<IsAccessModel>> GetWorkflowsAccessByRoleId(int roleId, int pageSize, int pageNumber)
         {
             var Workflows = await _context.Workflow.Include(x => x.Role_Workflows)
             .Skip((pageNumber - 1) * pageSize).Take(pageSize)
             .ToListAsync();
 
-            var result = Workflows.Select(x => new WorkflowAccess() { Id = x.Id, Name = x.Name, IsAccess = x.Role_Workflows.Any(x => x.RoleId == roleId) ? true : false }).ToList();
+            var result = Workflows.Select(x => new IsAccessModel() { Id = x.Id, Name = x.Name, IsAccess = x.Role_Workflows.Any(x => x.RoleId == roleId) ? true : false }).ToList();
 
-            var list = new ListDto<WorkflowAccess>(result, result.Count, pageSize = pageSize, pageNumber = pageNumber);
+            var list = new ListDto<IsAccessModel>(result, result.Count, pageSize = pageSize, pageNumber = pageNumber);
 
             return list;
         }

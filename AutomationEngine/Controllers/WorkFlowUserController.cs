@@ -37,7 +37,7 @@ namespace AutomationEngine.Controllers
             if (workflowUser == null)
                 throw new CustomException<Workflow_User>(new ValidationDto<Workflow_User>(false, "UserWorkflow", "CorruptedUserWorkflow", null), 500);
 
-            var workflow = await _workflowService.GetWorFlowByIdAsync(workflowUser.WorkflowId);
+            var workflow = await _workflowService.GetWorkflowByIdAsync(workflowUser.WorkflowId);
 
             var claims = await HttpContext.Authorize();
          
@@ -46,7 +46,7 @@ namespace AutomationEngine.Controllers
                 UserId = claims.UserId,
                 WorkflowId = workflowUser.WorkflowId,
                 Workflow = workflow,
-                WorkflowState = workflow.Nodes.FirstOrDefault(x => x.LastNodeId.IsNullOrEmpty()).Id
+                WorkflowState = workflow.Nodes.FirstOrDefault(x => x.PreviousNodeId.IsNullOrEmpty()).Id
             };
 
             //is validation model
@@ -58,7 +58,7 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<Workflow_User>(validationModel, 500);
 
 
-            await _WorkflowUserService.InsertWorFlowUser(result);
+            await _WorkflowUserService.InsertWorkflowUser(result);
             await _WorkflowUserService.SaveChangesAsync();
             return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
@@ -70,7 +70,7 @@ namespace AutomationEngine.Controllers
             if (workflowUser == null)
                 throw new CustomException<Workflow_User>(new ValidationDto<Workflow_User>(false, "UserWorkflow", "CorruptedUserWorkflow", null), 500);
 
-            var workflow = await _workflowService.GetWorFlowByIdAsync(workflowUser.WorkflowId);
+            var workflow = await _workflowService.GetWorkflowByIdAsync(workflowUser.WorkflowId);
 
             var claims = await HttpContext.Authorize();
             var result = new Workflow_User()
@@ -89,7 +89,7 @@ namespace AutomationEngine.Controllers
             if (!validationModel.IsSuccess)
                 throw new CustomException<Workflow_User>(validationModel, 500);
 
-            await _WorkflowUserService.UpdateWorFlowUser(result);
+            await _WorkflowUserService.UpdateWorkflowUser(result);
             await _WorkflowUserService.SaveChangesAsync();
             return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
@@ -102,7 +102,7 @@ namespace AutomationEngine.Controllers
             if (workflowUserId == 0)
                 throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "CorruptedUserWorkflow", workflowUserId), 500);
 
-            var fetchForm = await _WorkflowUserService.GetWorFlowUserById(workflowUserId);
+            var fetchForm = await _WorkflowUserService.GetWorkflowUserById(workflowUserId);
             if (fetchForm == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "CorruptedUserWorkflow", workflowUserId), 500);
 
@@ -111,7 +111,7 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<Workflow_User>(validationModel, 500);
 
             //initial action
-            await _WorkflowUserService.DeleteWorFlowUser(workflowUserId);
+            await _WorkflowUserService.DeleteWorkflowUser(workflowUserId);
             var saveResult = await _WorkflowUserService.SaveChangesAsync();
 
             if (!saveResult.IsSuccess)
@@ -129,7 +129,7 @@ namespace AutomationEngine.Controllers
             if (pageNumber < 1)
                 pageNumber = 1;
 
-            var forms = await _WorkflowUserService.GetAllWorFlowUsers(pageSize, pageNumber);
+            var forms = await _WorkflowUserService.GetAllWorkflowUsers(pageSize, pageNumber);
 
             //is valid data
             if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
@@ -146,7 +146,7 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "CorruptedUserWorkflow", workflowUserId), 500);
 
             //initial action
-            var workflowUser = await _WorkflowUserService.GetWorFlowUserById(workflowUserId);
+            var workflowUser = await _WorkflowUserService.GetWorkflowUserById(workflowUserId);
             if (workflowUser == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "CorruptedUserWorkflow", workflowUserId), 500);
 
@@ -154,7 +154,7 @@ namespace AutomationEngine.Controllers
             if (!validationModel.IsSuccess)
                 throw new CustomException<Workflow_User>(validationModel, 500);
 
-            var form = await _WorkflowUserService.GetWorFlowUserById(workflowUserId);
+            var form = await _WorkflowUserService.GetWorkflowUserById(workflowUserId);
             return (new ResultViewModel { Data = form, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
 
@@ -167,7 +167,7 @@ namespace AutomationEngine.Controllers
 
             var claims = await HttpContext.Authorize();
             //initial action
-            var workflowUser = await _WorkflowUserService.GetWorFlowUserByWorkflowAndUserId(workflowId, claims.UserId);
+            var workflowUser = await _WorkflowUserService.GetWorkflowUserByWorkflowAndUserId(workflowId, claims.UserId);
             if (workflowUser == null)
                 return (new ResultViewModel { Data = null, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
 

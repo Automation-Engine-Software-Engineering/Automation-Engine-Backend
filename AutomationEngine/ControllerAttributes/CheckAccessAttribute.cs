@@ -53,7 +53,7 @@ namespace AutomationEngine.ControllerAttributes
             if (environment != null && environment.IsDevelopment())
             {
                 var tokenAuthorization = httpContext.Request.Headers["Authorization"].ToString();
-                // در حالت Development هیچ چکی انجام نمی‌شود
+                // در حالت Development هیچ چکی انجام نمی شود
                 var claimsAuthorization = tokenGeneratorService.ValidateToken(tokenAuthorization, false, false);
                 var userIdAuthorization = claimsAuthorization?.FindFirstValue(nameof(TokenClaims.UserId));
                 var roleIdAuthorization = claimsAuthorization?.FindFirstValue(nameof(TokenClaims.RoleId));
@@ -62,7 +62,7 @@ namespace AutomationEngine.ControllerAttributes
                 {
                     UserId = userIdAuthorization.IsNullOrWhiteSpace() ? 0 : int.Parse(userIdAuthorization),
                     RoleId = roleIdAuthorization.IsNullOrWhiteSpace() ? 0 : int.Parse(roleIdAuthorization),
-                    Token = tokenAuthorization
+                    Token = tokenAuthorization.Replace("Bearer ", "")
                 };
                 return tokenClaim;
             }
@@ -82,7 +82,7 @@ namespace AutomationEngine.ControllerAttributes
             {
                 UserId = userIdClaim.IsNullOrWhiteSpace() ? 0 : int.Parse(userIdClaim),
                 RoleId = roleIdClaim.IsNullOrWhiteSpace() ? 0 : int.Parse(roleIdClaim),
-                Token = token
+                Token = token.Replace("Bearer ", "")
             };
 
             var user = await userService.GetUserById(tokenClaims.UserId);
@@ -102,7 +102,7 @@ namespace AutomationEngine.ControllerAttributes
 
             if (workflowId != null)
             {
-                var workflow = await workflowService.GetWorFlowIncRolesById(workflowId.Value);
+                var workflow = await workflowService.GetWorkflowIncRolesById(workflowId.Value);
                 var hasAccess = workflow.Role_Workflows.Any(x => x.RoleId == roleId);
                 if (!hasAccess)
                 {
@@ -132,7 +132,7 @@ namespace AutomationEngine.ControllerAttributes
                 {
                     UserId = userId.IsNullOrWhiteSpace() ? 0 : int.Parse(userId),
                     RoleId = roleId.IsNullOrWhiteSpace() ? 0 : int.Parse(roleId),
-                    Token = tokenAuthorization
+                    Token = tokenAuthorization.Replace("Bearer ","")
                 };
                 return tokenClaim;
             }
@@ -152,7 +152,7 @@ namespace AutomationEngine.ControllerAttributes
             {
                 UserId = userIdClaim.IsNullOrWhiteSpace() ? 0 : int.Parse(userIdClaim),
                 RoleId = roleIdClaim.IsNullOrWhiteSpace() ? 0 : int.Parse(roleIdClaim),
-                Token = token
+                Token = token.Replace("Bearer ", "")
             };
 
             var user = await userService.GetUserById(tokenClaims.UserId);

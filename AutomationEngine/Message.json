@@ -5,7 +5,7 @@
         "CorruptedEntity": "خطا در اطلاعات جدول وجود دارد",
         "CorruptedEntityPreviewName": "نام نمایش جدول معتبر نمی باشد",
         "CorruptedEntityTableName": "نام جدول معتبر نمی باشد",
-        "CorruptedEntityNotFound": "جدول یافت نشد"
+        "EntityNotFound": "جدول یافت نشد"
       },
       "Property": {
         "CorruptedProperty": "خطا در اطلاعات عنصر وجود دارد",
@@ -19,7 +19,7 @@
         "CorruptedForm": "خطا در اطلاعات فرم وجود دارد",
         "CorruptedFormName": "خطا در نام فرم وجود دارد",
         "CorruptedFormSize": "خطا در ابعاد فرم وجود دارد",
-        "CorruptedNotfound": "فرم یافت نشد",
+        "FormNotfound": "فرم یافت نشد",
         "CorruptedFormData": "اطلاعات فرم یا گردشکار یا داده ها دارای خطا می باشد"
       },
       "Workflow": {
@@ -27,23 +27,24 @@
         "CorruptedWorkflowName": "خطا در نام گردشکار وجود دارد",
         "CorruptedWorkflowDes": "خطا در توضیحات گردشکار وجود دارد",
         "CorruptedWorkflowNextNode": "گره بعدی وجود ندارد",
-        "CorruptedWorkflowLastNode": "گره قبلی وجود ندارد",
-        "NoWorkflowFound": "گردشکار یافت نشد"
+        "CorruptedWorkflowPreviousNode": "گره قبلی وجود ندارد",
+        "WorkflowNotfound": "گردشکار یافت نشد",
+        "NodeNotFound": "گره یافت نشد"
       },
       "WorkflowRole": {
         "CorruptedWorkflowRole": "خطا در اطلاعات گردشکار وجود دارد",
         "CorruptedWorkflow": "خطا در گردشکار وجود دارد",
         "CorruptedRole": "خطا در نقش وجود دارد",
-        "NoWorkflowRoleFound": "گردشکار یافت نشد"
+        "WorkflowRoleNotfound": "گردشکار یافت نشد"
       },
       "User": {
-        "CorruptedUser": "کاربر یافت نشد"
+        "UserNotFound": "کاربر یافت نشد"
       },
       "RoleUser": {
         "CorruptedRoleUser": "خطا در اطلاعات گردشکار وجود دارد",
         "CorruptedRole": "خطا در گردشکار وجود دارد",
         "CorruptedUser": "خطا در اطلاعات فرد وجود دارد",
-        "NoRoleUserFound": "گردشکار یافت نشد"
+        "RoleUserNotFound": "گردشکار یافت نشد"
       },
       "Role": {
         "InvalidRole": "خطا در اطلاعات نقش وجود دارد",
@@ -54,7 +55,7 @@
         "CorruptedUserWorkflow": "خطا در اطلاعات گردشکار وجود دارد",
         "CorruptedUserWorkflowName": "خطا در نام گردشکار وجود دارد",
         "CorruptedUserWorkflowDes": "خطا در توضیحات گردشکار وجود دارد",
-        "NoUserWorkflowFound": "گردشکار یافت نشد"
+        "UserWorkflowNotfound": "گردشکار یافت نشد"
       },
       "File": {
         "FileSize": "حجم فایل آپلود شده بیشتر از مقدار تعیین شده است",

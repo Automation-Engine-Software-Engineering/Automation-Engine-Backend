@@ -23,9 +23,9 @@ namespace Entities.Models.Workflows
         [ForeignKey(nameof(FormId))]
         public Form Form { get; set; }
 
-        public string? LastNodeId { get; set; }
-        [ForeignKey(nameof(LastNodeId))]
-        public Node? LastNode { get; set; }
+        public string? PreviousNodeId { get; set; }
+        [ForeignKey(nameof(PreviousNodeId))]
+        public Node? PreviousNode { get; set; }
 
 
         public string? NextNodeId { get; set; }

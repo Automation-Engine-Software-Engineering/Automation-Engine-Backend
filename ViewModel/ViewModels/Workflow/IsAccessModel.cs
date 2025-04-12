@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ViewModels.ViewModels.Workflow
 {
-    public class WorkflowAccess
+    public class IsAccessModel
     {
         public int Id { get; set; }
         public string Name { get; set; }

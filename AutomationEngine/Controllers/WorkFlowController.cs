@@ -44,7 +44,7 @@ namespace AutomationEngine.Controllers
             if (!(await _workflowService.WorkflowValidationAsync(result)).IsSuccess)
                 throw new CustomException<Workflow>(new ValidationDto<Workflow>(false, "Workflow", "CorruptedWorkflow", result), 500);
 
-            await _workflowService.InsertWorFlowAsync(result);
+            await _workflowService.InsertWorkflowAsync(result);
             var saveResult = await _workflowService.SaveChangesAsync();
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
@@ -61,7 +61,7 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<Workflow>(new ValidationDto<Workflow>(false, "Workflow", "CorruptedWorkflow", null), 500);
 
             //transfer model
-            var result = await _workflowService.GetWorFlowByIdIncNodesAsync(workflow.Id);
+            var result = await _workflowService.GetWorkflowByIdIncNodesAsync(workflow.Id);
 
             //is validation model
 
@@ -70,13 +70,13 @@ namespace AutomationEngine.Controllers
 
             if (result.Nodes.Count != 0)
             {
-                await _workflowService.DeleteAllNodeOfWorFlowAsync(result.Id);
+                await _workflowService.DeleteAllNodeOfWorkflowAsync(result.Id);
             }
             var saveResult = await _workflowService.SaveChangesAsync();
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
 
-            var nodes = workflow.Nodes.Select(x => new Node()
+            var nodes = workflow.Nodes?.Select(x => new Node()
             {
                 Id = x.Id,
                 Icon = x.Data.Icon,
@@ -89,14 +89,18 @@ namespace AutomationEngine.Controllers
                 FormId = x.Data.FormId == null ? null : x.Data.FormId,
                 DllName = x.Data.DllName == null ? null : x.Data.DllName
             }).ToList();
-
-            workflow.Edges.ForEach(x =>
+            if (nodes != null && nodes.Any())
             {
-                var last = nodes.FirstOrDefault(xx => xx.Id == x.Source);
-                nodes.FirstOrDefault(xx => xx.Id == x.Target).LastNodeId = last.Id;
-            });
+                workflow.Edges?.ForEach(x =>
+                {
+                    var last = nodes?.FirstOrDefault(xx => xx.Id == x.Source);
+                    if (nodes != null)
+                        nodes.First(xx => xx.Id == x.Target).PreviousNodeId = last?.Id;
+                });
 
-            result.Nodes = nodes;
+                result.Nodes = nodes;
+            }
+
             saveResult = await _workflowService.SaveChangesAsync();
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
@@ -123,7 +127,7 @@ namespace AutomationEngine.Controllers
             if (workflow == null)
                 throw new CustomException<Workflow>(new ValidationDto<Workflow>(false, "Workflow", "CorruptedWorkflow", null), 500);
 
-            var result = await _workflowService.GetWorFlowByIdAsync(workflow.Id);
+            var result = await _workflowService.GetWorkflowByIdAsync(workflow.Id);
             result.Name = workflow.Name;
             result.Description = workflow.Description;
 
@@ -134,7 +138,7 @@ namespace AutomationEngine.Controllers
             if (!(await _workflowService.WorkflowValidationAsync(result)).IsSuccess)
                 throw new CustomException<Workflow>(new ValidationDto<Workflow>(false, "Workflow", "CorruptedWorkflow", result), 500);
 
-            await _workflowService.UpdateWorFlowAsync(result);
+            await _workflowService.UpdateWorkflowAsync(result);
             var saveResult = await _workflowService.SaveChangesAsync();
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
@@ -147,17 +151,17 @@ namespace AutomationEngine.Controllers
         public async Task<ResultViewModel> RemoveWorkflow([FromBody] int workflowId)
         {
             if (workflowId == 0)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowFound", workflowId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowNotfound", workflowId), 500);
 
             var ModelExist = await _workflowService.IsWorkflowExistAsync(workflowId);
             if (ModelExist == false)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowFound", workflowId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowNotfound", workflowId), 500);
 
-            var fetchModel = await _workflowService.GetWorFlowByIdAsync(workflowId);
+            var fetchModel = await _workflowService.GetWorkflowByIdAsync(workflowId);
             if (!(await _workflowService.WorkflowValidationAsync(fetchModel)).IsSuccess)
                 throw new CustomException<Workflow>(new ValidationDto<Workflow>(false, "Workflow", "CorruptedWorkflow", fetchModel), 500);
 
-            await _workflowService.DeleteWorFlowAsync(workflowId);
+            await _workflowService.DeleteWorkflowAsync(workflowId);
 
             var saveResult = await _workflowService.SaveChangesAsync();
             if (!saveResult.IsSuccess)
@@ -175,7 +179,7 @@ namespace AutomationEngine.Controllers
             if (pageNumber < 1)
                 pageNumber = 1;
 
-            var workflows = await _workflowService.GetAllWorFlowsAsync(pageSize, pageNumber);
+            var workflows = await _workflowService.GetAllWorkflowsAsync(pageSize, pageNumber);
             //is valid data
             if ((((pageSize * pageNumber) - workflows.TotalCount) > pageSize) && (pageSize * pageNumber) > workflows.TotalCount)
                 throw new CustomException<ListDto<Workflow>>(new ValidationDto<ListDto<Workflow>>(false, "Workflow", "CorruptedWorkflow", workflows), 500);
@@ -188,13 +192,13 @@ namespace AutomationEngine.Controllers
         public async Task<ResultViewModel> GetWorkflow(int workflowId)
         {
             if (workflowId == 0)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowFound", workflowId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowNotfound", workflowId), 500);
 
             var ModelExist = await _workflowService.IsWorkflowExistAsync(workflowId);
             if (ModelExist == false)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowFound", workflowId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowNotfound", workflowId), 500);
 
-            var fetchModel = await _workflowService.GetWorFlowByIdIncNodesAsync(workflowId);
+            var fetchModel = await _workflowService.GetWorkflowByIdIncNodesAsync(workflowId);
             if (!(await _workflowService.WorkflowValidationAsync(fetchModel)).IsSuccess)
                 throw new CustomException<Workflow>(new ValidationDto<Workflow>(false, "Workflow", "CorruptedWorkflow", fetchModel), 500);
 
@@ -245,15 +249,15 @@ namespace AutomationEngine.Controllers
         public async Task<ResultViewModel> GetNodeState(int WorkflowUserId)
         {
             if (WorkflowUserId == 0)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowFound", WorkflowUserId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowNotfound", WorkflowUserId), 500);
 
-            var workflowUser = await _workflowUserService.GetWorFlowUserById(WorkflowUserId);
+            var workflowUser = await _workflowUserService.GetWorkflowUserById(WorkflowUserId);
             if (workflowUser == null)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowFound", WorkflowUserId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowNotfound", WorkflowUserId), 500);
 
-            var workflow = await _workflowService.GetWorFlowByIdIncNodesAsync(workflowUser.WorkflowId);
+            var workflow = await _workflowService.GetWorkflowByIdIncNodesAsync(workflowUser.WorkflowId);
             if (workflow == null)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowFound", WorkflowUserId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowNotfound", WorkflowUserId), 500);
 
             var node = workflow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkflowState);
 
@@ -266,34 +270,36 @@ namespace AutomationEngine.Controllers
         public async Task<ResultViewModel> NodeMove(int WorkflowUserId, int state)
         {
             if (WorkflowUserId == 0)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowFound", WorkflowUserId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowNotfound", WorkflowUserId), 500);
 
-            var workflowUser = await _workflowUserService.GetWorFlowUserById(WorkflowUserId);
+            var workflowUser = await _workflowUserService.GetWorkflowUserById(WorkflowUserId);
             if (workflowUser == null)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowFound", WorkflowUserId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowNotfound", WorkflowUserId), 500);
 
-            var workflow = await _workflowService.GetWorFlowByIdIncNodesAsync(workflowUser.WorkflowId);
+            var workflow = await _workflowService.GetWorkflowByIdIncNodesAsync(workflowUser.WorkflowId);
             if (workflow == null)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowFound", WorkflowUserId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowNotfound", WorkflowUserId), 500);
 
             var node = workflow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkflowState);
+            if (node == null)
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NodeNotFound", WorkflowUserId), 500);
 
             if (state == 1)
             {
-                if (node.NextNodeId == null)
+                if (node.NextNodeId == null || node.NextNode == null)
                     throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "CorruptedWorkflowNextNode", WorkflowUserId), 500);
 
                 workflowUser.WorkflowState = node.NextNode.Id;
             }
             else if (state == 2)
             {
-                if (node.LastNodeId == null)
-                    throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "CorruptedWorkflowLastNode", WorkflowUserId), 500);
+                if (node.PreviousNodeId == null || node.PreviousNode == null)
+                    throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "CorruptedWorkflowPreviousNode", WorkflowUserId), 500);
 
-                workflowUser.WorkflowState = node.LastNode.Id;
+                workflowUser.WorkflowState = node.PreviousNode.Id;
             }
             else if (state == 3)
-                await _workflowUserService.DeleteWorFlowUser(workflowUser.Id);
+                await _workflowUserService.DeleteWorkflowUser(workflowUser.Id);
 
             await _workflowUserService.SaveChangesAsync();
             return (new ResultViewModel { Data = node, Message = new ValidationDto<Node>(true, "Success", "Success", node).GetMessage(200), Status = true, StatusCode = 200 });

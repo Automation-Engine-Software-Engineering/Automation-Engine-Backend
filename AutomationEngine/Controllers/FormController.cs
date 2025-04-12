@@ -77,7 +77,7 @@ namespace AutomationEngine.Controllers
 
             var fetchForm = await _formService.GetFormByIdIncEntityAsync(formId);
             if (fetchForm == null)
-                throw new CustomException<UpdateFormInputModel>(new ValidationDto<UpdateFormInputModel>(false, "Form", "CorruptedNotfound", form), 500);
+                throw new CustomException<UpdateFormInputModel>(new ValidationDto<UpdateFormInputModel>(false, "Form", "FormNotfound", form), 500);
 
             //is validation model
             if (formId == 0)
@@ -118,7 +118,7 @@ namespace AutomationEngine.Controllers
 
             var fetchForm = await _formService.IsFormExistAsync(formId);
             if (fetchForm == false)
-                throw new CustomException<IEnumerable<int>>(new ValidationDto<IEnumerable<int>>(false, "Form", "CorruptedNotfound", Entities), 500);
+                throw new CustomException<IEnumerable<int>>(new ValidationDto<IEnumerable<int>>(false, "Form", "FormNotfound", Entities), 500);
 
             await _formService.AddEntitiesToFormAsync(formId, Entities?.ToList() ?? new List<int>());
 
@@ -140,7 +140,7 @@ namespace AutomationEngine.Controllers
 
             var fetchForm = await _formService.GetFormByIdAsync(formId);
             if (fetchForm == null)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedNotfound", formId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "FormNotfound", formId), 500);
 
             var validationModel = await _formService.FormValidationAsync(fetchForm);
             if (!validationModel.IsSuccess)
@@ -184,7 +184,7 @@ namespace AutomationEngine.Controllers
             //initial action
             var form = await _formService.GetFormByIdIncEntityIncPropertyAsync(formId);
             if (form == null)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedNotfound", formId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "FormNotfound", formId), 500);
 
             var validationModel = await _formService.FormValidationAsync(form);
             if (!validationModel.IsSuccess)
@@ -206,7 +206,7 @@ namespace AutomationEngine.Controllers
             var form = await _formService.GetFormByIdAsync(formId);
             var formBody = await _formService.GetFormPreview(form);
             if (formBody == null)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedNotfound", formId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "FormNotfound", formId), 500);
 
             return (new ResultViewModel { Data = formBody, Message = new ValidationDto<string>(true, "Success", "Success", formBody).GetMessage(200), Status = true, StatusCode = 200 });
         }
@@ -221,12 +221,12 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedForm", workflowUserId), 500);
 
             //initial action
-            var workflowUser = await _workflowUserService.GetWorFlowUserById(workflowUserId);
+            var workflowUser = await _workflowUserService.GetWorkflowUserById(workflowUserId);
             var node = workflowUser.Workflow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkflowState);
             var form = await _formService.GetFormByIdAsync(node.FormId.Value);
             var formBody = await _formService.GetFormPreview(form);
             if (formBody == null)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedNotfound", node.FormId.Value), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "FormNotfound", node.FormId.Value), 500);
 
             return (new ResultViewModel { Data = formBody, Message = new ValidationDto<string>(true, "Success", "Success", formBody).GetMessage(200), Status = true, StatusCode = 200 });
         }
@@ -250,7 +250,7 @@ namespace AutomationEngine.Controllers
 
             var form = await _formService.GetFormByIdAsync(formId);
             if (form == null)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedNotfound", formId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "FormNotfound", formId), 500);
 
             var validationModel = await _formService.FormValidationAsync(form);
             if (!validationModel.IsSuccess)
@@ -271,30 +271,30 @@ namespace AutomationEngine.Controllers
             if (formId == 0 && workflowUserId == 0 && formData.Any(x => x.id == 0))
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedFormData", formId), 500);
 
-            var workflowUser = await _workflowUserService.GetWorFlowUserById(workflowUserId);
+            var workflowUser = await _workflowUserService.GetWorkflowUserById(workflowUserId);
             if (workflowUser == null)
-                throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "NoUserWorkflowFound", workflowUserId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "UserWorkflowNotfound", workflowUserId), 500);
 
             var form = await _formService.GetFormByIdIncEntityIncPropertyAsync(formId);
             if (form == null)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedNotfound", formId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "FormNotfound", formId), 500);
 
             var claims = await HttpContext.Authorize();
 
             if (claims.UserId != workflowUser.UserId)
-                throw new CustomException<int>(new ValidationDto<int>(false, "User", "CorruptedUser", formId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "User", "UserNotFound", formId), 500);
 
-            var workflow = await _workflowService.GetWorFlowByIdIncNodesAsync(workflowUser.WorkflowId);
+            var workflow = await _workflowService.GetWorkflowByIdIncNodesAsync(workflowUser.WorkflowId);
             if (workflow == null)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NoWorkflowRoleFound", formId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowRoleNotfound", formId), 500);
 
-            var workflowRole = await _workflowRoleService.ExistAllWorFlowRolesBuRoleId(claims.RoleId, workflow.Id);
+            var workflowRole = await _workflowRoleService.ExistAllWorkflowRolesBuRoleId(claims.RoleId, workflow.Id);
             if (!workflowRole)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Warning", "NotAuthorized", formId), 403);
 
             var currentNode = workflow.Nodes.FirstOrDefault(x => x.Id == workflowUser.WorkflowState);
             if (currentNode?.FormId != formId)
-                throw new CustomException<Node>(new ValidationDto<Node>(false, "Form", "CorruptedNotfound", currentNode), 500);
+                throw new CustomException<Node>(new ValidationDto<Node>(false, "Form", "FormNotfound", currentNode), 500);
 
             List<Entity> entites = new List<Entity>();
             foreach (var prop in formData)
@@ -311,7 +311,7 @@ namespace AutomationEngine.Controllers
                 {
                     var entity = property.Entity;
                     if(entity == null)
-                        throw new CustomException<int>(new ValidationDto<int>(false, "Entity", "CorruptedEntityNotFound", formId), 500);
+                        throw new CustomException<int>(new ValidationDto<int>(false, "Entity", "EntityNotFound", formId), 500);
 
                     entity.Properties = [property];
                 }

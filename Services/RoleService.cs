@@ -29,7 +29,7 @@ namespace Services
         Task<ListDto<Role>> GetAllRolesAsync(int pageSize, int pageNumber);
         Task<ValidationDto<Role>> RoleValidationAsync(Role role);
         Task<ValidationDto<string>> SaveChangesAsync();
-        Task<ListDto<WorkflowAccess>> GetAllUserForRoleAccess(int roleId, int pageSize, int pageNumber);
+        Task<ListDto<IsAccessModel>> GetAllUserForRoleAccess(int roleId, int pageSize, int pageNumber);
     }
     public class RoleService : IRoleService
     {
@@ -147,7 +147,7 @@ namespace Services
         }
 
 
-        public async Task<ListDto<WorkflowAccess>> GetAllUserForRoleAccess(int roleId, int pageSize, int pageNumber)
+        public async Task<ListDto<IsAccessModel>> GetAllUserForRoleAccess(int roleId, int pageSize, int pageNumber)
         {
             var roles = await _context.Roles.Include(x => x.role_User)
             .FirstOrDefaultAsync(x => x.Id == roleId);
@@ -156,9 +156,9 @@ namespace Services
             .ToListAsync();
 
 
-            var result = users.Select(x => new WorkflowAccess() { Id = x.Id, Name = x.Name, IsAccess =  roles.role_User.Any(xx => xx.UserId == x.Id) ? true : false  , UserName = x.UserName}).ToList();
+            var result = users.Select(x => new IsAccessModel() { Id = x.Id, Name = x.Name, IsAccess =  roles.role_User.Any(xx => xx.UserId == x.Id) ? true : false  , UserName = x.UserName}).ToList();
 
-            var list = new ListDto<WorkflowAccess>(result, result.Count, pageSize = pageSize, pageNumber = pageNumber);
+            var list = new ListDto<IsAccessModel>(result, result.Count, pageSize = pageSize, pageNumber = pageNumber);
 
             return list;
         }
