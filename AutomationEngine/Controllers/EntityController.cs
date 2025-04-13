@@ -44,7 +44,7 @@ namespace AutomationEngine.Controllers
             if (entity.Id != 0)
                 throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
 
-            var validationModel = await _entityService.EntityValidation(result);
+            var validationModel = _entityService.EntityValidation(result);
             if (!validationModel.IsSuccess)
                 throw new CustomException<Entity>(validationModel, 500);
 
@@ -85,7 +85,7 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
 
             result.Id = entity.Id;
-            var validationModel = await _entityService.EntityValidation(result);
+            var validationModel = _entityService.EntityValidation(result);
             if (!validationModel.IsSuccess)
                 throw new CustomException<Entity>(validationModel, 500);
 
@@ -116,7 +116,7 @@ namespace AutomationEngine.Controllers
             if (fetchEntity == null)
                 throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "EntityNotFound", null), 500);
 
-            var validationModel = await _entityService.EntityValidation(fetchEntity);
+            var validationModel = _entityService.EntityValidation(fetchEntity);
             if (!validationModel.IsSuccess)
                 throw new CustomException<Entity>(validationModel, 500);
 
@@ -160,7 +160,7 @@ namespace AutomationEngine.Controllers
             var fetchEntity = await _entityService.GetEntitiesByIdAsync(entityId);
             if (fetchEntity == null)
                 throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "EntityNotFound", null), 500);
-            var validationModel = await _entityService.EntityValidation(fetchEntity);
+            var validationModel = _entityService.EntityValidation(fetchEntity);
             if (!validationModel.IsSuccess)
                 throw new CustomException<Entity>(validationModel, 500);
 

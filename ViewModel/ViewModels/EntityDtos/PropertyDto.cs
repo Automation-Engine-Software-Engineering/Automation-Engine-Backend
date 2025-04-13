@@ -17,4 +17,10 @@ namespace ViewModels.ViewModels.Entity
         public string? DefaultValue { get; set; }
         public int EntityId { get; set; }
     }
+    public class AddPropertyInputDto
+    {
+        public int EntityId { get; set; }
+        public int PropertyId { get; set; }
+        public object? Value { get; set; }
+    }
 }

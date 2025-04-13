@@ -44,7 +44,7 @@ namespace Services
             var query = _context.Workflow_User;
 
             //get Value and count
-            var count = query.Count();
+            var count = await query.CountAsync();
             var result = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
             return new ListDto<Workflow_User>(result, count, pageSize, pageNumber);
         }

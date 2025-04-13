@@ -20,7 +20,7 @@ namespace Services
         Task<ListDto<Dictionary<string, object>>> GetColumnValuesByIdAsync(int propertyId, int pageSize, int pageNumber);
         Task<ListDto<EntityProperty>> GetAllColumnByEntityIdAsync(int entityId, int pageSize, int pageNumber);
         Task<ListDto<Dictionary<string, object>>> GetAllColumnValuesByEntityIdAsync(int entityId, int pageSize, int pageNumber);
-        Task<ValidationDto<EntityProperty>> PropertyValidation(EntityProperty property);
+        ValidationDto<EntityProperty> PropertyValidation(EntityProperty property);
         Task<ValidationDto<string>> SaveChangesAsync();
     }
 
@@ -47,7 +47,7 @@ namespace Services
             commandText += "DEFAULT" + " " + $"'{property.DefaultValue}' ";
             commandText += " NULL";
 
-            var parameters = new List<(string ParameterName, string ParameterValue)>();
+            var parameters = new List<(string ParameterName, string? ParameterValue)>();
             parameters.Add(("@DescriptionValue", property.Description));
 
             switch (property.Type)
@@ -98,7 +98,7 @@ namespace Services
             await _context.Property.AddAsync(property);
         }
 
-        public async Task UpdateColumnInTableAsync(EntityProperty property)
+        public async Task UpdateColumssnInTableAsync(EntityProperty property)
         {
             property.DefaultValue.IsValidString();
 
@@ -181,13 +181,13 @@ namespace Services
             return await _dynamicDbContext.ExecuteReaderAsync(commandText);
         }
 
-        public async Task<ValidationDto<EntityProperty>> PropertyValidation(EntityProperty property)
+        public ValidationDto<EntityProperty> PropertyValidation(EntityProperty property)
         {
             if (property == null) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", property);
             if (property.EntityId == 0) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", property);
             if (property.PreviewName.IsNullOrEmpty() || !property.PreviewName.IsValidString()) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyPreviewName", property);
             if (property.PropertyName.IsNullOrEmpty() || !property.PropertyName.IsValidStringCommand()) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyPropertyName", property);
-            if (property.Type == null || property.Type.GetType() != new PropertyType().GetType()) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyType", property);
+            if (property.Type.GetType() != new PropertyType().GetType()) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyType", property);
             return new ValidationDto<EntityProperty>(true, "Success", "Success", property);
         }
 

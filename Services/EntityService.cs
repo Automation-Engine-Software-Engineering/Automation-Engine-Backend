@@ -16,8 +16,8 @@ namespace Services
         Task UpdateEntityAsync(Entity entity);
         Task<ListDto<Entity>> GetAllEntitiesAsync(int pageSize, int pageNumber, string? search = null, int? formId = null);
         Task<ListDto<Entity>> GetAllEntitiesByFormIdAsync(int formId, int pageSize, int pageNumber);
-        Task<Entity> GetEntitiesByIdAsync(int entityId);
-        Task<ValidationDto<Entity>> EntityValidation(Entity entity);
+        Task<Entity?> GetEntitiesByIdAsync(int entityId);
+        ValidationDto<Entity> EntityValidation(Entity entity);
         Task<ValidationDto<string>> SaveChangesAsync();
     }
 
@@ -43,7 +43,7 @@ namespace Services
             await _dynamicDbContext.ExecuteSqlRawAsync(CommandText, parameters);
 
             //initial action
-            _context.Entity.Add(entity);
+            await _context.Entity.AddAsync(entity);
         }
 
         public async Task CreateEntityAsync(int formId, Entity entity)
@@ -105,7 +105,7 @@ namespace Services
                 query = query.Include(x=>x.Forms).Where(x => x.Forms.Any(x=>x.Id == formId));
 
             //get Value and count
-            var count = query.Count();
+            var count = await query.CountAsync();
             var result = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 
             return new ListDto<Entity>(result, count, pageSize, pageNumber);
@@ -117,19 +117,19 @@ namespace Services
             var query = _context.Entity.Include(x => x.Forms).Where(x => x.Forms.Any(x => x.Id == formId));
 
             //get Value and count
-            var count = query.Count();
+            var count = await query.CountAsync();
             var result = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 
             return new ListDto<Entity>(result, count, pageSize, pageNumber);
         }
 
-        public async Task<Entity> GetEntitiesByIdAsync(int entityId)
+        public async Task<Entity?> GetEntitiesByIdAsync(int entityId)
         {
             var result = await _context.Entity.Include(x => x.Properties).FirstOrDefaultAsync(x => x.Id == entityId);
             return result;
         }
 
-        public async Task<ValidationDto<Entity>> EntityValidation(Entity entity)
+        public ValidationDto<Entity> EntityValidation(Entity entity)
         {
             if (entity == null) return new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", entity);
             if (entity.PreviewName == null || !entity.PreviewName.IsValidString()) return new ValidationDto<Entity>(false, "Entity", "CorruptedEntityPreviewName", entity);

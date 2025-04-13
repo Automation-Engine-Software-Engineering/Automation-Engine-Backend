@@ -6,10 +6,10 @@ namespace Services
 {
     public interface IHtmlService
     {
-        Task<List<string>> FindeHtmlTag(string htmBody, string htmlTag, List<string> attributes);
-        Task<string> InsertTag(string parentTag, List<string> childTags);
-        Task<string> getTagAttributesValue(string TagBody, string attributeName);
-        Task<List<string>> getAttributeConditionValues(string input);
+        List<string> FindHtmlTag(string htmBody, string htmlTag, List<string> attributes);
+        string InsertTag(string parentTag, List<string> childTags);
+        string? GetTagAttributesValue(string TagBody, string attributeName);
+        List<string> GetAttributeConditionValues(string input);
     }
 
     public class HtmlService : IHtmlService
@@ -20,7 +20,7 @@ namespace Services
             _context = context;
         }
 
-        public async Task<List<string>> FindeHtmlTag(string htmBody, string htmlTag, List<string> attributes)
+        public List<string> FindHtmlTag(string htmBody, string htmlTag, List<string> attributes)
         {
             var result = new List<string>();
 
@@ -43,7 +43,7 @@ namespace Services
             return result;
         }
 
-        public async Task<List<string>> getAttributeConditionValues(string input)
+        public List<string> GetAttributeConditionValues(string input)
         {
             if (string.IsNullOrWhiteSpace(input))
             {
@@ -62,7 +62,7 @@ namespace Services
             return results;
         }
 
-        public async Task<string> getTagAttributesValue(string TagBody, string attributeName)
+        public string? GetTagAttributesValue(string TagBody, string attributeName)
         {
             if (string.IsNullOrWhiteSpace(TagBody) || string.IsNullOrWhiteSpace(attributeName))
             {
@@ -75,7 +75,7 @@ namespace Services
             return match.Success ? match.Groups[1].Value : null;
         }
 
-        public async Task<string> InsertTag(string parentTag, List<string> childTags)
+        public string InsertTag(string parentTag, List<string> childTags)
         {
             if (string.IsNullOrWhiteSpace(parentTag) || childTags == null || childTags.Count == 0)
             {

@@ -7,6 +7,7 @@ using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Tools.TextTools;
+using ViewModels.ViewModels.Entity;
 
 namespace Services
 {
@@ -20,9 +21,9 @@ namespace Services
         Task<Form?> GetFormByIdIncEntityIncPropertyAsync(int formId);
         Task<ListDto<Form>> GetAllFormsAsync(int pageSize, int pageNumber);
         Task UpdateFormBodyAsync(int formId, string htmlContent);
-        Task SetTheParameter(List<(int entityId, int propertyId, object value)> data);
-        Task<string> GetFormPreview(Form form);
-        Task<ValidationDto<Form>> FormValidationAsync(Form form);
+        Task SetTheParameterAsync(List<AddPropertyInputDto> data);
+        Task<string> GetFormPreviewAsync(Form form);
+        ValidationDto<Form> FormValidation(Form form);
         Task<ValidationDto<string>> SaveChangesAsync();
         Task<bool> IsFormExistAsync(int formId);
         Task AddEntitiesToFormAsync(int formId, IEnumerable<int> entityIds);
@@ -96,7 +97,7 @@ namespace Services
             // Find the Form
             var form = await _context.Form
                 .Include(f => f.Entities)
-                .FirstOrDefaultAsync(f => f.Id == formId);
+                .FirstAsync(f => f.Id == formId);
 
             //var entities = 
             //    .Where(e => entityIds.Contains(e.Id))
@@ -107,9 +108,12 @@ namespace Services
                 .Where(e => entityIds.Contains(e.Id))
                 .ToListAsync();
 
-            form?.Entities?.AddRange(newEntities);
+            form.Entities?.AddRange(newEntities);
 
             // Remove Entities 
+            if (form.Entities == null)
+                form.Entities = new List<Entity>();
+
             form.Entities = form.Entities?
                 .Where(e => entityIds.Contains(e.Id))
                 .ToList();
@@ -128,7 +132,7 @@ namespace Services
             var query = _context.Form;
 
             //get Value and count
-            var count = query.Count();
+            var count = await query.CountAsync();
             var result = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 
             return new ListDto<Form>(result, count, pageSize, pageNumber);
@@ -143,49 +147,49 @@ namespace Services
 
             await UpdateFormAsync(fetchModel);
         }
-        public async Task SetTheParameter(List<(int entityId, int propertyId, object value)> data)
+        public async Task SetTheParameterAsync(List<AddPropertyInputDto> data)
         {
             var entityIds = new List<int>();
-            data.Select(x => x.entityId).ToList().ForEach(x =>
+            data.Select(x => x.EntityId).ToList().ForEach(x =>
             {
                 if (entityIds.Any(xx => xx == x))
                 {
                     entityIds.Add(x);
                 }
             });
-
-            entityIds.ForEach(x =>
+            foreach (var x in entityIds)
             {
                 var entity = _context.Entity.FirstOrDefaultAsync(xx => xx.Id == x);
 
-                var properties = data.Where(x => x.entityId == entity.Id).ToList();
-                var propertiesValues = properties.Select(x => _context.Property.FirstOrDefaultAsync(xx => xx.Id == x.propertyId)).ToList();
+                var properties = data.Where(x => x.EntityId == entity.Id).ToList();
+                var propertiesValues = properties.Select(x => _context.Property.FirstOrDefaultAsync(xx => xx.Id == x.PropertyId)).ToList();
                 var propertiesQuery = "";
                 propertiesValues.ForEach(x =>
                 {
-                    propertiesQuery += x.Result.PropertyName + " ,";
+                    propertiesQuery += x.Result?.PropertyName + " ,";
                 });
                 propertiesQuery += ".";
                 propertiesQuery.Replace(",.", "");
 
                 var propertiesQueryValue = "";
-                data.Where(x => x.entityId == x.entityId).ToList().ForEach(xx =>
+                data.Where(x => x.EntityId == x.EntityId).ToList().ForEach(xx =>
                 {
-                    propertiesQueryValue += xx.value.ToString() + " ,";
+                    propertiesQueryValue += xx.Value?.ToString() + " ,";
                 });
                 propertiesQueryValue += ".";
                 propertiesQueryValue.Replace(",.", "");
 
-                var query = $"INSERT INTO {entity.Result.TableName} ({propertiesQuery})" +
+                var query = $"INSERT INTO {entity.Result?.TableName} ({propertiesQuery})" +
                 $" VALUES ({propertiesQueryValue});";
 
-                _dynamicDbContext.ExecuteSqlRawAsync(query);
-            });
+                await _dynamicDbContext.ExecuteSqlRawAsync(query);
+            }
         }
-        public async Task<string> GetFormPreview(Form form)
+
+        public async Task<string> GetFormPreviewAsync(Form form)
         {
             if (form.HtmlFormBody == null)
-                return "<span>طراحی شده توسط بینا زر اندیش پارس<span>";
+                return "<span>                      <span>";
 
             var htmlBody = form.HtmlFormBody.ToString();
             htmlBody = htmlBody.Replace("disabled", "");
@@ -193,59 +197,60 @@ namespace Services
 
             string tagName = "select";
             var attributes = new List<string> { "data-tableid", "data-condition", "data-filter" };
-            var tags = await _htmlService.FindeHtmlTag(htmlBody, tagName, attributes);
+            var tags = _htmlService.FindHtmlTag(htmlBody, tagName, attributes);
 
             foreach (var tag in tags)
             {
-                var tableId = await _htmlService.getTagAttributesValue(tag, "data-tableid");
-                var condition = await _htmlService.getTagAttributesValue(tag, "data-condition");
-                var filter = await _htmlService.getTagAttributesValue(tag, "data-filter");
+                var tableId = _htmlService.GetTagAttributesValue(tag, "data-tableid");
+                var condition = _htmlService.GetTagAttributesValue(tag, "data-condition");
+                var filter = _htmlService.GetTagAttributesValue(tag, "data-filter");
 
-                var table = await _context.Entity.FirstOrDefaultAsync(x => x.Id == int.Parse(tableId));
+                var table = await _context.Entity.FirstAsync(x => x.Id == int.Parse(tableId));
                 // var query = $"select * from {table.TableName} where" + filter;
-                var query = $"select * from {table.TableName}" ;
+                var query = $"select * from {table.TableName}";
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
 
-                if (data != null || data.TotalCount != 0)
+                if (data != null && data.TotalCount != 0)
                 {
                     var childTags = new List<string>();
-                    var values = await _htmlService.getAttributeConditionValues(condition);
+                    var values = _htmlService.GetAttributeConditionValues(condition);
 
-                    foreach (var item in data.Data)
-                    {
-                        var textValue = condition;
-                        foreach (var value in values)
+                    if (data.Data != null)
+                        foreach (var item in data.Data)
                         {
-                            textValue = textValue.Replace("{{" + value + "}}", item.FirstOrDefault(x => x.Key == value).Value.ToString());
+                            var textValue = condition;
+                            foreach (var value in values)
+                            {
+                                textValue = textValue.Replace("{{" + value + "}}", item.FirstOrDefault(x => x.Key == value).Value.ToString());
+                            }
+
+                            var childTag = $"<option value=\"textValue\">{textValue}</option>";
+                            childTags.Add(childTag);
                         }
 
-                        var childTag = $"<option value=\"textValue\">{textValue}</option>";
-                        childTags.Add(childTag);
-                    }
-
-                    var newTag = await _htmlService.InsertTag(tag, childTags);
+                    var newTag = _htmlService.InsertTag(tag, childTags);
                     htmlBody = htmlBody.Replace(tag, newTag);
                 }
             }
 
             tagName = "table";
             attributes = new List<string> { "data-tableid", "data-condition", "data-filter" };
-            tags = await _htmlService.FindeHtmlTag(htmlBody, tagName, attributes);
+            tags = _htmlService.FindHtmlTag(htmlBody, tagName, attributes);
             foreach (var tag in tags)
             {
-                var tableId = await _htmlService.getTagAttributesValue(tag, "data-tableid");
+                var tableId = _htmlService.GetTagAttributesValue(tag, "data-tableid");
 
-                var condition = await _htmlService.getTagAttributesValue(tag, "data-condition");
+                var condition = _htmlService.GetTagAttributesValue(tag, "data-condition");
                 condition = condition.Replace("{{", "");
                 condition = condition.Replace("}}", "");
                 condition = condition.Replace("و", ",");
-                var filter = await _htmlService.getTagAttributesValue(tag, "data-filter");
+                var filter = _htmlService.GetTagAttributesValue(tag, "data-filter");
 
-                var table = await _context.Entity.FirstOrDefaultAsync(x => x.Id == int.Parse(tableId));
+                var table = await _context.Entity.FirstAsync(x => x.Id == int.Parse(tableId));
                 var query = $"select " + condition + $" from [dbo].[{table.TableName}]";
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
 
-                if (data != null || data.TotalCount != 0)
+                if (data != null && data.TotalCount != 0)
                 {
                     var childTags = new List<string>();
                     string header = "<tr>";
@@ -256,25 +261,26 @@ namespace Services
                     header += "</tr>";
                     childTags.Add(header);
 
-                    foreach (var item in data.Data)
-                    {
-                        string body = "<tr>";
-                        foreach (var item2 in condition.Split(",").ToList())
+                    if (data.Data != null)
+                        foreach (var item in data.Data)
                         {
-                            body += $"<td>{item.GetValueOrDefault(item2.Replace(" " , ""))}</td>";
+                            string body = "<tr>";
+                            foreach (var item2 in condition.Split(",").ToList())
+                            {
+                                body += $"<td>{item.GetValueOrDefault(item2.Replace(" ", ""))}</td>";
+                            }
+                            body += "</tr>";
+                            childTags.Add(body);
                         }
-                        body += "</tr>";
-                        childTags.Add(body);
-                    }
 
-                    var newTag = await _htmlService.InsertTag(tag, childTags);
+                    var newTag = _htmlService.InsertTag(tag, childTags);
                     htmlBody = htmlBody.Replace(tag, newTag);
                 }
             }
 
             return htmlBody;
         }
-        public async Task<ValidationDto<Form>> FormValidationAsync(Form form)
+        public ValidationDto<Form> FormValidation(Form form)
         {
             if (form == null) return new ValidationDto<Form>(false, "Form", "CorruptedForm", form);
             if (form.Name == null || !form.Name.IsValidString()) return new ValidationDto<Form>(false, "Form", "CorruptedFormName", form);

@@ -54,7 +54,7 @@ namespace Services
             var query = _context.Role_Workflows;
 
             //get Value and count
-            var count = query.Count();
+            var count = await query.CountAsync();
             var result = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
             return new ListDto<Role_Workflow>(result, count, pageSize, pageNumber);
         }
@@ -67,7 +67,7 @@ namespace Services
             .Include(x => x.Workflow).Where(x => x.RoleId == RoleId);
 
             //get Value and count
-            var count = query.Count();
+            var count = await query.CountAsync();
             var result = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
             return new ListDto<Role_Workflow>(result, count, pageSize, pageNumber);
         }

@@ -59,7 +59,7 @@ namespace Services
             var query = _context.Workflow.Include(x => x.Nodes);
 
             //get Value and count
-            var count = query.Count();
+            var count = await query.CountAsync();
             var result = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
             return new ListDto<Workflow>(result, count, pageSize, pageNumber);
 
