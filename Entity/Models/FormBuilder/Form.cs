@@ -1,4 +1,5 @@
 ﻿using Entities.Models.TableBuilder;
+using Entities.Models.Workflows;
 using System.ComponentModel;
 
 namespace Entities.Models.FormBuilder
@@ -13,7 +14,7 @@ namespace Entities.Models.FormBuilder
             this.HtmlFormBody = htmlFormBody;
         }
 
-        private Form() { }
+        public Form() { }
 
         public int Id { get; set; }
         public string Name { get; set; } = "";
@@ -22,7 +23,7 @@ namespace Entities.Models.FormBuilder
 
         #region relations
         public List<Entity>? Entities { get; set; }
-        // public List<Node> nodes { get; set; }
+        public List<Node>? Nodes { get; set; }
         #endregion
     }
 }

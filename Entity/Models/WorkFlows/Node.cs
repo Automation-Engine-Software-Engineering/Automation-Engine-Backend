@@ -8,10 +8,10 @@ namespace Entities.Models.Workflows
     public class Node
     {
         [Key]
-        public string Id { get; set; }
+        public string Id { get; set; } = "";
         public UnknownType Type { get; set; }
-        public string Icon { get; set; }
-        public string Name { get; set; }
+        public string? Icon { get; set; }
+        public string? Name { get; set; }
         public float X { get; set; }
         public float Y { get; set; }
         public float Width { get; set; }
@@ -21,7 +21,7 @@ namespace Entities.Models.Workflows
         #region relation
         public int? FormId { get; set; }
         [ForeignKey(nameof(FormId))]
-        public Form Form { get; set; }
+        public Form? Form { get; set; }
 
         public string? PreviousNodeId { get; set; }
         [ForeignKey(nameof(PreviousNodeId))]
@@ -34,7 +34,7 @@ namespace Entities.Models.Workflows
 
         public int WorkflowId { get; set; }
         [ForeignKey(nameof(WorkflowId))]
-        public Workflow Workflow { get; set; }
+        public Workflow? Workflow { get; set; }
         #endregion
     }
 }

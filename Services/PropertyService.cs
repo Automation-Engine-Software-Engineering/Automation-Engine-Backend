@@ -26,10 +26,10 @@ namespace Services
 
     public class PropertyService : IPropertyService
     {
-        private readonly DataLayer.DbContext.Context _context;
+        private readonly Context _context;
         private readonly DynamicDbContext _dynamicDbContext;
 
-        public PropertyService(DataLayer.DbContext.Context context, DynamicDbContext dynamicDbContext)
+        public PropertyService(Context context, DynamicDbContext dynamicDbContext)
         {
             _context = context;
             _dynamicDbContext = dynamicDbContext;
@@ -98,7 +98,7 @@ namespace Services
             await _context.Property.AddAsync(property);
         }
 
-        public async Task UpdateColumssnInTableAsync(EntityProperty property)
+        public async Task UpdateColumnInTableAsync(EntityProperty property)
         {
             property.DefaultValue.IsValidString();
 
@@ -123,7 +123,7 @@ namespace Services
         public async Task RemoveColumnByIdAsync(int propertyId)
         {
             var property = await _context.Property.Include(x => x.Entity).FirstAsync(x => x.Id == propertyId);
-            var commandText = $"ALTER TABLE {property.Entity.TableName} ;";
+            var commandText = $"ALTER TABLE {property.Entity?.TableName} ;";
             commandText += $"DROP COLUMN {property.PropertyName};";
             await _dynamicDbContext.ExecuteSqlRawAsync(commandText, null);
 
@@ -157,17 +157,17 @@ namespace Services
         {
             var result = await _context.Property.Include(x => x.Entity).FirstAsync(x => x.Id == propertyId);
             int offset = (pageNumber - 1) * pageSize;
-            var commandText = $"SELECT {result.PropertyName} FROM {result.Entity.TableName} {/*ORDER BY [SomeColumn]*/""} OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
-            commandText = commandText.Replace("@TableName", result.Entity.TableName);
+            var commandText = $"SELECT {result.PropertyName} FROM {result.Entity?.TableName} {/*ORDER BY [SomeColumn]*/""} OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+            commandText = commandText.Replace("@TableName", result.Entity?.TableName);
 
             return await _dynamicDbContext.ExecuteReaderAsync(commandText);
         }
 
         public async Task<ListDto<EntityProperty>> GetAllColumnByEntityIdAsync(int entityId, int pageSize, int pageNumber)
         {
-            var query = await _context.Entity.Include(x => x.Properties).FirstAsync(x => x.Id == entityId);
-            var count = query.Properties.Count;
-            var result = query.Properties.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            var query = _context.Property.Where(x => x.EntityId == entityId);
+            var count = await query.CountAsync();
+            var result = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 
             return new ListDto<EntityProperty>(result, count, pageSize, pageNumber);
         }

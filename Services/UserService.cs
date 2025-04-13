@@ -15,11 +15,11 @@ namespace Services
 {
     public interface IUserService
     {
-        Task InsertUser(User workflow);
-        Task UpdateUser(User workflow);
-        Task DeleteUser(int id);
-        Task<User> GetUserById(int id);
-        Task<List<User>> GetAllUsers();
+        Task InsertUserAsync(User workflow);
+        Task UpdateUserAsync(User workflow);
+        Task DeleteUserAsync(int id);
+        Task<User?> GetUserByIdAsync(int id);
+        Task<List<User>> GetAllUsersAsync();
         Task SaveChangesAsync();
     }
 
@@ -30,7 +30,7 @@ namespace Services
         {
             _context = context;
         }
-        public async Task DeleteUser(int id)
+        public async Task DeleteUserAsync(int id)
         {
             if (id == 0) throw new CustomException("کاربر معتبر نمی باشد");
             var feachModel = await _context.User.FirstOrDefaultAsync(x => x.Id == id)
@@ -39,7 +39,7 @@ namespace Services
             _context.User.Remove(feachModel);
         }
 
-        public async Task<List<User>> GetAllUsers()
+        public async Task<List<User>> GetAllUsersAsync()
         {
             var feachModel = await _context.User.ToListAsync()
                        ?? throw new CustomException("هیچ کاربر یافت نشد.");
@@ -47,23 +47,20 @@ namespace Services
             return feachModel;
         }
 
-        public async Task<User> GetUserById(int id)
+        public async Task<User?> GetUserByIdAsync(int id)
         {
-            if (id == 0) throw new CustomException("کاربر معتبر نمی باشد");
-
-            var feachModel = await _context.User.FirstOrDefaultAsync(x => x.Id == id)
-                  ?? throw new CustomException("کاربر معتبر نمی باشد");
+            var feachModel = await _context.User.FirstAsync(x => x.Id == id);
 
             return feachModel;
         }
 
-        public async Task InsertUser(User workflow)
+        public async Task InsertUserAsync(User workflow)
         {
             UserValidation(workflow);
 
             await _context.User.AddAsync(workflow);
         }
-        public async Task UpdateUser(User user)
+        public async Task UpdateUserAsync(User user)
         {
             UserValidation(user);
             if (user.Id == 0) throw new CustomException("کاربر معتبر نمی باشد");

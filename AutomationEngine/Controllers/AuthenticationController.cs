@@ -82,7 +82,7 @@ namespace AutomationEngine.Controllers
             userRoleId.User.UserAgent = userAgent;
             userRoleId.User.RefreshToken = tokens.RefreshToken;
 
-            await _userService.UpdateUser(userRoleId.User);
+            await _userService.UpdateUserAsync(userRoleId.User);
             await _userService.SaveChangesAsync();
 
             var needNewPassword = userRoleId.User.Password.IsNullOrEmpty();
@@ -105,7 +105,7 @@ namespace AutomationEngine.Controllers
         public async Task<ResultViewModel> GenerateToken()
         {
             var claims = await HttpContext.AuthorizeRefreshToken();
-            var user = await _userService.GetUserById(claims.UserId);
+            var user = await _userService.GetUserByIdAsync(claims.UserId);
 
             if (user.RefreshToken != claims.Token)
                 throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "Login", claims.Token), 401);
@@ -113,7 +113,7 @@ namespace AutomationEngine.Controllers
             var tokens = GenerateTokens(user, claims.RoleId);
 
             user.RefreshToken = null;
-            await _userService.UpdateUser(user);
+            await _userService.UpdateUserAsync(user);
             await _userService.SaveChangesAsync();
 
             var needNewPassword = user.Password.IsNullOrEmpty();
@@ -138,7 +138,7 @@ namespace AutomationEngine.Controllers
             if (string.IsNullOrEmpty(claims.Token) || claims.UserId == 0)
                 throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "Login", claims.Token), 401);
 
-            var user = await _userService.GetUserById(claims.UserId);
+            var user = await _userService.GetUserByIdAsync(claims.UserId);
             if (user.RefreshToken != claims.Token)
                 throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "Login", claims.Token), 401);
 
@@ -146,7 +146,7 @@ namespace AutomationEngine.Controllers
             {
                 user.RefreshToken = null;
 
-                await _userService.UpdateUser(user);
+                await _userService.UpdateUserAsync(user);
                 await _userService.SaveChangesAsync();
             }
             Response.Cookies.Delete("access_token");
@@ -166,7 +166,7 @@ namespace AutomationEngine.Controllers
             userIdRoleId.User.Password = hashPassword;
             userIdRoleId.User.Salt = salt;
 
-            await _userService.UpdateUser(userIdRoleId.User);
+            await _userService.UpdateUserAsync(userIdRoleId.User);
             await _userService.SaveChangesAsync();
 
             return (new ResultViewModel { Data = input, Message = new ValidationDto<ChangePasswordInputModel>(true, "Success", "Success", input).GetMessage(200), Status = true, StatusCode = 200 });
@@ -178,7 +178,7 @@ namespace AutomationEngine.Controllers
         public async Task<ResultViewModel> GetUser()
         {
             var claims = await HttpContext.Authorize();
-            var user = await _userService.GetUserById(claims.UserId);
+            var user = await _userService.GetUserByIdAsync(claims.UserId);
             var data = new UserDashboardViewModel
             {
                 Id = user.Id,

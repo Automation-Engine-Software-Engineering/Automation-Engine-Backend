@@ -18,20 +18,20 @@ namespace Entities.Models.TableBuilder
             this.EntityId = entity.Id;
         }
 
-        private EntityProperty(){}
+        public EntityProperty(){}
 
         public int Id { get; set; }
-        public string PreviewName { get; set; }  // For preview (each language)
-        public string PropertyName { get; set; } // Database name (en, -, and _)
+        public string? PreviewName { get; set; }  // For preview (each language)
+        public string PropertyName { get; set; } = "";// Database name (en, -, and _)
         public string? Description { get; set; }
         public string? DefaultValue { get; set; }
         public string? IsRequiredErrorMessage { get; set; }
         public string? DefaultErrorMessage { get; set; } = null;
         public string? ToolType { get; set; } = null;
         public string? IconClass { get; set; } = null;
+        public PropertyType Type { get; set; }
 
         #region Relations
-        public PropertyType Type { get; set; }
         public int EntityId { get; set; }
         [ForeignKey(nameof(EntityId))]
         public Entity? Entity { get; set; }

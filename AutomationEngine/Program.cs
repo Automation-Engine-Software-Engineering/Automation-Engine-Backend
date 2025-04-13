@@ -103,7 +103,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 //Add-Migration InitialCreate -Context Context
 //Update-Database InitialCreate -Context Context
-builder.Services.AddDbContext<DataLayer.DbContext.Context>(options =>
+builder.Services.AddDbContext<Context>(options =>
            options.UseSqlServer(builder.Configuration.GetConnectionString("BasicServer")));
 
 //Add-Migration InitialCreate -DbContext DynamicDbContext

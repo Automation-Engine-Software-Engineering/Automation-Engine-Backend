@@ -23,10 +23,10 @@ namespace Services
 
     public class EntityService : IEntityService
     {
-        private readonly DataLayer.DbContext.Context _context;
+        private readonly Context _context;
         private readonly DynamicDbContext _dynamicDbContext;
 
-        public EntityService(DataLayer.DbContext.Context context, DynamicDbContext dynamicDbContext)
+        public EntityService(Context context, DynamicDbContext dynamicDbContext)
         {
             _context = context;
             _dynamicDbContext = dynamicDbContext;

@@ -85,7 +85,7 @@ namespace AutomationEngine.ControllerAttributes
                 Token = token.Replace("Bearer ", "")
             };
 
-            var user = await userService.GetUserById(tokenClaims.UserId);
+            var user = await userService.GetUserByIdAsync(tokenClaims.UserId);
 
             if (user == null)
                 throw new CustomException("کاربر یافت نشد");
@@ -155,7 +155,7 @@ namespace AutomationEngine.ControllerAttributes
                 Token = token.Replace("Bearer ", "")
             };
 
-            var user = await userService.GetUserById(tokenClaims.UserId);
+            var user = await userService.GetUserByIdAsync(tokenClaims.UserId);
 
             if (user == null)
                 throw new CustomException("کاربر یافت نشد");

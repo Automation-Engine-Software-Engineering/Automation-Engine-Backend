@@ -12,12 +12,14 @@ namespace Entities.Models.Workflows
     public class Workflow_User
     {
         public int Id { get; set; }
-        public string WorkflowState { get; set; }
-
+        public string? WorkflowState { get; set; }
+        
+        #region relations
         public int UserId { get; set; }
 
         public int WorkflowId { get; set; }
         [ForeignKey(nameof(WorkflowId))]
-        public Workflow Workflow { get; set; }
+        public Workflow? Workflow { get; set; }
+        #endregion
     }
 }

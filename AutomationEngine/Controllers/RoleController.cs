@@ -47,7 +47,7 @@ namespace AutomationEngine.Controllers
             if (result.Id != 0)
                 throw new CustomException<Role>(new ValidationDto<Role>(false, "Role", "InvalidRole", result), 500);
 
-            if (!(await _roleService.RoleValidationAsync(result)).IsSuccess)
+            if (!(_roleService.RoleValidation(result)).IsSuccess)
                 throw new CustomException<Role>(new ValidationDto<Role>(false, "Role", "InvalidRole", result), 500);
 
             await _roleService.InsertRoleAsync(result);
@@ -77,7 +77,7 @@ namespace AutomationEngine.Controllers
             if (role.Id == 0)
                 throw new CustomException<Role>(new ValidationDto<Role>(false, "Role", "InvalidRole", result), 500);
 
-            var validationModel = await _roleService.RoleValidationAsync(result);
+            var validationModel = _roleService.RoleValidation(result);
             if (!validationModel.IsSuccess)
                 throw new CustomException<Role>(validationModel, 500);
 
@@ -99,7 +99,7 @@ namespace AutomationEngine.Controllers
             if (fetchForm == null)
                 throw new CustomException<Role>(new ValidationDto<Role>(false, "Role", "InvalidRole", fetchForm), 500);
 
-            var validationModel = await _roleService.RoleValidationAsync(fetchForm);
+            var validationModel = _roleService.RoleValidation(fetchForm);
             if (!validationModel.IsSuccess)
                 throw new CustomException<Role>(validationModel, 500);
 

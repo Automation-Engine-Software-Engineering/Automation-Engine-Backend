@@ -14,54 +14,54 @@ namespace Services
 {
     public interface IRoleUserService
     {
-        Task InsertRoleUser(Role_User roleUser);
-        Task UpdateRoleUser(Role_User roleUser);
-        Task DeleteRoleUser(int id);
-        Task<Role_User> GetRoleUserById(int userId );
-        Task<ListDto<Role_User>>  GetRoleUserByUserId(int userId , int pageSize, int pageNumber);
-        Task<ListDto<Role_User>> GetAllRoleUsers(int pageSize, int pageNumber);
-        Task<ValidationDto<Role_User>> RoleUserValidation(Role_User roleUser);
+        Task InsertRoleUserAsync(Role_User roleUser);
+        Task UpdateRoleUserAsync(Role_User roleUser);
+        Task DeleteRoleUserAsync(int id);
+        Task<Role_User?> GetRoleUserByIdAsync(int userId );
+        Task<ListDto<Role_User>>  GetRoleUserByUserIdAsync(int userId , int pageSize, int pageNumber);
+        Task<ListDto<Role_User>> GetAllRoleUsersAsync(int pageSize, int pageNumber);
+        ValidationDto<Role_User> RoleUserValidation(Role_User roleUser);
         Task<ValidationDto<string>> SaveChangesAsync();
     }
 
     public class RoleUserService : IRoleUserService
     {
-        private readonly DataLayer.DbContext.Context _context;
+        private readonly Context _context;
 
-        public RoleUserService(DataLayer.DbContext.Context context)
+        public RoleUserService(Context context)
         {
             _context = context;
         }
 
-        public async Task InsertRoleUser(Role_User roleUser)
+        public async Task InsertRoleUserAsync(Role_User roleUser)
         {
             await _context.Role_Users.AddAsync(roleUser);
         }
 
-        public async Task UpdateRoleUser(Role_User roleUser)
+        public async Task UpdateRoleUserAsync(Role_User roleUser)
         {
-            var existingRoleUser = await _context.Role_Users.FirstOrDefaultAsync(x => x.Id == roleUser.Id);
+            var existingRoleUser = await _context.Role_Users.FirstAsync(x => x.Id == roleUser.Id);
 
             existingRoleUser.RoleId = roleUser.RoleId;
             existingRoleUser.UserId = roleUser.UserId;
             _context.Role_Users.Update(existingRoleUser);
         }
 
-        public async Task DeleteRoleUser(int id)
+        public async Task DeleteRoleUserAsync(int id)
         {
-            var roleUser = await _context.Role_Users.FirstOrDefaultAsync(x => x.Id == id);
+            var roleUser = await _context.Role_Users.FirstAsync(x => x.Id == id);
 
             _context.Role_Users.Remove(roleUser);
         }
 
-        public async Task<Role_User> GetRoleUserById(int id)
+        public async Task<Role_User?> GetRoleUserByIdAsync(int id)
         {
             var roleUser = await _context.Role_Users.FirstOrDefaultAsync(x => x.Id == id);
 
             return roleUser;
         }
 
-        public async Task<ListDto<Role_User>> GetAllRoleUsers(int pageSize, int pageNumber)
+        public async Task<ListDto<Role_User>> GetAllRoleUsersAsync(int pageSize, int pageNumber)
         {
             var query = _context.Role_Users;
 
@@ -71,7 +71,7 @@ namespace Services
             return new ListDto<Role_User>(items, count, pageSize, pageNumber);
         }
 
-        public async Task<ValidationDto<Role_User>> RoleUserValidation(Role_User roleUser)
+        public ValidationDto<Role_User> RoleUserValidation(Role_User roleUser)
         {
             if (roleUser == null)
             {
@@ -104,7 +104,7 @@ namespace Services
             }
         }
 
-        public async Task<ListDto<Role_User>>  GetRoleUserByUserId(int userId , int pageSize, int pageNumber)
+        public async Task<ListDto<Role_User>>  GetRoleUserByUserIdAsync(int userId , int pageSize, int pageNumber)
         {
             var query = _context.Role_Users.Where(x => x.UserId == userId);
             var count = await query.CountAsync();

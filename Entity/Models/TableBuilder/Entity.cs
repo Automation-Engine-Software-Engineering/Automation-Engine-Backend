@@ -15,11 +15,11 @@ namespace Entities.Models.TableBuilder
             this.Forms = forms;
         }
 
-        private Entity() { }
+        public Entity() { }
 
         public int Id { get; set; }
-        public string PreviewName { get; set; } //just for preview (each lang)
-        public string TableName { get; set; } //for database (en and - and _)
+        public string? PreviewName { get; set; } //just for preview (each lang)
+        public string TableName { get; set; } = "";//for database (en and - and _)
         public string? Description { get; set; }
 
         #region relations

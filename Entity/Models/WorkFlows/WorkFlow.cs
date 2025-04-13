@@ -12,8 +12,10 @@ namespace Entities.Models.Workflows
         public int Id { get; set; }
         public string Name { get; set; } = "";
         public string? Description { get; set; }
-        public List<Node> Nodes { get; set; }
-        public List<Role_Workflow> Role_Workflows { get; set; }
-        public List<Workflow_User> workflowUser { get; set; }
+        #region relations
+        public List<Node>? Nodes { get; set; }
+        public List<Role_Workflow>? Role_Workflows { get; set; }
+        public List<Workflow_User>? workflowUser { get; set; }
+        #endregion
     }
 }

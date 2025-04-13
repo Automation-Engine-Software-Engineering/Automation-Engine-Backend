@@ -31,10 +31,10 @@ namespace Services
 
     public class FormService : IFormService
     {
-        private readonly DataLayer.DbContext.Context _context;
+        private readonly Context _context;
         private readonly DynamicDbContext _dynamicDbContext;
         private readonly IHtmlService _htmlService;
-        public FormService(DataLayer.DbContext.Context context, DynamicDbContext dynamicDbContext, IHtmlService htmlService)
+        public FormService(Context context, DynamicDbContext dynamicDbContext, IHtmlService htmlService)
         {
             _context = context;
             _dynamicDbContext = dynamicDbContext;

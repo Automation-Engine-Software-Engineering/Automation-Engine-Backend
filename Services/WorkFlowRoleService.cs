@@ -36,8 +36,8 @@ namespace Services
 
     public class WorkflowRoleService : IWorkflowRoleService
     {
-        private readonly DataLayer.DbContext.Context _context;
-        public WorkflowRoleService(DataLayer.DbContext.Context context)
+        private readonly Context _context;
+        public WorkflowRoleService(Context context)
         {
             _context = context;
         }
