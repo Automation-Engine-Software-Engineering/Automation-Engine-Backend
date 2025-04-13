@@ -7,6 +7,7 @@ using FrameWork.Model.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using Services;
@@ -69,7 +70,7 @@ namespace AutomationEngine.Controllers
 
         // POST: api/login/{userName}  
         [HttpPost("login/{userName}")]
-
+        [EnableRateLimiting("LoginRateLimit")]
         public async Task<ResultViewModel> Login(string userName, [FromBody] string password)
         {
             var ip = HttpContext.GetIP();
@@ -100,6 +101,7 @@ namespace AutomationEngine.Controllers
 
         // POST: api/generateToken
         [HttpGet("generateToken")]
+        [EnableRateLimiting("LoginRateLimit")]
         public async Task<ResultViewModel> GenerateToken()
         {
             var claims = await HttpContext.AuthorizeRefreshToken();
@@ -128,6 +130,7 @@ namespace AutomationEngine.Controllers
             return (new ResultViewModel { Data = result, Message = new ValidationDto<string>(true, "Success", "Success", tokens.AccessToken).GetMessage(200), Status = true, StatusCode = 200 });
         }
         [HttpPost("logout")]
+        [EnableRateLimiting("LoginRateLimit")]
         public async Task<ResultViewModel> Logout()
         {
             var claims = await HttpContext.AuthorizeRefreshToken();

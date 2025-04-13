@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Services;
 using System.Text;
+using System.Threading.RateLimiting;
 using Tools.AuthoraizationTools;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,8 +17,57 @@ var audience = builder.Configuration["JWTSettings:Audience"] ?? throw new Custom
 var accessTokenSecret = builder.Configuration["JWTSettings:AccessTokenSecret"] ?? throw new CustomException("Audience در appsettings یافت نشد");
 var issuer = builder.Configuration["JWTSettings:Issuer"] ?? throw new CustomException("Issuer در appsettings یافت نشد");
 
+var queueLimit = int.Parse(builder.Configuration["RateLimiter:QueueLimit"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
+var permitLimit = int.Parse(builder.Configuration["RateLimiter:PermitLimit"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
+var window = TimeSpan.Parse(builder.Configuration["RateLimiter:Window"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
+
+var queueLimitLogin = int.Parse(builder.Configuration["RateLimiter:QueueLimitLogin"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
+var permitLimitLogin = int.Parse(builder.Configuration["RateLimiter:PermitLimitLogin"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
+var windowLogin = TimeSpan.Parse(builder.Configuration["RateLimiter:WindowLogin"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
+
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 Console.WriteLine($"Current Environment: {environment}");
+
+builder.Services.AddRateLimiter(options =>
+{
+    // محدودیت سراسری: حداکثر 5 درخواست در هر 10 ثانیه
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.GetIP(),
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = permitLimit, // تعداد درخواست مجاز
+                Window = window, // بازه زمانی
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = queueLimit,// حداکثر تعداد درخواست در صف
+                AutoReplenishment = true
+            });
+    });
+    options.AddPolicy("LoginRateLimit", context =>
+       RateLimitPartition.GetFixedWindowLimiter(
+           context.GetIP(),
+           partition => new FixedWindowRateLimiterOptions
+           {
+               PermitLimit = permitLimitLogin,
+               Window = windowLogin, // بازه زمانی
+               QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+               QueueLimit = queueLimitLogin,
+               AutoReplenishment = true
+           }
+       )
+   );
+    // response of error
+    options.OnRejected = async (context, token) =>
+    {
+        var ex = new CustomException<object>(new FrameWork.Model.DTO.ValidationDto<object>(false, "Authentication", "TooManyRequests", null), 429);
+        throw ex;
+        //return new ValueTask(ExceptionHandling.HandleCustomExceptionAsync(context.HttpContext, ex));
+        context.HttpContext.Response.StatusCode = 429;
+        await context.HttpContext.Response.WriteAsync("Too many requests. Please try later again... ", cancellationToken: token);
+
+    };
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -109,6 +159,7 @@ builder.Services.AddAntiforgery(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -119,7 +170,9 @@ else
     app.UseHsts();
     app.UseMiddleware<CspMiddleware>();
     app.UseHttpsRedirection();
+    app.UseRateLimiter();
 }
+
 app.UseCors(builder =>
 {
     if (app.Environment.IsDevelopment())
@@ -142,9 +195,7 @@ app.UseCors(builder =>
     }
 });
 
-app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthorization();
-
 app.UseStaticFiles();
 app.MapControllers();
 

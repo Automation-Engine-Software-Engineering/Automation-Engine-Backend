@@ -62,7 +62,7 @@
         "FileType": "پسوند فایل آپلود شده معتبر نمی باشد",
         "CorruptedFile": "فایل آپلود شده معتبر نمی باشد"
       },
-      "Defult": {
+      "Default": {
         "CorruptedStringQuery": "خظا در نوشتار دستور وجود دارد",
         "CorruptedStringCommand": "خظا در نوشتار دستور وجود دارد",
         "CorruptedString": "خظا در نوشتار وجود دارد"
@@ -71,7 +71,8 @@
     "Warning": {
       "Authentication": {
         "NotAuthorized": "شما به این بخش دسترسی ندارید",
-        "Login": "رمز عبور یا نام کاربری اشتباه است"
+        "Login": "رمز عبور یا نام کاربری اشتباه است",
+        "TooManyRequests": "تعداد درخواست های شما بیش از حد مجاز است. لطفاً بعداً تلاش کنید"
       }
     },
     "Success": {
