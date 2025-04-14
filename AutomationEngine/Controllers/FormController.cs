@@ -13,6 +13,7 @@ using Entities.Models.Workflows;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using DataLayer.DbContext;
 using Tools.AuthoraizationTools;
+using Tools.TextTools;
 
 namespace AutomationEngine.Controllers
 {
@@ -265,61 +266,51 @@ namespace AutomationEngine.Controllers
         }
 
         // POST: api/form/{formId}/updateBody  
-        [HttpPost("{formId}/sendFormData")]
-        public async Task<ResultViewModel> SendFormData(int formId, int workflowUserId, [FromBody] List<(int id, object content)> formData)
+        [HttpPost("saveFormData")]
+        public async Task<ResultViewModel> SaveFormData(int workflowUserId, [FromBody] List<SaveDataDTO> formData)
         {
-            if (formId == 0 && workflowUserId == 0 && formData.Any(x => x.id == 0))
-                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedFormData", formId), 500);
+            if (workflowUserId == 0 && formData.Any(x => x.id == 0))
+                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedFormData", workflowUserId), 500);
 
             var workflowUser = await _workflowUserService.GetWorkflowUserById(workflowUserId);
             if (workflowUser == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "UserWorkflowNotfound", workflowUserId), 500);
 
-            var form = await _formService.GetFormByIdIncEntityIncPropertyAsync(formId);
-            if (form == null)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Form", "FormNotfound", formId), 500);
-
             var claims = await HttpContext.Authorize();
 
             if (claims.UserId != workflowUser.UserId)
-                throw new CustomException<int>(new ValidationDto<int>(false, "User", "UserNotFound", formId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "User", "UserNotFound", workflowUserId), 500);
 
             var workflow = await _workflowService.GetWorkflowByIdIncNodesAsync(workflowUser.WorkflowId);
             if (workflow == null)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowRoleNotfound", formId), 500);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowRoleNotfound", workflowUserId), 500);
 
             var workflowRole = await _workflowRoleService.ExistAllWorkflowRolesBuRoleId(claims.RoleId, workflow.Id);
             if (!workflowRole)
-                throw new CustomException<int>(new ValidationDto<int>(false, "Warning", "NotAuthorized", formId), 403);
+                throw new CustomException<int>(new ValidationDto<int>(false, "Warning", "NotAuthorized", workflowUserId), 403);
 
-            var currentNode = workflow.Nodes.FirstOrDefault(x => x.Id == workflowUser.WorkflowState);
-            if (currentNode?.FormId != formId)
-                throw new CustomException<Node>(new ValidationDto<Node>(false, "Form", "FormNotfound", currentNode), 500);
 
             List<Entity> entites = new List<Entity>();
             foreach (var prop in formData)
             {
                 var property = await _propertyService.GetColumnByIdIncEntityAsync(prop.id);
-                if(property == null)
-                    throw new CustomException<int>(new ValidationDto<int>(false, "Property", "PropertyNotFound", formId), 500);
+                if (property == null)
+                    throw new CustomException<int>(new ValidationDto<int>(false, "Property", "PropertyNotFound", workflowUserId), 500);
 
-                if (entites.Any(x => property != null && x == property.Entity ))
-                {
-                    entites.First(x => x == property?.Entity).Properties?.Add(property);
-                }
-                else
+                if (!entites.Any(x => property != null && x == property.Entity))
                 {
                     var entity = property.Entity;
-                    if(entity == null)
-                        throw new CustomException<int>(new ValidationDto<int>(false, "Entity", "EntityNotFound", formId), 500);
+                    if (entity == null)
+                        throw new CustomException<int>(new ValidationDto<int>(false, "Entity", "EntityNotFound", workflowUserId), 500);
 
                     entity.Properties = [property];
+                    entites.Add(entity);
                 }
             }
 
             foreach (var entity in entites)
             {
-                string query = $"Insert into {entity.TableName} (";
+                string query = $"Insert into [dbo].[{entity.TableName}] (";
                 int i = 0;
                 var propName = new List<string>();
                 var propValue = new List<string>();
@@ -330,22 +321,26 @@ namespace AutomationEngine.Controllers
                     propValue.Add(formData.FirstOrDefault(xx => xx.id == x.Id).content.ToString() ?? "");
                 });
 
+                propValue.ForEach(x => x.IsValidString());
                 i = 0;
                 propName.ForEach(x =>
                 {
                     if (i != 0)
                         query += " , ";
                     query += x;
+                    i++;
                 });
 
-                query += ") Value (";
+                query += ") Values (";
 
                 i = 0;
                 propValue.ForEach(x =>
                 {
                     if (i != 0)
                         query += " , ";
-                    query += x;
+                    query += $"N'{x}'" ;
+                    i++;
+
                 });
 
                 query += ")";
@@ -353,7 +348,7 @@ namespace AutomationEngine.Controllers
                 await _dynamicDbContext.ExecuteSqlRawAsync(query);
             }
 
-            return (new ResultViewModel { Data = entites, Message = new ValidationDto<Form>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel { Data = entites, Message = new ValidationDto<List<Entity>>(true, "Success", "Success", entites).GetMessage(200), Status = true, StatusCode = 200 });
         }
     }
 }

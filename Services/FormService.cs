@@ -194,6 +194,10 @@ namespace Services
             var htmlBody = form.HtmlFormBody.ToString();
             htmlBody = htmlBody.Replace("disabled", "");
             htmlBody = htmlBody.Replace("&nbsp;", " ");
+            htmlBody = htmlBody.Replace("contenteditable=\"true\"", " ");
+            htmlBody = htmlBody.Replace("contenteditable=\"false\"", " ");
+            htmlBody = htmlBody.Replace("resize: both;", " ");
+            htmlBody = htmlBody.Replace("<tr><td>پیش نمایش</td></tr>", " ");
 
             string tagName = "select";
             var attributes = new List<string> { "data-tableid", "data-condition", "data-filter" };

@@ -15,15 +15,17 @@ namespace Tools.TextTools
 
         public static bool IsValidateStringQuery(this string input)
         {
-            string pattern = @"\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|ALTER|EXEC|CREATE|TRUNCATE|REPLACE|LOAD_FILE|INTO OUTFILE|OR\s+1=1|--|;|\/\*|\*\/)\b";
+            string pattern = @"\b(?!(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|ALTER|EXEC|CREATE|TRUNCATE|REPLACE|LOAD_FILE|INTO OUTFILE|OR\s+1=1|--|;|\/\*|\*\/)\b).+\b";
             return Regex.IsMatch(input, pattern) ? Regex.IsMatch(input, pattern) :
-                 throw new CustomException<string>(new ValidationDto<string>(false, "Default", "CorruptedStringQuery", input), 500);
+                           throw new CustomException<string>(new ValidationDto<string>(false, "Default", "CorruptedStringQuery", input), 500);
         }
+
+
 
 
         public static bool IsValidString(this string? input)
         {
-            if(input == null)
+            if (input == null)
                 return true;
             string pattern = @"(?<![-_])([a-zA-Z\u0600-\u06FF]+(?:[ _-][a-zA-Z\u0600-\u06FF]+)*)?(?![-_])";
             return Regex.IsMatch(input, pattern) ? Regex.IsMatch(input, pattern) :
