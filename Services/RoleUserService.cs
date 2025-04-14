@@ -17,10 +17,12 @@ namespace Services
         Task InsertRoleUser(Role_User roleUser);
         Task UpdateRoleUser(Role_User roleUser);
         Task DeleteRoleUser(int id);
-        Task<Role_User> GetRoleUserById(int userId );
-        Task<ListDto<Role_User>>  GetRoleUserByUserId(int userId , int pageSize, int pageNumber);
+        Task<Role_User> GetRoleUserById(int userId);
+        Task<ListDto<Role_User>> GetRoleUserByUserId(int userId, int pageSize, int pageNumber);
         Task<ListDto<Role_User>> GetAllRoleUsers(int pageSize, int pageNumber);
         Task<ValidationDto<Role_User>> RoleUserValidation(Role_User roleUser);
+        Task InsertRengeUserRole(List<Role_User> Users);
+        Task ReplaceUserRolesByRoleId(int RoleId, List<int> UserIds);
         Task<ValidationDto<string>> SaveChangesAsync();
     }
 
@@ -45,6 +47,23 @@ namespace Services
             existingRoleUser.RoleId = roleUser.RoleId;
             existingRoleUser.UserId = roleUser.UserId;
             _context.Role_Users.Update(existingRoleUser);
+        }
+
+        public async Task InsertRengeUserRole(List<Role_User> Users)
+        {
+            await _context.Role_Users.AddRangeAsync(Users);
+        }
+        public async Task ReplaceUserRolesByRoleId(int RoleId, List<int> UserIds)
+        {
+            var roleWorkflows = await _context.Role_Users.Where(x => x.RoleId == RoleId).ToListAsync();
+            _context.Role_Users.RemoveRange(roleWorkflows);
+
+            var newRoleWorkflows = UserIds.Select(x => new Role_User
+            {
+                RoleId = RoleId,
+                UserId = x
+            }).ToList();
+            await InsertRengeUserRole(newRoleWorkflows);
         }
 
         public async Task DeleteRoleUser(int id)
@@ -104,7 +123,7 @@ namespace Services
             }
         }
 
-        public async Task<ListDto<Role_User>>  GetRoleUserByUserId(int userId , int pageSize, int pageNumber)
+        public async Task<ListDto<Role_User>> GetRoleUserByUserId(int userId, int pageSize, int pageNumber)
         {
             var query = _context.Role_Users.Where(x => x.UserId == userId);
             var count = await query.CountAsync();

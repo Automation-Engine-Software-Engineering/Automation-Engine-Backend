@@ -52,7 +52,7 @@ namespace AutomationEngine.Controllers
             if (result.Id != 0)
                 throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
 
-            var validationModel = await _propertyService.PropertyValidation(result);
+            var validationModel =  _propertyService.PropertyValidation(result);
             if (!validationModel.IsSuccess)
                 throw new CustomException<EntityProperty>(validationModel, 500);
 
@@ -95,7 +95,7 @@ namespace AutomationEngine.Controllers
 
             result.Id = entity.Id;
 
-            var validationModel = await _propertyService.PropertyValidation(result);
+            var validationModel =  _propertyService.PropertyValidation(result);
             if (!validationModel.IsSuccess)
                 throw new CustomException<EntityProperty>(validationModel, 500);
 
@@ -113,7 +113,7 @@ namespace AutomationEngine.Controllers
             fetchModel.Type = result.Type;
 
             //initial action
-            await _propertyService.UpdateColumnInTableAsync(fetchModel);
+            await _propertyService.UpdateColumssnInTableAsync(fetchModel);
             var saveResult = await _propertyService.SaveChangesAsync();
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
@@ -133,7 +133,7 @@ namespace AutomationEngine.Controllers
             if (property == null)
                 throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
 
-            var validationModel = await _propertyService.PropertyValidation(property);
+            var validationModel =  _propertyService.PropertyValidation(property);
             if (!validationModel.IsSuccess)
                 throw new CustomException<EntityProperty>(validationModel, 500);
 
@@ -157,7 +157,7 @@ namespace AutomationEngine.Controllers
             if (column == null)
                 throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Form", "CorruptedProperty", null), 500);
 
-            var validationModel = await _propertyService.PropertyValidation(column);
+            var validationModel = _propertyService.PropertyValidation(column);
             if (!validationModel.IsSuccess)
                 throw new CustomException<EntityProperty>(validationModel, 500);
 

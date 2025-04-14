@@ -104,12 +104,12 @@ builder.Services.AddSwaggerGen(c =>
 //Add-Migration InitialCreate -Context Context
 //Update-Database InitialCreate -Context Context
 builder.Services.AddDbContext<DataLayer.DbContext.Context>(options =>
-           options.UseSqlServer(builder.Configuration.GetConnectionString("BasicServer")));
+           options.UseSqlServer(builder.Configuration.GetConnectionString("Basic")));
 
 //Add-Migration InitialCreate -DbContext DynamicDbContext
 //Update-Database InitialCreate -DbContext DynamicDbContext
 builder.Services.AddDbContext<DynamicDbContext>(options =>
-           options.UseSqlServer(builder.Configuration.GetConnectionString("DynamicServer")));
+           options.UseSqlServer(builder.Configuration.GetConnectionString("Dynamic")));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

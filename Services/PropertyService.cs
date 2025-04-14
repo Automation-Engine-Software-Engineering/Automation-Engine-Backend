@@ -12,7 +12,7 @@ namespace Services
     public interface IPropertyService
     {
         Task AddColumnToTableAsync(EntityProperty property);
-        Task UpdateColumnInTableAsync(EntityProperty property);
+         Task UpdateColumssnInTableAsync(EntityProperty property);
         Task RemoveColumnByIdAsync(int propertyId);
         Task<ListDto<EntityProperty>> GetAllColumnsAsync(int pageSize, int pageNumber);
         Task<EntityProperty?> GetColumnByIdAsync(int propertyId);
@@ -59,35 +59,35 @@ namespace Services
                 case PropertyType.Float:
                     parameters.Add(("@Type", "Float"));
                     break;
-                    
+
                 case PropertyType.Email:
                     parameters.Add(("@Type", "Nvarchar(50)"));
                     break;
-                    
+
                 case PropertyType.Color:
                     parameters.Add(("@Type", "Nvarchar(50)"));
                     break;
-                    
+
                 case PropertyType.BIT:
                     parameters.Add(("@Type", "BIT"));
                     break;
-                    
+
                 case PropertyType.BinaryLong:
                     parameters.Add(("@Type", "binary(max)"));
                     break;
-                    
+
                 case PropertyType.NvarcharLong:
                     parameters.Add(("@Type", "Nvarchar(max)"));
                     break;
-                    
+
                 case PropertyType.NvarcharShort:
                     parameters.Add(("@Type", "Nvarchar(50)"));
                     break;
-                    
+
                 case PropertyType.Password:
                     parameters.Add(("@Type", "Nvarchar(50)"));
                     break;
-                    
+
                 case PropertyType.Time:
                     parameters.Add(("@Type", "time(7)"));
                     break;
@@ -149,7 +149,7 @@ namespace Services
         }
         public async Task<EntityProperty?> GetColumnByIdIncEntityAsync(int propertyId)
         {
-            var result = await _context.Property.Include(x=>x.Entity).FirstOrDefaultAsync(x => x.Id == propertyId);
+            var result = await _context.Property.Include(x => x.Entity).FirstOrDefaultAsync(x => x.Id == propertyId);
             return result;
         }
 
