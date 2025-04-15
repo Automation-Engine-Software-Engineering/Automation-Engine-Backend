@@ -265,6 +265,99 @@ namespace AutomationEngine.Controllers
             return (new ResultViewModel { Data = form, Message = new ValidationDto<Form>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
+        // // POST: api/form/{formId}/updateBody  
+        // [HttpPost("saveFormData")]
+        // public async Task<ResultViewModel> SaveFormData(int workflowUserId, [FromBody] List<SaveDataDTO> formData)
+        // {
+        //     if (workflowUserId == 0 && formData.Any(x => x.id == 0))
+        //         throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedFormData", workflowUserId), 500);
+
+        //     var workflowUser = await _workflowUserService.GetWorkflowUserById(workflowUserId);
+        //     if (workflowUser == null)
+        //         throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "UserWorkflowNotfound", workflowUserId), 500);
+
+        //     var claims = await HttpContext.Authorize();
+
+        //     if (claims.UserId != workflowUser.UserId)
+        //         throw new CustomException<int>(new ValidationDto<int>(false, "User", "UserNotFound", workflowUserId), 500);
+
+        //     var workflow = await _workflowService.GetWorkflowByIdIncNodesAsync(workflowUser.WorkflowId);
+        //     if (workflow == null)
+        //         throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowRoleNotfound", workflowUserId), 500);
+
+        //     var workflowRole = await _workflowRoleService.ExistAllWorkflowRolesBuRoleId(claims.RoleId, workflow.Id);
+        //     if (!workflowRole)
+        //         throw new CustomException<int>(new ValidationDto<int>(false, "Warning", "NotAuthorized", workflowUserId), 403);
+
+
+        //     List<Entity> entites = new List<Entity>();
+        //     foreach (var prop in formData)
+        //     {
+        //         var property = new EntityProperty();
+        //         property = await _propertyService.GetColumnByIdIncEntityAsync(prop.id);
+        //         if (property == null)
+        //             throw new CustomException<int>(new ValidationDto<int>(false, "Property", "PropertyNotFound", workflowUserId), 500);
+
+        //         if (entites.Any(x => property != null && x == property.Entity && x.PreviewName == prop.group))
+        //         {
+        //             entites.First(x => x == property?.Entity && x.PreviewName == prop.group).Properties?.Add(property);
+        //         }
+        //         else
+        //         {
+        //             var entity = property.Entity;
+        //             entity.PreviewName = prop.group;
+        //             if (entity == null)
+        //                 throw new CustomException<int>(new ValidationDto<int>(false, "Entity", "EntityNotFound", workflowUserId), 500);
+
+        //             entity.Properties = [property];
+        //             entites.Add(entity);
+        //         }
+        //     }
+
+        //     foreach (var entity in entites)
+        //     {
+        //         string query = $"Insert into [dbo].[{entity.TableName}] (";
+        //         int i = 0;
+        //         var propName = new List<string>();
+        //         var propValue = new List<string>();
+
+        //         entity.Properties?.ForEach(x =>
+        //         {
+        //             propName.Add(x.PropertyName);
+        //             propValue.Add(formData.FirstOrDefault(xx => xx.id == x.Id).content.ToString() ?? "");
+        //         });
+
+        //         propValue.ForEach(x => x.IsValidString());
+        //         i = 0;
+        //         propName.ForEach(x =>
+        //         {
+        //             if (i != 0)
+        //                 query += " , ";
+        //             query += x;
+        //             i++;
+        //         });
+
+        //         query += ") Values (";
+
+        //         i = 0;
+        //         propValue.ForEach(x =>
+        //         {
+        //             if (i != 0)
+        //                 query += " , ";
+        //             query += $"N'{x}'";
+        //             i++;
+
+        //         });
+
+        //         query += ")";
+
+        //         await _dynamicDbContext.ExecuteSqlRawAsync(query);
+        //     }
+
+        //     return (new ResultViewModel { Data = entites, Message = new ValidationDto<List<Entity>>(true, "Success", "Success", entites).GetMessage(200), Status = true, StatusCode = 200 });
+        // }
+
+
         // POST: api/form/{formId}/updateBody  
         [HttpPost("saveFormData")]
         public async Task<ResultViewModel> SaveFormData(int workflowUserId, [FromBody] List<SaveDataDTO> formData)
@@ -293,19 +386,13 @@ namespace AutomationEngine.Controllers
             List<Entity> entites = new List<Entity>();
             foreach (var prop in formData)
             {
-                var property = new EntityProperty();
-                property = await _propertyService.GetColumnByIdIncEntityAsync(prop.id);
+                var property = await _propertyService.GetColumnByIdIncEntityAsync(prop.id);
                 if (property == null)
                     throw new CustomException<int>(new ValidationDto<int>(false, "Property", "PropertyNotFound", workflowUserId), 500);
 
-                if (entites.Any(x => property != null && x == property.Entity && x.PreviewName == prop.group))
-                {
-                    entites.First(x => x == property?.Entity && x.PreviewName == prop.group).Properties?.Add(property);
-                }
-                else
+                if (!entites.Any(x => property != null && x == property.Entity))
                 {
                     var entity = property.Entity;
-                    entity.PreviewName = prop.group;
                     if (entity == null)
                         throw new CustomException<int>(new ValidationDto<int>(false, "Entity", "EntityNotFound", workflowUserId), 500);
 
@@ -316,6 +403,8 @@ namespace AutomationEngine.Controllers
 
             foreach (var entity in entites)
             {
+                var countQuery = $"SELECT TOP(1) id FROM [dbo].[{entity.TableName}] ORDER BY id DESC";
+                var data = await _dynamicDbContext.ExecuteReaderAsync(countQuery);
                 string query = $"Insert into [dbo].[{entity.TableName}] (";
                 int i = 0;
                 var propName = new List<string>();
@@ -329,10 +418,11 @@ namespace AutomationEngine.Controllers
 
                 propValue.ForEach(x => x.IsValidString());
                 i = 0;
+                query += "Id";
+
                 propName.ForEach(x =>
                 {
-                    if (i != 0)
-                        query += " , ";
+                    query += " , ";
                     query += x;
                     i++;
                 });
@@ -340,10 +430,18 @@ namespace AutomationEngine.Controllers
                 query += ") Values (";
 
                 i = 0;
+                if (data.Data.ToList().Count == 0)
+                {
+                    query += "1";
+                }
+                else
+                {
+                    query += int.Parse(data.Data.ToList()[0]["id"].ToString())+1;
+                }
+
                 propValue.ForEach(x =>
                 {
-                    if (i != 0)
-                        query += " , ";
+                    query += " , ";
                     query += $"N'{x}'";
                     i++;
 
@@ -356,5 +454,6 @@ namespace AutomationEngine.Controllers
 
             return (new ResultViewModel { Data = entites, Message = new ValidationDto<List<Entity>>(true, "Success", "Success", entites).GetMessage(200), Status = true, StatusCode = 200 });
         }
+
     }
 }

@@ -11,6 +11,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using Tools.TextTools;
 using ViewModels;
 using ViewModels.ViewModels.Entity;
+using ViewModels.ViewModels.Workflow;
 
 namespace AutomationEngine.Controllers
 {
@@ -261,5 +262,44 @@ namespace AutomationEngine.Controllers
             return (new ResultViewModel { ListNumber = columns.ListNumber, ListSize = columns.ListSize, TotalCount = columns.TotalCount, Data = columns.Data, Message = new ValidationDto<ListDto<Dictionary<string, object>>>(true, "Success", "Success", columns).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
+        // GET: api/form/all  
+        [HttpGet("from/all")]
+        public async Task<ResultViewModel> GetAllRoleUserAndUser(int FormId, int pageSize, int pageNumber)
+        {
+            if (pageSize > 100)
+                pageSize = 100;
+            if (pageNumber < 1)
+                pageNumber = 1;
+
+            ListDto<IsAccessModel> forms = await _entityService.GetAllEntityForFormAccess(FormId, pageSize, pageNumber);
+
+            //is valid data
+            if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
+                throw new CustomException<ListDto<IsAccessModel>>(new ValidationDto<ListDto<IsAccessModel>>(false, "Form", "CorruptedInvalidPage", forms), 500);
+
+            return (new ResultViewModel { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<IsAccessModel>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
+        }
+
+              // POST: api/form/create  
+        [HttpPost("create/allByFormId/{FormId}")]
+        public async Task<ResultViewModel> CreateWorkflowRoleAllByWorkflowId([FromBody] List<int> Entites,int FormId)
+        {
+            if (Entites == null)
+                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
+
+            var entites = new List<Entity>();
+            
+            //is validation model
+            foreach (var entite in entites)
+            {
+                var validationModel = _entityService.EntityValidation(entite);
+                if (!validationModel.IsSuccess)
+                    throw new CustomException<Entity>(validationModel, 500);
+            }
+
+            await _entityService.ReplaceEntityRolesByFormId(FormId,Entites);
+            await _entityService.SaveChangesAsync();
+            return (new ResultViewModel { Data = entites, Message = new ValidationDto<List<Entity>>(true, "Success", "Success", entites).GetMessage(200), Status = true, StatusCode = 200 });
+        }
     }
 }

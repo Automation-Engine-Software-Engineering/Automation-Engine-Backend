@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.IdentityModel.Tokens;
 using Tools.TextTools;
+using ViewModels.ViewModels.Workflow;
 namespace Services
 {
     public interface IEntityService
@@ -18,7 +19,9 @@ namespace Services
         Task<ListDto<Entity>> GetAllEntitiesByFormIdAsync(int formId, int pageSize, int pageNumber);
         Task<Entity?> GetEntitiesByIdAsync(int entityId);
         ValidationDto<Entity> EntityValidation(Entity entity);
+        Task<ListDto<IsAccessModel>> GetAllEntityForFormAccess(int FormId, int pageSize, int pageNumber);
         Task<ValidationDto<string>> SaveChangesAsync();
+        Task ReplaceEntityRolesByFormId(int formId, List<int> entiteIds);
     }
 
     public class EntityService : IEntityService
@@ -74,13 +77,13 @@ namespace Services
             //sql query command       
 
             var commandText = $"EXEC sp_rename @OldTableName , @NewTableName";
-          
+
             var parameters = new List<(string ParameterName, string ParameterValue)>();
             parameters.Add(("@OldTableName", fetchModel.TableName));
             parameters.Add(("@NewTableName", entity.TableName));
 
             await _dynamicDbContext.ExecuteSqlRawAsync(commandText, parameters);
-     
+
 
             //transfer model
             fetchModel.PreviewName = entity.PreviewName;
@@ -91,7 +94,7 @@ namespace Services
             _context.Entity.Update(fetchModel);
         }
 
-        public async Task<ListDto<Entity>> GetAllEntitiesAsync(int pageSize, int pageNumber,string search = "",int? formId = null)
+        public async Task<ListDto<Entity>> GetAllEntitiesAsync(int pageSize, int pageNumber, string search = "", int? formId = null)
         {
             //create query
             var query = _context.Entity.AsQueryable();
@@ -102,7 +105,7 @@ namespace Services
 
             //only get items with this form
             if (formId != null && formId != 0)
-                query = query.Include(x=>x.Forms).Where(x => x.Forms.Any(x=>x.Id == formId));
+                query = query.Include(x => x.Forms).Where(x => x.Forms.Any(x => x.Id == formId));
 
             //get Value and count
             var count = await query.CountAsync();
@@ -148,6 +151,30 @@ namespace Services
             {
                 return new ValidationDto<string>(false, "Form", "CorruptedForm", ex.Message);
             }
+        }
+
+        public async Task<ListDto<IsAccessModel>> GetAllEntityForFormAccess(int FormId, int pageSize, int pageNumber)
+        {
+            var count = await _context.Entity.CountAsync();
+            var entites = await _context.Entity.Include(x => x.Forms)
+            .Skip((pageNumber - 1) * pageSize).Take(pageSize)
+            .ToListAsync();
+
+            var result = entites.Select(x => new IsAccessModel() { Id = x.Id, Name = x.PreviewName, IsAccess = x.Forms.Any(x => x.Id == FormId) ? true : false }).ToList();
+
+            var list = new ListDto<IsAccessModel>(result, count, pageSize = pageSize, pageNumber = pageNumber);
+
+            return list;
+        }
+
+        public async Task ReplaceEntityRolesByFormId(int formId, List<int> entiteIds)
+        {
+            var form = _context.Form.Include(x => x.Entities).FirstOrDefault(x => x.Id != formId);
+            form.Entities = new List<Entity>();
+            var entites = _context.Entity.Where(x => entiteIds.Any(xx => xx == x.Id)).ToList();
+            form.Entities = entites;
+
+            _context.Form.Update(form);
         }
     }
 }
