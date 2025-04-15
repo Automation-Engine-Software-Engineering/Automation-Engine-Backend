@@ -293,13 +293,19 @@ namespace AutomationEngine.Controllers
             List<Entity> entites = new List<Entity>();
             foreach (var prop in formData)
             {
-                var property = await _propertyService.GetColumnByIdIncEntityAsync(prop.id);
+                var property = new EntityProperty();
+                property = await _propertyService.GetColumnByIdIncEntityAsync(prop.id);
                 if (property == null)
                     throw new CustomException<int>(new ValidationDto<int>(false, "Property", "PropertyNotFound", workflowUserId), 500);
 
-                if (!entites.Any(x => property != null && x == property.Entity))
+                if (entites.Any(x => property != null && x == property.Entity && x.PreviewName == prop.group))
+                {
+                    entites.First(x => x == property?.Entity && x.PreviewName == prop.group).Properties?.Add(property);
+                }
+                else
                 {
                     var entity = property.Entity;
+                    entity.PreviewName = prop.group;
                     if (entity == null)
                         throw new CustomException<int>(new ValidationDto<int>(false, "Entity", "EntityNotFound", workflowUserId), 500);
 
@@ -338,7 +344,7 @@ namespace AutomationEngine.Controllers
                 {
                     if (i != 0)
                         query += " , ";
-                    query += $"N'{x}'" ;
+                    query += $"N'{x}'";
                     i++;
 
                 });
