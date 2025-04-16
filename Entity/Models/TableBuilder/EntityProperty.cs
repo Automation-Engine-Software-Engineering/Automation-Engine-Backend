@@ -18,7 +18,7 @@ namespace Entities.Models.TableBuilder
             this.EntityId = entity.Id;
         }
 
-        private EntityProperty(){}
+       public EntityProperty(){}
 
         public int Id { get; set; }
         public string PreviewName { get; set; }  // For preview (each language)

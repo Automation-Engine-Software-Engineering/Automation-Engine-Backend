@@ -15,7 +15,7 @@ namespace Entities.Models.TableBuilder
             this.Forms = forms;
         }
 
-        private Entity() { }
+        public Entity() { }
 
         public int Id { get; set; }
         public string PreviewName { get; set; } //just for preview (each lang)

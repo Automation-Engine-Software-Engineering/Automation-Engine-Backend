@@ -155,7 +155,11 @@ namespace Services
 
             var htmlBody = form.HtmlFormBody.ToString();
             htmlBody = htmlBody.Replace("disabled", "");
-            htmlBody = htmlBody.Replace("&nbsp;", " ");
+            // htmlBody = htmlBody.Replace("&nbsp;", " ");
+            htmlBody = htmlBody.Replace("contenteditable=\"true\"", " ");
+            htmlBody = htmlBody.Replace("contenteditable=\"false\"", " ");
+            htmlBody = htmlBody.Replace("resize: both;", " ");
+            htmlBody = htmlBody.Replace("<tr><td>پیش نمایش</td></tr>", " ");
 
             string tagName = "select";
             var attributes = new List<string> { "data-tableid", "data-condition", "data-filter" };
@@ -206,10 +210,13 @@ namespace Services
                 condition = condition.Replace("{{", "");
                 condition = condition.Replace("}}", "");
                 condition = condition.Replace("و", ",");
+                condition = condition.Replace("&nbsp;", " ");
+
                 var filter = _htmlService.GetTagAttributesValue(tag, "data-filter");
 
-                var table = await _context.Entity.FirstAsync(x => x.Id == int.Parse(tableId));
+                var table = await _context.Entity.Include(c => c.Properties).FirstAsync(x => x.Id == int.Parse(tableId));
                 var query = $"select " + condition + $" from [dbo].[{table.TableName}]";
+                 query = query.Replace("&nbsp;", " ");
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
 
                 if (data != null && data.TotalCount != 0)
@@ -218,7 +225,8 @@ namespace Services
                     string header = "<tr>";
                     foreach (var item in condition.Split(",").ToList())
                     {
-                        header += $"<th>{item}</th>";
+                        var name = table.Properties.FirstOrDefault(x => x.PropertyName == item.Replace(" ", "")).PreviewName;
+                        header += $"<th>{name}</th>";
                     }
                     header += "</tr>";
                     childTags.Add(header);
