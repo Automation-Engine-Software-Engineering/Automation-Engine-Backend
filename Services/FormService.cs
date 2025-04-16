@@ -21,7 +21,6 @@ namespace Services
         Task<Form?> GetFormByIdIncEntityIncPropertyAsync(int formId);
         Task<ListDto<Form>> GetAllFormsAsync(int pageSize, int pageNumber);
         Task UpdateFormBodyAsync(int formId, string htmlContent);
-        Task SetTheParameterAsync(List<AddPropertyInputDto> data);
         Task<string> GetFormPreviewAsync(Form form);
         ValidationDto<Form> FormValidation(Form form);
         Task<ValidationDto<string>> SaveChangesAsync();
@@ -147,44 +146,7 @@ namespace Services
 
             await UpdateFormAsync(fetchModel);
         }
-        public async Task SetTheParameterAsync(List<AddPropertyInputDto> data)
-        {
-            var entityIds = new List<int>();
-            data.Select(x => x.EntityId).ToList().ForEach(x =>
-            {
-                if (entityIds.Any(xx => xx == x))
-                {
-                    entityIds.Add(x);
-                }
-            });
-            foreach (var x in entityIds)
-            {
-                var entity = _context.Entity.FirstOrDefaultAsync(xx => xx.Id == x);
-
-                var properties = data.Where(x => x.EntityId == entity.Id).ToList();
-                var propertiesValues = properties.Select(x => _context.Property.FirstOrDefaultAsync(xx => xx.Id == x.PropertyId)).ToList();
-                var propertiesQuery = "";
-                propertiesValues.ForEach(x =>
-                {
-                    propertiesQuery += x.Result?.PropertyName + " ,";
-                });
-                propertiesQuery += ".";
-                propertiesQuery.Replace(",.", "");
-
-                var propertiesQueryValue = "";
-                data.Where(x => x.EntityId == x.EntityId).ToList().ForEach(xx =>
-                {
-                    propertiesQueryValue += xx.Value?.ToString() + " ,";
-                });
-                propertiesQueryValue += ".";
-                propertiesQueryValue.Replace(",.", "");
-
-                var query = $"INSERT INTO {entity.Result?.TableName} ({propertiesQuery})" +
-                $" VALUES ({propertiesQueryValue});";
-
-                await _dynamicDbContext.ExecuteSqlRawAsync(query);
-            }
-        }
+      
 
         public async Task<string> GetFormPreviewAsync(Form form)
         {

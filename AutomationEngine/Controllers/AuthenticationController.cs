@@ -56,10 +56,10 @@ namespace AutomationEngine.Controllers
                 Expires = DateTimeOffset.UtcNow.Add(_accessTokenLifetime),
                 MaxAge = _accessTokenLifetime,
                 SameSite = SameSiteMode.None,
-                HttpOnly = true,
+                HttpOnly = false,
                 Secure = _secure,
                 Domain = _issuer,
-                IsEssential = true,
+                IsEssential = false,
                 Path = "/api",
             };
             _accessTokenCookieOptions = cookieOptions;
@@ -91,10 +91,7 @@ namespace AutomationEngine.Controllers
             {
                 result.AccessToken = tokens.AccessToken;
                 result.RefreshToken = tokens.RefreshToken;
-                result.NeedNewPassword = needNewPassword;
             }
-            else
-                result.NeedNewPassword = needNewPassword;
 
             return (new ResultViewModel { Data = result, Message = new ValidationDto<TokenResultViewModel>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
@@ -122,10 +119,7 @@ namespace AutomationEngine.Controllers
             {
                 result.AccessToken = tokens.AccessToken;
                 result.RefreshToken = tokens.RefreshToken;
-                result.NeedNewPassword = needNewPassword;
             }
-            else
-                result.NeedNewPassword = needNewPassword;
 
             return (new ResultViewModel { Data = result, Message = new ValidationDto<string>(true, "Success", "Success", tokens.AccessToken).GetMessage(200), Status = true, StatusCode = 200 });
         }
@@ -182,7 +176,8 @@ namespace AutomationEngine.Controllers
             var data = new UserDashboardViewModel
             {
                 Id = user.Id,
-                Name = user.Name
+                Name = user.Name,
+                NeedNewPassword = user.Password.IsNullOrEmpty()
             };
             return (new ResultViewModel { Data = data, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }

@@ -26,17 +26,15 @@ namespace AutomationEngine.Controllers
         private readonly IWorkflowService _workflowService;
         private readonly IPropertyService _propertyService;
         private readonly DynamicDbContext _dynamicDbContext;
-        private readonly TokenGenerator _tokenGenerator;
         private readonly IWorkflowRoleService _workflowRoleService;
 
-        public FormController(IFormService formService, IWorkflowUserService workflowUserService, IWorkflowService workflowService, IPropertyService propertyService, DynamicDbContext dynamicDbContext, TokenGenerator tokenGenerator, IWorkflowRoleService workflowRoleService)
+        public FormController(IFormService formService, IWorkflowUserService workflowUserService, IWorkflowService workflowService, IPropertyService propertyService, DynamicDbContext dynamicDbContext, IWorkflowRoleService workflowRoleService)
         {
             _formService = formService;
             _workflowUserService = workflowUserService;
             _workflowService = workflowService;
             _propertyService = propertyService;
             _dynamicDbContext = dynamicDbContext;
-            _tokenGenerator = tokenGenerator;
             _workflowRoleService = workflowRoleService;
         }
 
