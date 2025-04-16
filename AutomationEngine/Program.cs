@@ -16,6 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 var audience = builder.Configuration["JWTSettings:Audience"] ?? throw new CustomException("Audience در appsettings یافت نشد");
 var accessTokenSecret = builder.Configuration["JWTSettings:AccessTokenSecret"] ?? throw new CustomException("Audience در appsettings یافت نشد");
 var issuer = builder.Configuration["JWTSettings:Issuer"] ?? throw new CustomException("Issuer در appsettings یافت نشد");
+var secure = bool.Parse(builder.Configuration["JWTSettings:Secure"] ?? throw new CustomException("Secure در appsettings یافت نشد"));
 
 var queueLimit = int.Parse(builder.Configuration["RateLimiter:QueueLimit"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
 var permitLimit = int.Parse(builder.Configuration["RateLimiter:PermitLimit"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
@@ -24,6 +25,7 @@ var window = TimeSpan.Parse(builder.Configuration["RateLimiter:Window"] ?? throw
 var queueLimitLogin = int.Parse(builder.Configuration["RateLimiter:QueueLimitLogin"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
 var permitLimitLogin = int.Parse(builder.Configuration["RateLimiter:PermitLimitLogin"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
 var windowLogin = TimeSpan.Parse(builder.Configuration["RateLimiter:WindowLogin"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
+
 
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 Console.WriteLine($"Current Environment: {environment}");
@@ -165,7 +167,8 @@ else
 {
     app.UseHsts();
     app.UseMiddleware<CspMiddleware>();
-    app.UseHttpsRedirection();
+    if(secure)
+        app.UseHttpsRedirection();
     app.UseRateLimiter();
 }
 
