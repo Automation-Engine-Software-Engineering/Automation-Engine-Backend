@@ -419,6 +419,8 @@ namespace AutomationEngine.Controllers
                 propValue.ForEach(x => x.IsValidString());
                 i = 0;
                 query += "Id";
+                query += " , WorkflowUserId";
+
 
                 propName.ForEach(x =>
                 {
@@ -436,8 +438,9 @@ namespace AutomationEngine.Controllers
                 }
                 else
                 {
-                    query += int.Parse(data.Data.ToList()[0]["id"].ToString())+1;
+                    query += int.Parse(data.Data.ToList()[0]["id"].ToString()) + 1;
                 }
+                query += " , " + workflowUserId;
 
                 propValue.ForEach(x =>
                 {
