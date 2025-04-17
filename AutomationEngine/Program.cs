@@ -58,14 +58,10 @@ builder.Services.AddRateLimiter(options =>
        )
    );
     // response of error
-    options.OnRejected = async (context, token) =>
+    options.OnRejected = (context, token) =>
     {
         var ex = new CustomException<object>(new FrameWork.Model.DTO.ValidationDto<object>(false, "Authentication", "TooManyRequests", null), 429);
         throw ex;
-        //return new ValueTask(ExceptionHandling.HandleCustomExceptionAsync(context.HttpContext, ex));
-        context.HttpContext.Response.StatusCode = 429;
-        await context.HttpContext.Response.WriteAsync("Too many requests. Please try later again... ", cancellationToken: token);
-
     };
 });
 

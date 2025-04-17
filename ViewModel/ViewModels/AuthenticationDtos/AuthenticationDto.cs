@@ -15,5 +15,7 @@ namespace ViewModels.ViewModels.AuthenticationDtos
     {
         public int Id { get; set; }
         public string? Name { get; set; }
+
+        public bool NeedNewPassword { get; set; }
     }
 }
