@@ -146,7 +146,7 @@ namespace Services
 
             await UpdateFormAsync(fetchModel);
         }
-      
+
 
         public async Task<string> GetFormPreviewAsync(Form form)
         {
@@ -160,6 +160,9 @@ namespace Services
             htmlBody = htmlBody.Replace("contenteditable=\"false\"", " ");
             htmlBody = htmlBody.Replace("resize: both;", " ");
             htmlBody = htmlBody.Replace("<tr><td>پیش نمایش</td></tr>", " ");
+            htmlBody = htmlBody.Replace("data-type=\"number\"", " ");
+            htmlBody = htmlBody.Replace("data-type=\"text\"", " ");
+            htmlBody = htmlBody.Replace("data-type=\"date\"", " ");
 
             string tagName = "select";
             var attributes = new List<string> { "data-tableid", "data-condition", "data-filter" };
@@ -216,7 +219,7 @@ namespace Services
 
                 var table = await _context.Entity.Include(c => c.Properties).FirstAsync(x => x.Id == int.Parse(tableId));
                 var query = $"select " + condition + $" from [dbo].[{table.TableName}]";
-                 query = query.Replace("&nbsp;", " ");
+                query = query.Replace("&nbsp;", " ");
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
 
                 if (data != null && data.TotalCount != 0)
