@@ -167,7 +167,7 @@ else
 {
     app.UseHsts();
     app.UseMiddleware<CspMiddleware>();
-    if(secure)
+    if (secure)
         app.UseHttpsRedirection();
     app.UseRateLimiter();
 }
@@ -186,6 +186,7 @@ app.UseCors(builder =>
     else
     {
         builder
+        .AllowCredentials()
           .WithHeaders(headers.ToArray())
           .WithOrigins(audience)
           .WithMethods("GET", "POST")

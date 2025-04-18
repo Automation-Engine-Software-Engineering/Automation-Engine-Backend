@@ -67,8 +67,9 @@ namespace AutomationEngine.ControllerAttributes
                 return tokenClaim;
             }
             // چک کردن توکن
-            var encryptedToken = httpContext.Request.Cookies["access_token"];
-            var token = encryptionToolService.DecryptCookie(encryptedToken);
+            //var encryptedToken = httpContext.Request.Cookies["access_token"];
+            //var token = encryptionToolService.DecryptCookie(encryptedToken);
+            var token = httpContext.Request.Headers["Authorization"].ToString();
 
             if (token == null || token.IsNullOrWhiteSpace())
                 throw new CustomException<object>(new ValidationDto<object>(false, "Authentication", "NotAuthorized", null), 403);
@@ -137,8 +138,10 @@ namespace AutomationEngine.ControllerAttributes
                 return tokenClaim;
             }
             // چک کردن توکن
-            var encryptedToken = httpContext.Request.Cookies["refresh_token"];
-            var token = encryptionToolService.DecryptCookie(encryptedToken);
+            //var encryptedToken = httpContext.Request.Cookies["refresh_token"];
+            //var token = encryptionToolService.DecryptCookie(encryptedToken);
+
+            var token = httpContext.Request.Headers["Authorization"].ToString();
 
             if (token == null || token.IsNullOrWhiteSpace())
                 throw new CustomException<object>(new ValidationDto<object>(false, "Authentication", "NotAuthorized", null), 403);
