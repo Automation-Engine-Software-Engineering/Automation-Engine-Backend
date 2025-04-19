@@ -38,7 +38,7 @@ namespace Services
         public async Task CreateEntityAsync(Entity entity)
         {
             //sql query command
-            var columnDefinitions = "Id INT PRIMARY KEY";
+            var columnDefinitions = "Id INT PRIMARY KEY , WorkflowUserId INT";
             var CommandText = $"CREATE TABLE @TableName ({columnDefinitions})";
             var parameters = new List<(string ParameterName, string ParameterValue)>();
             parameters.Add(("@TableName", entity.TableName));
