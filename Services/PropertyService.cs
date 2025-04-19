@@ -41,7 +41,7 @@ namespace Services
 
             property.DefaultValue.IsValidString();
             //create query             ALTER TABLE string ADD string2 INT  DEFAULT 1  Null
-            var commandText = $"ALTER TABLE {entity.TableName} ADD ";
+            var commandText = $"ALTER TABLE [dbo].[{entity.TableName}] ADD ";
             commandText += property.PropertyName + " " + "@Type ";
             //commandText += "COMMENT" + " " + "@DescriptionValue ";
             commandText += "DEFAULT" + " " + $"'{property.DefaultValue}' ";

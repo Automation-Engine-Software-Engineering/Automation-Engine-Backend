@@ -176,7 +176,7 @@ namespace Services
 
                 var table = await _context.Entity.FirstAsync(x => x.Id == int.Parse(tableId));
                 // var query = $"select * from {table.TableName} where" + filter;
-                var query = $"select * from {table.TableName}";
+                var query = $"select * from [dbo].[{table.TableName}]";
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
 
                 if (data != null && data.TotalCount != 0)
@@ -193,7 +193,7 @@ namespace Services
                                 textValue = textValue.Replace("{{" + value + "}}", item.FirstOrDefault(x => x.Key == value).Value.ToString());
                             }
 
-                            var childTag = $"<option value=\"textValue\">{textValue}</option>";
+                            var childTag = $"<option value=\"{textValue}\">{textValue}</option>";
                             childTags.Add(childTag);
                         }
 
