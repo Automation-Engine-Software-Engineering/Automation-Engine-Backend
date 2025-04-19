@@ -87,11 +87,11 @@ namespace AutomationEngine.Controllers
 
             var needNewPassword = userRoleId.User.Password.IsNullOrEmpty();
             var result = new TokenResultViewModel();
-            if (_webHostEnvironment.IsDevelopment())
-            {
-                result.AccessToken = tokens.AccessToken;
-                result.RefreshToken = tokens.RefreshToken;
-            }
+            //if (_webHostEnvironment.IsDevelopment())
+            //{
+            result.AccessToken = tokens.AccessToken;
+            result.RefreshToken = tokens.RefreshToken;
+            //}
 
             return (new ResultViewModel { Data = result, Message = new ValidationDto<TokenResultViewModel>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
