@@ -148,11 +148,11 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 var headers = RequestHeaderHandler.ipHeaders.ToList();
 headers.AddRange(["Content-Type", "Authorization", "User-Agent"]);
 
-builder.Services.AddAntiforgery(options =>
-{
-    options.Cookie.Name = "X-CSRF-TOKEN";
-    options.Cookie.HttpOnly = true;
-});
+//builder.Services.AddAntiforgery(options =>
+//{
+//    options.Cookie.Name = "X-CSRF-TOKEN";
+//    options.Cookie.HttpOnly = true;
+//});
 
 var app = builder.Build();
 
@@ -165,8 +165,8 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseHsts();
-    app.UseMiddleware<CspMiddleware>();
+    //app.UseHsts();
+    //app.UseMiddleware<CspMiddleware>();
     if (secure)
         app.UseHttpsRedirection();
     app.UseRateLimiter();
@@ -186,12 +186,18 @@ app.UseCors(builder =>
     else
     {
         builder
-        .AllowCredentials()
-          .WithHeaders(headers.ToArray())
-          .WithOrigins(audience)
-          .WithMethods("GET", "POST")
-          .AllowAnyOrigin()
-          .SetPreflightMaxAge(TimeSpan.FromMinutes(15));
+                    .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowAnyOrigin()
+            .SetPreflightMaxAge(TimeSpan.FromDays(15));
+
+
+        //builder
+        //  //.WithHeaders(headers.ToArray())
+        //  .WithOrigins(audience)
+        //  .WithMethods("GET", "POST")
+        //  .AllowAnyOrigin()
+        //  .SetPreflightMaxAge(TimeSpan.FromMinutes(15));
     }
 });
 
