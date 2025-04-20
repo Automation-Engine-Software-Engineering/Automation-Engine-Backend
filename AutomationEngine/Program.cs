@@ -16,6 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 var audience = builder.Configuration["JWTSettings:Audience"] ?? throw new CustomException("Audience در appsettings یافت نشد");
 var accessTokenSecret = builder.Configuration["JWTSettings:AccessTokenSecret"] ?? throw new CustomException("Audience در appsettings یافت نشد");
 var issuer = builder.Configuration["JWTSettings:Issuer"] ?? throw new CustomException("Issuer در appsettings یافت نشد");
+var secure = bool.Parse(builder.Configuration["JWTSettings:Secure"] ?? throw new CustomException("Secure در appsettings یافت نشد"));
 
 var queueLimit = int.Parse(builder.Configuration["RateLimiter:QueueLimit"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
 var permitLimit = int.Parse(builder.Configuration["RateLimiter:PermitLimit"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
@@ -24,6 +25,7 @@ var window = TimeSpan.Parse(builder.Configuration["RateLimiter:Window"] ?? throw
 var queueLimitLogin = int.Parse(builder.Configuration["RateLimiter:QueueLimitLogin"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
 var permitLimitLogin = int.Parse(builder.Configuration["RateLimiter:PermitLimitLogin"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
 var windowLogin = TimeSpan.Parse(builder.Configuration["RateLimiter:WindowLogin"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
+
 
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 Console.WriteLine($"Current Environment: {environment}");
@@ -146,11 +148,11 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 var headers = RequestHeaderHandler.ipHeaders.ToList();
 headers.AddRange(["Content-Type", "Authorization", "User-Agent"]);
 
-builder.Services.AddAntiforgery(options =>
-{
-    options.Cookie.Name = "X-CSRF-TOKEN";
-    options.Cookie.HttpOnly = true;
-});
+//builder.Services.AddAntiforgery(options =>
+//{
+//    options.Cookie.Name = "X-CSRF-TOKEN";
+//    options.Cookie.HttpOnly = true;
+//});
 
 var app = builder.Build();
 
@@ -163,9 +165,10 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseHsts();
-    app.UseMiddleware<CspMiddleware>();
-    app.UseHttpsRedirection();
+    //app.UseHsts();
+    //app.UseMiddleware<CspMiddleware>();
+    if (secure)
+        app.UseHttpsRedirection();
     app.UseRateLimiter();
 }
 
@@ -183,11 +186,18 @@ app.UseCors(builder =>
     else
     {
         builder
-          .WithHeaders(headers.ToArray())
-          .WithOrigins(audience)
-          .WithMethods("GET", "POST")
-          .AllowAnyOrigin()
-          .SetPreflightMaxAge(TimeSpan.FromMinutes(15));
+                    .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowAnyOrigin()
+            .SetPreflightMaxAge(TimeSpan.FromDays(15));
+
+
+        //builder
+        //  //.WithHeaders(headers.ToArray())
+        //  .WithOrigins(audience)
+        //  .WithMethods("GET", "POST")
+        //  .AllowAnyOrigin()
+        //  .SetPreflightMaxAge(TimeSpan.FromMinutes(15));
     }
 });
 
