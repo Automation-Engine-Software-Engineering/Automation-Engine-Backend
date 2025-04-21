@@ -51,7 +51,7 @@ namespace AutomationEngine.CustomMiddlewares
             };
 
             var environment = context.RequestServices.GetService<IWebHostEnvironment>();
-            if (environment != null && environment.IsDevelopment())
+            //if (environment != null && environment.IsDevelopment())
             {
                 output.data = ex;
             }
@@ -70,7 +70,7 @@ namespace AutomationEngine.CustomMiddlewares
             };
 
             var environment = context.RequestServices.GetService<IWebHostEnvironment>();
-            if (environment != null && environment.IsDevelopment())
+            //if (environment != null && environment.IsDevelopment())
             {
                 output.data = ex;
             }
