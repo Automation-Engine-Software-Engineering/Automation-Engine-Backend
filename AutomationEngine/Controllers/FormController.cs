@@ -452,7 +452,7 @@ namespace AutomationEngine.Controllers
                 }
                 else
                 {
-                    query +=  workflowUserId;
+                    query += workflowUserId;
 
                 }
 
@@ -461,7 +461,18 @@ namespace AutomationEngine.Controllers
                 propValue.ForEach(x =>
                 {
                     query += " , ";
-                    query += $"N'{x}'";
+
+                    if (x == "on" || x == "off")
+                    {
+                        if(x == "on")
+                        query += 1;
+                        else
+                        query += 0;
+                    }
+                    else
+                    {
+                        query += $"N'{x}'";
+                    }
                     i++;
 
                 });
