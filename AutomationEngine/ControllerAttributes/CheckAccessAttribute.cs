@@ -95,7 +95,7 @@ namespace AutomationEngine.ControllerAttributes
             var currentUserAgent = httpContext.GetUserAgent();
             if (user.IP != currentIp || user.UserAgent != currentUserAgent)
             {
-                throw new CustomException<(string, string)>(new ValidationDto<(string, string)>(false, "Authentication", "NotAuthorized", (currentIp, currentUserAgent)), 403);
+                //throw new CustomException<(string, string)>(new ValidationDto<(string, string)>(false, "Authentication", "NotAuthorized", (currentIp, currentUserAgent)), 403);
             }
 
             // چک کردن دسترسی به Workflow
