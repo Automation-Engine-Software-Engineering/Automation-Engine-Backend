@@ -416,8 +416,16 @@ namespace AutomationEngine.Controllers
 
                 propValue.ForEach(x => x.IsValidString());
                 i = 0;
-                query += "Id";
-                query += " , WorkflowUserId";
+                if (entity.TableName != "User")
+                {
+                    query += "Id";
+                    query += " , WorkflowUserId";
+
+                }
+                else
+                {
+                    query += " WorkflowUserId";
+                }
 
 
                 propName.ForEach(x =>
@@ -430,15 +438,25 @@ namespace AutomationEngine.Controllers
                 query += ") Values (";
 
                 i = 0;
-                if (data.Data.ToList().Count == 0)
+                if (entity.TableName != "User")
                 {
-                    query += "1";
+                    if (data.Data.ToList().Count == 0)
+                    {
+                        query += "1";
+                    }
+                    else
+                    {
+                        query += int.Parse(data.Data.ToList()[0]["id"].ToString()) + 1;
+                    }
+                    query += " , " + workflowUserId;
                 }
                 else
                 {
-                    query += int.Parse(data.Data.ToList()[0]["id"].ToString()) + 1;
+                    query +=  workflowUserId;
+
                 }
-                query += " , " + workflowUserId;
+
+
 
                 propValue.ForEach(x =>
                 {
