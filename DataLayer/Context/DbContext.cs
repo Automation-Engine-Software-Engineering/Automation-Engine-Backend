@@ -13,8 +13,8 @@ namespace DataLayer.DbContext
         public Context(DbContextOptions<Context> options) : base(options) { }
         #region basic database
         public DbSet<Form> Form { get; set; }
-
         public DbSet<Entity> Entity { get; set; }
+        public DbSet<Entity_EntityRelation> Entity_EntityRelation { get; set; }
         public DbSet<EntityProperty> Property { get; set; }
         public DbSet<User> User { get; set; }
         public DbSet<Role> Roles { get; set; }

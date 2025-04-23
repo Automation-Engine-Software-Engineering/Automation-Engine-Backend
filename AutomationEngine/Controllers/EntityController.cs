@@ -263,7 +263,7 @@ namespace AutomationEngine.Controllers
         }
 
         // GET: api/form/all  
-        [HttpGet("from/all")]
+        [HttpGet("form/all")]
         public async Task<ResultViewModel> GetAllRoleUserAndUser(int FormId, int pageSize, int pageNumber)
         {
             if (pageSize > 100)

@@ -21,7 +21,7 @@ namespace Services
         Task<Form?> GetFormByIdIncEntityIncPropertyAsync(int formId);
         Task<ListDto<Form>> GetAllFormsAsync(int pageSize, int pageNumber);
         Task UpdateFormBodyAsync(int formId, string htmlContent);
-        Task<string> GetFormPreviewAsync(Form form);
+        Task<string> GetFormPreviewAsync(Form form, int WorkflowUserId);
         ValidationDto<Form> FormValidation(Form form);
         Task<ValidationDto<string>> SaveChangesAsync();
         Task<bool> IsFormExistAsync(int formId);
@@ -148,10 +148,10 @@ namespace Services
         }
 
 
-        public async Task<string> GetFormPreviewAsync(Form form)
+        public async Task<string> GetFormPreviewAsync(Form form, int WorkflowUserId)
         {
             if (form.HtmlFormBody == null)
-                return "<span>                      <span>";
+                return "<span>بیتا زر اندیش پارس<span>";
 
             var htmlBody = form.HtmlFormBody.ToString();
             htmlBody = htmlBody.Replace("disabled", "");
@@ -160,10 +160,8 @@ namespace Services
             htmlBody = htmlBody.Replace("contenteditable=\"false\"", " ");
             htmlBody = htmlBody.Replace("resize: both;", " ");
             htmlBody = htmlBody.Replace("<tr><td>پیش نمایش</td></tr>", " ");
-            htmlBody = htmlBody.Replace("data-type=\"number\"", " ");
-            htmlBody = htmlBody.Replace("data-type=\"text\"", " ");
-            htmlBody = htmlBody.Replace("data-type=\"date\"", " ");
 
+            //define the preview
             string tagName = "select";
             var attributes = new List<string> { "data-tableid", "data-condition", "data-filter" };
             var tags = _htmlService.FindHtmlTag(htmlBody, tagName, attributes);
@@ -251,6 +249,11 @@ namespace Services
                 }
             }
 
+            //define the edit
+            var query = "select ";
+            if(){
+
+            }
             return htmlBody;
         }
         public ValidationDto<Form> FormValidation(Form form)

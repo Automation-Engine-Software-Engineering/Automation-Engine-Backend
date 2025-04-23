@@ -22,6 +22,7 @@ namespace Services
         Task<ListDto<IsAccessModel>> GetAllEntityForFormAccess(int FormId, int pageSize, int pageNumber);
         Task<ValidationDto<string>> SaveChangesAsync();
         Task ReplaceEntityRolesByFormId(int formId, List<int> entiteIds);
+        Task<bool> IsEntityExistAsync(int entityId);
     }
 
     public class EntityService : IEntityService
@@ -129,6 +130,11 @@ namespace Services
         public async Task<Entity?> GetEntitiesByIdAsync(int entityId)
         {
             var result = await _context.Entity.Include(x => x.Properties).FirstOrDefaultAsync(x => x.Id == entityId);
+            return result;
+        }
+        public async Task<bool> IsEntityExistAsync(int entityId)
+        {
+            var result = await _context.Entity.AnyAsync(x => x.Id == entityId);
             return result;
         }
 
