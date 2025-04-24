@@ -10,8 +10,7 @@ namespace Entities.Models.TableBuilder
         public Entity_EntityRelation() { }
 
         public int ParentId { get; set; }
-        
-        public int ChildId { get; set; 
 
+        public int ChildId { get; set; }
     }
 }

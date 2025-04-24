@@ -21,7 +21,7 @@ namespace Services
         Task<Form?> GetFormByIdIncEntityIncPropertyAsync(int formId);
         Task<ListDto<Form>> GetAllFormsAsync(int pageSize, int pageNumber);
         Task UpdateFormBodyAsync(int formId, string htmlContent);
-        Task<string> GetFormPreviewAsync(Form form, int WorkflowUserId);
+        Task<string> GetFormPreviewAsync(Form form);
         ValidationDto<Form> FormValidation(Form form);
         Task<ValidationDto<string>> SaveChangesAsync();
         Task<bool> IsFormExistAsync(int formId);
@@ -148,7 +148,7 @@ namespace Services
         }
 
 
-        public async Task<string> GetFormPreviewAsync(Form form, int WorkflowUserId)
+        public async Task<string> GetFormPreviewAsync(Form form)
         {
             if (form.HtmlFormBody == null)
                 return "<span>بیتا زر اندیش پارس<span>";
@@ -249,11 +249,11 @@ namespace Services
                 }
             }
 
-            //define the edit
-            var query = "select ";
-            if(){
+            ////define the edit
+            //var query = "select ";
+            //if(){
 
-            }
+            //}
             return htmlBody;
         }
         public ValidationDto<Form> FormValidation(Form form)
