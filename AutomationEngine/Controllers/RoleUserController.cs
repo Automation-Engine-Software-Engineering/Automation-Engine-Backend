@@ -33,7 +33,7 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/create  
         [HttpPost("create")]
-        public async Task<ResultViewModel> CreateRoleUser([FromBody] RoleUserDto roleUser)
+        public async Task<ResultViewModel> CreateNewRelation([FromBody] RoleUserDto roleUser)
         {
             if (roleUser == null)
                 throw new CustomException<Role_User>(new ValidationDto<Role_User>(false, "RoleUser", "CorruptedRoleUser", null), 500);

@@ -20,7 +20,7 @@ namespace Services
     {
         Task InsertWorkflowRole(Role_Workflow workflow);
         Task<ListDto<Role_Workflow>> GetAllWorkflowRolesByRoleId(int RoleId, int pageSize, int pageNumber);
-        Task InsertRengeWorkflowRole(List<Role_Workflow> workflows);
+        Task InsertRangeWorkflowRole(List<Role_Workflow> workflows);
         Task UpdateWorkflowRole(Role_Workflow workflow);
         Task DeleteWorkflowRole(int id);
         Task<Role_Workflow> GetWorkflowRoleById(int id);
@@ -84,7 +84,7 @@ namespace Services
         }
 
 
-        public async Task InsertRengeWorkflowRole(List<Role_Workflow> workflows)
+        public async Task InsertRangeWorkflowRole(List<Role_Workflow> workflows)
         {
             await _context.Role_Workflows.AddRangeAsync(workflows);
         }
@@ -98,7 +98,7 @@ namespace Services
                 RoleId = roleId,
                 WorkflowId = x
             }).ToList();
-            await InsertRengeWorkflowRole(newRoleWorkflows);
+            await InsertRangeWorkflowRole(newRoleWorkflows);
         }
 
         public async Task ReplaceWorkflowRolesByWorkflowId(int workflowId, List<int> roleIds)
@@ -111,7 +111,7 @@ namespace Services
                 RoleId = x,
                 WorkflowId = workflowId
             }).ToList();
-            await InsertRengeWorkflowRole(newRoleWorkflows);
+            await InsertRangeWorkflowRole(newRoleWorkflows);
         }
 
         public async Task UpdateWorkflowRole(Role_Workflow workflow)

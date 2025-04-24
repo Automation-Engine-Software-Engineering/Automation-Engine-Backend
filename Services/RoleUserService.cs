@@ -21,7 +21,7 @@ namespace Services
         Task<ListDto<Role_User>> GetRoleUserByUserId(int userId, int pageSize, int pageNumber);
         Task<ListDto<Role_User>> GetAllRoleUsers(int pageSize, int pageNumber);
         Task<ValidationDto<Role_User>> RoleUserValidation(Role_User roleUser);
-        Task InsertRengeUserRole(List<Role_User> Users);
+        Task InsertRangeUserRole(List<Role_User> Users);
         Task ReplaceUserRolesByRoleId(int RoleId, List<int> UserIds);
         Task<ValidationDto<string>> SaveChangesAsync();
     }
@@ -49,7 +49,7 @@ namespace Services
             _context.Role_Users.Update(existingRoleUser);
         }
 
-        public async Task InsertRengeUserRole(List<Role_User> Users)
+        public async Task InsertRangeUserRole(List<Role_User> Users)
         {
             await _context.Role_Users.AddRangeAsync(Users);
         }
@@ -63,7 +63,7 @@ namespace Services
                 RoleId = RoleId,
                 UserId = x
             }).ToList();
-            await InsertRengeUserRole(newRoleWorkflows);
+            await InsertRangeUserRole(newRoleWorkflows);
         }
 
         public async Task DeleteRoleUser(int id)
