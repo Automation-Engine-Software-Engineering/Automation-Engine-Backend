@@ -223,7 +223,7 @@ namespace AutomationEngine.Controllers
             var workflowUser = await _workflowUserService.GetWorkflowUserById(workflowUserId);
             var node = workflowUser.Workflow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkflowState);
             var form = await _formService.GetFormByIdAsync(node.FormId.Value);
-            var formBody = await _formService.GetFormPreviewAsync(form , workflowUserId);
+            var formBody = await _formService.GetFormPreviewAsync(form);
             if (formBody == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "FormNotfound", node.FormId.Value), 500);
 
