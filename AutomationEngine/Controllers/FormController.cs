@@ -42,7 +42,7 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/create  
         [HttpPost("create")]
-        public async Task<ResultViewModel> CreateForm([FromForm] FormDto form)
+        public async Task<ResultViewModel<Form?>> CreateForm([FromForm] FormDto form)
         {
             if (form == null)
                 throw new CustomException<Form>(new ValidationDto<Form>(false, "Form", "CorruptedForm", null), 500);
@@ -65,12 +65,12 @@ namespace AutomationEngine.Controllers
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
 
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<Form>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Form?> { Data = result, Message = new ValidationDto<Form>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/form/update  
         [HttpPost("{formId}/update")]
-        public async Task<ResultViewModel> UpdateForm(int formId, [FromForm] UpdateFormInputModel form)
+        public async Task<ResultViewModel<Form?>> UpdateForm(int formId, [FromForm] UpdateFormInputModel form)
         {
             if (form == null)
                 throw new CustomException<UpdateFormInputModel>(new ValidationDto<UpdateFormInputModel>(false, "Form", "CorruptedForm", form), 500);
@@ -106,12 +106,12 @@ namespace AutomationEngine.Controllers
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
 
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<Form>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Form?> { Data = result, Message = new ValidationDto<Form>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/form/{formId}/updateEntities
         [HttpPost("entities")]
-        public async Task<ResultViewModel> UpdateFormEntities(IEnumerable<int>? Entities, int formId)
+        public async Task<ResultViewModel<object>> UpdateFormEntities(IEnumerable<int>? Entities, int formId)
         {
             if (formId == 0)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedForm", formId), 500);
@@ -127,12 +127,12 @@ namespace AutomationEngine.Controllers
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
 
-            return (new ResultViewModel { Message = new ValidationDto<IEnumerable<int>>(true, "Success", "Success", Entities).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<object> { Message = new ValidationDto<IEnumerable<int>>(true, "Success", "Success", Entities).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/form/remove  
         [HttpPost("remove")]
-        public async Task<ResultViewModel> RemoveForm([FromBody] int formId)
+        public async Task<ResultViewModel<Form?>> RemoveForm([FromBody] int formId)
         {
             //is validation model
             if (formId == 0)
@@ -152,12 +152,12 @@ namespace AutomationEngine.Controllers
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
 
-            return (new ResultViewModel { Data = fetchForm, Message = new ValidationDto<Form>(true, "Success", "Success", fetchForm).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Form?> { Data = fetchForm, Message = new ValidationDto<Form>(true, "Success", "Success", fetchForm).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/all  
         [HttpGet("all")]
-        public async Task<ResultViewModel> GetAllForms(int pageSize, int pageNumber)
+        public async Task<ResultViewModel<IEnumerable<Form>?>> GetAllForms(int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -170,12 +170,12 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
                 throw new CustomException<ListDto<Form>>(new ValidationDto<ListDto<Form>>(false, "Form", "CorruptedInvalidPage", forms), 500);
 
-            return (new ResultViewModel { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<Form>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<IEnumerable<Form>?> { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<Form>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/{id}  
         [HttpGet("{formId}")]
-        public async Task<ResultViewModel> GetForm(int formId)
+        public async Task<ResultViewModel<Form?>> GetForm(int formId)
         {
             //is validation model
             if (formId == 0)
@@ -190,13 +190,13 @@ namespace AutomationEngine.Controllers
             if (!validationModel.IsSuccess)
                 throw new CustomException<Form>(validationModel, 500);
 
-            return (new ResultViewModel { Data = form, Message = new ValidationDto<Form>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Form?> { Data = form, Message = new ValidationDto<Form>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
 
         // GET: api/form/{id}  
         [HttpGet("preview")]
-        public async Task<ResultViewModel> GetFormPreview(int formId)
+        public async Task<ResultViewModel<string?>> GetFormPreview(int formId)
         {
             //is validation model
             if (formId == 0)
@@ -208,13 +208,13 @@ namespace AutomationEngine.Controllers
             if (formBody == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "FormNotfound", formId), 500);
 
-            return (new ResultViewModel { Data = formBody, Message = new ValidationDto<string>(true, "Success", "Success", formBody).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<string?> { Data = formBody, Message = new ValidationDto<string>(true, "Success", "Success", formBody).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
 
         // GET: api/form/{id}  
         [HttpGet("previewByWorkflowUserId")]
-        public async Task<ResultViewModel> GetPreviewByWorkflowUserId(int workflowUserId)
+        public async Task<ResultViewModel<string?>> GetPreviewByWorkflowUserId(int workflowUserId)
         {
             //is validation model
             if (workflowUserId == 0)
@@ -228,21 +228,21 @@ namespace AutomationEngine.Controllers
             if (formBody == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "FormNotfound", node.FormId.Value), 500);
 
-            return (new ResultViewModel { Data = formBody, Message = new ValidationDto<string>(true, "Success", "Success", formBody).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<string?> { Data = formBody, Message = new ValidationDto<string>(true, "Success", "Success", formBody).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/uploadImage  
         [HttpPost("uploadImage")]
-        public async Task<ResultViewModel> UploadImageFormContent(IFormFile image)
+        public async Task<ResultViewModel<ImageModel>> UploadImageFormContent(IFormFile image)
         {
             var imageUrl = await UploadImage.UploadFormMedia(image);
 
-            return (new ResultViewModel { Data = new { imageUrl }, Message = new ValidationDto<string>(true, "Success", "Success", imageUrl).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<ImageModel> { Data = new ImageModel { ImageUrl = imageUrl }, Message = new ValidationDto<string>(true, "Success", "Success", imageUrl).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/form/{formId}/updateBody  
         [HttpPost("{formId}/insertHtmlContent")]
-        public async Task<ResultViewModel> InsertHtmlContent(int formId, [FromBody] string htmlContent)
+        public async Task<ResultViewModel<Form?>> InsertHtmlContent(int formId, [FromBody] string htmlContent)
         {
             //is validation model
             if (formId == 0)
@@ -261,12 +261,12 @@ namespace AutomationEngine.Controllers
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
 
-            return (new ResultViewModel { Data = form, Message = new ValidationDto<Form>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Form?> { Data = form, Message = new ValidationDto<Form>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/form/{formId}/updateBody  
         [HttpPost("{formId}/sendFormData")]
-        public async Task<ResultViewModel> SendFormData(int formId, int workflowUserId, [FromBody] List<(int id, object content)> formData)
+        public async Task<ResultViewModel<List<Entity>>> SendFormData(int formId, int workflowUserId, [FromBody] List<(int id, object content)> formData)
         {
             if (formId == 0 && workflowUserId == 0 && formData.Any(x => x.id == 0))
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "CorruptedFormData", formId), 500);
@@ -353,7 +353,7 @@ namespace AutomationEngine.Controllers
                 await _dynamicDbContext.ExecuteSqlRawAsync(query);
             }
 
-            return (new ResultViewModel { Data = entites, Message = new ValidationDto<Form>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<List<Entity>> { Data = entites, Message = new ValidationDto<Form>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });
         }
     }
 }

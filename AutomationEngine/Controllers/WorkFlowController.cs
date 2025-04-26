@@ -27,7 +27,7 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/create  
         [HttpPost("create")]
-        public async Task<ResultViewModel> CreateWorkflow([FromBody] WorkflowDto workflow)
+        public async Task<ResultViewModel<Workflow?>> CreateWorkflow([FromBody] WorkflowDto workflow)
         {
             if (workflow == null)
                 throw new CustomException<Workflow>(new ValidationDto<Workflow>(false, "Workflow", "CorruptedWorkflow", null), 500);
@@ -49,13 +49,13 @@ namespace AutomationEngine.Controllers
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
 
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<Workflow>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Workflow?> { Data = result, Message = new ValidationDto<Workflow>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
 
         // POST: api/{workflowId}/insertNode  
         [HttpPost("setNodes")]
-        public async Task<ResultViewModel> setNodes([FromBody] WorkflowDto workflow)
+        public async Task<ResultViewModel<Workflow?>> setNodes([FromBody] WorkflowDto workflow)
         {
             if (workflow == null)
                 throw new CustomException<Workflow>(new ValidationDto<Workflow>(false, "Workflow", "CorruptedWorkflow", null), 500);
@@ -117,12 +117,12 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<string>(saveResult, 500);
 
 
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<Workflow>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Workflow?> { Data = result, Message = new ValidationDto<Workflow>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/form/update  
         [HttpPost("update")]
-        public async Task<ResultViewModel> UpdateWorkflow([FromBody] WorkflowDto workflow)
+        public async Task<ResultViewModel<Workflow?>> UpdateWorkflow([FromBody] WorkflowDto workflow)
         {
             if (workflow == null)
                 throw new CustomException<Workflow>(new ValidationDto<Workflow>(false, "Workflow", "CorruptedWorkflow", null), 500);
@@ -143,12 +143,12 @@ namespace AutomationEngine.Controllers
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
 
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<Workflow>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Workflow?> { Data = result, Message = new ValidationDto<Workflow>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/form/delete  
         [HttpPost("remove")]
-        public async Task<ResultViewModel> RemoveWorkflow([FromBody] int workflowId)
+        public async Task<ResultViewModel<Workflow?>> RemoveWorkflow([FromBody] int workflowId)
         {
             if (workflowId == 0)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowNotfound", workflowId), 500);
@@ -167,12 +167,12 @@ namespace AutomationEngine.Controllers
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
 
-            return (new ResultViewModel { Data = fetchModel, Message = new ValidationDto<Workflow>(true, "Success", "Success", fetchModel).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Workflow?> { Data = fetchModel, Message = new ValidationDto<Workflow>(true, "Success", "Success", fetchModel).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/all  
         [HttpGet("all")]
-        public async Task<ResultViewModel> GetAllWorkflows(int pageSize, int pageNumber)
+        public async Task<ResultViewModel<IEnumerable<Workflow>?>> GetAllWorkflows(int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -184,12 +184,12 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - workflows.TotalCount) > pageSize) && (pageSize * pageNumber) > workflows.TotalCount)
                 throw new CustomException<ListDto<Workflow>>(new ValidationDto<ListDto<Workflow>>(false, "Workflow", "CorruptedWorkflow", workflows), 500);
 
-            return (new ResultViewModel { Data = workflows.Data, ListNumber = workflows.ListNumber, ListSize = workflows.ListSize, TotalCount = workflows.TotalCount, Message = new ValidationDto<ListDto<Workflow>>(true, "Success", "Success", workflows).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<IEnumerable<Workflow>?> { Data = workflows.Data, ListNumber = workflows.ListNumber, ListSize = workflows.ListSize, TotalCount = workflows.TotalCount, Message = new ValidationDto<ListDto<Workflow>>(true, "Success", "Success", workflows).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/{id}  
         [HttpGet("{workflowId}")]
-        public async Task<ResultViewModel> GetWorkflow(int workflowId)
+        public async Task<ResultViewModel<WorkflowDto?>> GetWorkflow(int workflowId)
         {
             if (workflowId == 0)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowNotfound", workflowId), 500);
@@ -241,12 +241,12 @@ namespace AutomationEngine.Controllers
                     });
             });
 
-            return (new ResultViewModel { Data = dto, Message = new ValidationDto<Workflow>(true, "Success", "Success", fetchModel).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<WorkflowDto?> { Data = dto, Message = new ValidationDto<Workflow>(true, "Success", "Success", fetchModel).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/nodeState  
         [HttpGet("nodeState")]
-        public async Task<ResultViewModel> GetNodeState(int WorkflowUserId)
+        public async Task<ResultViewModel<Node?>> GetNodeState(int WorkflowUserId)
         {
             if (WorkflowUserId == 0)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowNotfound", WorkflowUserId), 500);
@@ -261,13 +261,13 @@ namespace AutomationEngine.Controllers
 
             var node = workflow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkflowState);
 
-            return (new ResultViewModel { Data = node, Message = new ValidationDto<Node>(true, "Success", "Success", node).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Node?> { Data = node, Message = new ValidationDto<Node>(true, "Success", "Success", node).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
 
         // GET: api/nodeMove  
         [HttpGet("nodeMove")]
-        public async Task<ResultViewModel> NodeMove(int WorkflowUserId, int state)
+        public async Task<ResultViewModel<Node?>> NodeMove(int WorkflowUserId, int state)
         {
             if (WorkflowUserId == 0)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowNotfound", WorkflowUserId), 500);
@@ -302,7 +302,7 @@ namespace AutomationEngine.Controllers
                 await _workflowUserService.DeleteWorkflowUser(workflowUser.Id);
 
             await _workflowUserService.SaveChangesAsync();
-            return (new ResultViewModel { Data = node, Message = new ValidationDto<Node>(true, "Success", "Success", node).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Node?> { Data = node, Message = new ValidationDto<Node>(true, "Success", "Success", node).GetMessage(200), Status = true, StatusCode = 200 });
         }
     }
 }

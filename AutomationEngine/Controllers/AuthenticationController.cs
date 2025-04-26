@@ -71,7 +71,7 @@ namespace AutomationEngine.Controllers
         // POST: api/login/{userName}  
         [HttpPost("login/{userName}")]
         [EnableRateLimiting("LoginRateLimit")]
-        public async Task<ResultViewModel> Login(string userName, [FromBody] string password)
+        public async Task<ResultViewModel<TokenResultViewModel>> Login(string userName, [FromBody] string password)
         {
             var ip = HttpContext.GetIP();
             var userAgent = HttpContext.GetUserAgent();
@@ -96,13 +96,13 @@ namespace AutomationEngine.Controllers
             else
                 result.NeedNewPassword = needNewPassword;
 
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<TokenResultViewModel>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<TokenResultViewModel> { Data = result, Message = new ValidationDto<TokenResultViewModel>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/generateToken
         [HttpGet("generateToken")]
         [EnableRateLimiting("LoginRateLimit")]
-        public async Task<ResultViewModel> GenerateToken()
+        public async Task<ResultViewModel<TokenResultViewModel>> GenerateToken()
         {
             var claims = await HttpContext.AuthorizeRefreshToken();
             var user = await _userService.GetUserByIdAsync(claims.UserId);
@@ -127,11 +127,11 @@ namespace AutomationEngine.Controllers
             else
                 result.NeedNewPassword = needNewPassword;
 
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<string>(true, "Success", "Success", tokens.AccessToken).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<TokenResultViewModel> { Data = result, Message = new ValidationDto<string>(true, "Success", "Success", tokens.AccessToken).GetMessage(200), Status = true, StatusCode = 200 });
         }
         [HttpPost("logout")]
         [EnableRateLimiting("LoginRateLimit")]
-        public async Task<ResultViewModel> Logout()
+        public async Task<ResultViewModel<object>> Logout()
         {
             var claims = await HttpContext.AuthorizeRefreshToken();
 
@@ -151,13 +151,13 @@ namespace AutomationEngine.Controllers
             }
             Response.Cookies.Delete("access_token");
             Response.Cookies.Delete("refresh_token");
-            return new ResultViewModel();
+            return new ResultViewModel<object>();
         }
 
         // POST: api/ChangePassword/{userName}  
         [HttpPost("changePassword/{userName}")]
         [CheckAccess]
-        public async Task<ResultViewModel> ChangePassword(string userName, [FromBody] ChangePasswordInputModel input)
+        public async Task<ResultViewModel<ChangePasswordInputModel>> ChangePassword(string userName, [FromBody] ChangePasswordInputModel input)
         {
             var userIdRoleId = await _roleService.Login(userName, input.OldPassword);
 
@@ -169,13 +169,13 @@ namespace AutomationEngine.Controllers
             await _userService.UpdateUserAsync(userIdRoleId.User);
             await _userService.SaveChangesAsync();
 
-            return (new ResultViewModel { Data = input, Message = new ValidationDto<ChangePasswordInputModel>(true, "Success", "Success", input).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<ChangePasswordInputModel> { Data = input, Message = new ValidationDto<ChangePasswordInputModel>(true, "Success", "Success", input).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/ChangePassword/{userName}  
         [HttpGet("user")]
         [CheckAccess]
-        public async Task<ResultViewModel> GetUser()
+        public async Task<ResultViewModel<UserDashboardViewModel>> GetUser()
         {
             var claims = await HttpContext.Authorize();
             var user = await _userService.GetUserByIdAsync(claims.UserId);
@@ -184,7 +184,7 @@ namespace AutomationEngine.Controllers
                 Id = user.Id,
                 Name = user.Name
             };
-            return (new ResultViewModel { Data = data, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
+            return (new ResultViewModel<UserDashboardViewModel> { Data = data, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
         private (string AccessToken, string RefreshToken) GenerateTokens(User User, int? RoleId)
         {

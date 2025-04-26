@@ -33,7 +33,7 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/create  
         [HttpPost("create")]
-        public async Task<ResultViewModel> CreateWorkflow([FromBody] RoleDto role)
+        public async Task<ResultViewModel<Role?>> CreateWorkflow([FromBody] RoleDto role)
         {
             if (role == null)
                 throw new CustomException<Workflow>(new ValidationDto<Workflow>(false, "Workflow", "CorruptedWorkflow", null), 500);
@@ -55,12 +55,12 @@ namespace AutomationEngine.Controllers
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
 
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<Role>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Role?> { Data = result, Message = new ValidationDto<Role>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/form/update  
         [HttpPost("update")]
-        public async Task<ResultViewModel> UpdateWorkflowUser([FromBody] RoleDto role)
+        public async Task<ResultViewModel<Role?>> UpdateWorkflowUser([FromBody] RoleDto role)
         {
             if (role == null)
                 throw new CustomException<Role_User>(new ValidationDto<Role_User>(false, "Role", "InvalidRole", null), 500);
@@ -84,12 +84,12 @@ namespace AutomationEngine.Controllers
 
             await _roleService.UpdateRoleAsync(result);
             await _roleService.SaveChangesAsync();
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<Role>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Role?> { Data = result, Message = new ValidationDto<Role>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/form/delete  
         [HttpPost("remove")]
-        public async Task<ResultViewModel> RemoveWorkflowUser([FromBody] int roleId)
+        public async Task<ResultViewModel<Role?>> RemoveWorkflowUser([FromBody] int roleId)
         {
             //is validation model
             if (roleId == 0)
@@ -110,12 +110,12 @@ namespace AutomationEngine.Controllers
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
 
-            return (new ResultViewModel { Data = fetchForm, Message = new ValidationDto<Role>(true, "Success", "Success", fetchForm).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Role?> { Data = fetchForm, Message = new ValidationDto<Role>(true, "Success", "Success", fetchForm).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/all  
         [HttpGet("all")]
-        public async Task<ResultViewModel> GetAllWorkflowUser(int pageSize, int pageNumber)
+        public async Task<ResultViewModel<IEnumerable<Role?>>> GetAllWorkflowUser(int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -128,7 +128,7 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
                 throw new CustomException<ListDto<Role>>(new ValidationDto<ListDto<Role>>(false, "Role", "InvalidRole", forms), 500);
 
-            return (new ResultViewModel { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<Role>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<IEnumerable<Role?>>{ Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<Role>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
         }
     }
 }

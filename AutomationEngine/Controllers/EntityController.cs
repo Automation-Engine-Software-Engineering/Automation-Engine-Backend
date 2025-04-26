@@ -32,7 +32,7 @@ namespace AutomationEngine.Controllers
 
         // POST: api/entity/create  
         [HttpPost("create")]
-        public async Task<ResultViewModel> CreateEntity(int? formId, [FromBody] EntityDto entity)
+        public async Task<ResultViewModel<Entity?>> CreateEntity(int? formId, [FromBody] EntityDto entity)
         {
             if (entity == null)
                 throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
@@ -68,12 +68,12 @@ namespace AutomationEngine.Controllers
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
 
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<Entity>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Entity?> { Data = result, Message = new ValidationDto<Entity>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/entity/update  
         [HttpPost("update")]
-        public async Task<ResultViewModel> UpdateEntity([FromBody] EntityDto entity)
+        public async Task<ResultViewModel<Entity?>> UpdateEntity([FromBody] EntityDto entity)
         {
             if (entity == null)
                 throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
@@ -101,12 +101,12 @@ namespace AutomationEngine.Controllers
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
 
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<Entity>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Entity?> { Data = result, Message = new ValidationDto<Entity>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/entity/remove  
         [HttpPost("remove")]
-        public async Task<ResultViewModel> RemoveEntity(int entityId)
+        public async Task<ResultViewModel<Entity?>> RemoveEntity(int entityId)
         {
             //is validation model
             if (entityId == 0)
@@ -126,13 +126,13 @@ namespace AutomationEngine.Controllers
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
 
-            return (new ResultViewModel { Data = fetchEntity, Message = new ValidationDto<Entity>(true, "Success", "Success", fetchEntity).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Entity?> { Data = fetchEntity, Message = new ValidationDto<Entity>(true, "Success", "Success", fetchEntity).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/entity/all  
         [HttpGet("all")]
         [SwaggerOperation(Summary = "", Description = "set formId and search null if you don't want to filter result")]
-        public async Task<ResultViewModel> GetAllEntities(int pageSize, int pageNumber, int? formId, string? search)
+        public async Task<ResultViewModel<IEnumerable<Entity>?>> GetAllEntities(int pageSize, int pageNumber, int? formId, string? search)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -144,12 +144,12 @@ namespace AutomationEngine.Controllers
             //is valid data
             if ((((pageSize * pageNumber) - entities.TotalCount) > pageSize) && (pageSize * pageNumber) > entities.TotalCount)
                 throw new CustomException<ListDto<Entity>>(new ValidationDto<ListDto<Entity>>(false, "Form", "CorruptedEntity", entities), 500);
-            return (new ResultViewModel { Data = entities.Data, ListNumber = entities.ListNumber, ListSize = entities.ListSize, TotalCount = entities.TotalCount, Message = new ValidationDto<ListDto<Entity>>(true, "Success", "Success", entities).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<IEnumerable<Entity>?> { Data = entities.Data, ListNumber = entities.ListNumber, ListSize = entities.ListSize, TotalCount = entities.TotalCount, Message = new ValidationDto<ListDto<Entity>>(true, "Success", "Success", entities).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/entity/{id}  
         [HttpGet("{entityId}")]
-        public async Task<ResultViewModel> GetEntity(int entityId)
+        public async Task<ResultViewModel<Entity?>> GetEntity(int entityId)
         {
             //is validation model
             if (entityId == 0)
@@ -164,7 +164,7 @@ namespace AutomationEngine.Controllers
             if (!validationModel.IsSuccess)
                 throw new CustomException<Entity>(validationModel, 500);
 
-            return (new ResultViewModel { Data = entities, Message = new ValidationDto<Entity>(true, "Success", "Success", entities).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Entity?> { Data = entities, Message = new ValidationDto<Entity>(true, "Success", "Success", entities).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
 
@@ -213,7 +213,7 @@ namespace AutomationEngine.Controllers
 
         // GET: api/entity/{entityName}/property  
         [HttpGet("{entityId}/property")]
-        public async Task<ResultViewModel> GetAllPropertiesFromEntity(int entityId, int pageSize, int pageNumber)
+        public async Task<ResultViewModel<IEnumerable<EntityProperty>?>> GetAllPropertiesFromEntity(int entityId, int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -233,12 +233,12 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - columns.TotalCount) > pageSize) && (pageSize * pageNumber) > columns.TotalCount)
                 throw new CustomException<ListDto<EntityProperty>>(new ValidationDto<ListDto<EntityProperty>>(false, "Property", "CorruptedProperty", columns), 500);
 
-            return (new ResultViewModel { Data = columns.Data, ListNumber = columns.ListNumber, ListSize = columns.ListSize, TotalCount = columns.TotalCount, Message = new ValidationDto<ListDto<EntityProperty>>(true, "Success", "Success", columns).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<IEnumerable<EntityProperty>?> { Data = columns.Data, ListNumber = columns.ListNumber, ListSize = columns.ListSize, TotalCount = columns.TotalCount, Message = new ValidationDto<ListDto<EntityProperty>>(true, "Success", "Success", columns).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/property/entityId/value
         [HttpGet("{entityId}/property/value")]
-        public async Task<ResultViewModel> GetAllPropertiesValueFromEntity(int entityId, int pageSize, int pageNumber)
+        public async Task<ResultViewModel<IEnumerable<Dictionary<string, object>>>> GetAllPropertiesValueFromEntity(int entityId, int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -258,7 +258,7 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - columns.TotalCount) > pageSize) && (pageSize * pageNumber) > columns.TotalCount)
                 throw new CustomException<ListDto<Dictionary<string, object>>>(new ValidationDto<ListDto<Dictionary<string, object>>>(false, "Property", "CorruptedProperty", columns), 500);
 
-            return (new ResultViewModel { ListNumber = columns.ListNumber, ListSize = columns.ListSize, TotalCount = columns.TotalCount, Data = columns.Data, Message = new ValidationDto<ListDto<Dictionary<string, object>>>(true, "Success", "Success", columns).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<IEnumerable<Dictionary<string, object>>> { ListNumber = columns.ListNumber, ListSize = columns.ListSize, TotalCount = columns.TotalCount, Data = columns.Data, Message = new ValidationDto<ListDto<Dictionary<string, object>>>(true, "Success", "Success", columns).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
     }

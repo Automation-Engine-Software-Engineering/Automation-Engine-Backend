@@ -13,6 +13,7 @@ using Tools.TextTools;
 using Entities.Models.MainEngine;
 using Tools.AuthoraizationTools;
 using Entities.Models.Enums;
+using Microsoft.AspNetCore.Identity;
 
 namespace AutomationEngine.Controllers
 {
@@ -31,7 +32,7 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/create  
         [HttpPost("create")]
-        public async Task<ResultViewModel> CreateWorkflowRole([FromBody] WorkflowRoleDto workflowRole)
+        public async Task<ResultViewModel<Role_Workflow?>> CreateWorkflowRole([FromBody] WorkflowRoleDto workflowRole)
         {
             if (workflowRole == null)
                 throw new CustomException<Role_Workflow>(new ValidationDto<Role_Workflow>(false, "WorkflowRole", "CorruptedWorkflowRole", null), 500);
@@ -53,12 +54,12 @@ namespace AutomationEngine.Controllers
 
             await _WorkflowRoleService.InsertWorkflowRole(result);
             await _WorkflowRoleService.SaveChangesAsync();
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<Role_Workflow>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Role_Workflow?> { Data = result, Message = new ValidationDto<Role_Workflow>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/form/create  
         [HttpPost("create/allByRoleId/{roleId}")]
-        public async Task<ResultViewModel> CreateWorkflowRoleAllByRoleId([FromBody] List<int> workflowIds,int roleId)
+        public async Task<ResultViewModel<List<Role_Workflow>?>> CreateWorkflowRoleAllByRoleId([FromBody] List<int> workflowIds,int roleId)
         {
             if (workflowIds == null)
                 throw new CustomException<Role_Workflow>(new ValidationDto<Role_Workflow>(false, "WorkflowRole", "CorruptedWorkflowRole", null), 500);
@@ -75,11 +76,11 @@ namespace AutomationEngine.Controllers
 
             await _WorkflowRoleService.ReplaceWorkflowRolesByRoleId(roleId,workflowIds);
             await _WorkflowRoleService.SaveChangesAsync();
-            return (new ResultViewModel { Data = workflows, Message = new ValidationDto<List<Role_Workflow>>(true, "Success", "Success", workflows).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<List<Role_Workflow>?> { Data = workflows, Message = new ValidationDto<List<Role_Workflow>>(true, "Success", "Success", workflows).GetMessage(200), Status = true, StatusCode = 200 });
         }
         // POST: api/form/create  
         [HttpPost("create/allByWorkflowId/{workflowId}")]
-        public async Task<ResultViewModel> CreateWorkflowRoleAllByWorkflowId([FromBody] List<int> roleIds,int workflowid)
+        public async Task<ResultViewModel<List<Role_Workflow>?>>  CreateWorkflowRoleAllByWorkflowId([FromBody] List<int> roleIds,int workflowid)
         {
             if (roleIds == null)
                 throw new CustomException<Role_Workflow>(new ValidationDto<Role_Workflow>(false, "WorkflowRole", "CorruptedWorkflowRole", null), 500);
@@ -96,11 +97,11 @@ namespace AutomationEngine.Controllers
 
             await _WorkflowRoleService.ReplaceWorkflowRolesByWorkflowId(workflowid,roleIds);
             await _WorkflowRoleService.SaveChangesAsync();
-            return (new ResultViewModel { Data = workflows, Message = new ValidationDto<List<Role_Workflow>>(true, "Success", "Success", workflows).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<List<Role_Workflow>?> { Data = workflows, Message = new ValidationDto<List<Role_Workflow>>(true, "Success", "Success", workflows).GetMessage(200), Status = true, StatusCode = 200 });
         }
         // POST: api/form/update  
         [HttpPost("update")]
-        public async Task<ResultViewModel> UpdateWorkflowRole([FromBody] WorkflowRoleDto workflowRole)
+        public async Task<ResultViewModel<Role_Workflow?>> UpdateWorkflowRole([FromBody] WorkflowRoleDto workflowRole)
         {
             if (workflowRole == null)
                 throw new CustomException<Role_Workflow>(new ValidationDto<Role_Workflow>(false, "WorkflowRole", "CorruptedWorkflowRole", null), 500);
@@ -125,12 +126,12 @@ namespace AutomationEngine.Controllers
 
             await _WorkflowRoleService.UpdateWorkflowRole(result);
             await _WorkflowRoleService.SaveChangesAsync();
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<Role_Workflow>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Role_Workflow?> { Data = result, Message = new ValidationDto<Role_Workflow>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/form/delete  
         [HttpPost("remove")]
-        public async Task<ResultViewModel> RemoveWorkflowRole([FromBody] int workflowUserId)
+        public async Task<ResultViewModel<Role_Workflow?>> RemoveWorkflowRole([FromBody] int workflowUserId)
         {
             //is validation model
             if (workflowUserId == 0)
@@ -151,12 +152,12 @@ namespace AutomationEngine.Controllers
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
 
-            return (new ResultViewModel { Data = fetchForm, Message = new ValidationDto<Role_Workflow>(true, "Success", "Success", fetchForm).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Role_Workflow?> { Data = fetchForm, Message = new ValidationDto<Role_Workflow>(true, "Success", "Success", fetchForm).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/all  
         [HttpGet("all")]
-        public async Task<ResultViewModel> GetAllWorkflowRole(int pageSize, int pageNumber)
+        public async Task<ResultViewModel<IEnumerable<Role_Workflow>?>> GetAllWorkflowRole(int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -169,13 +170,13 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
                 throw new CustomException<ListDto<Role_Workflow>>(new ValidationDto<ListDto<Role_Workflow>>(false, "Form", "CorruptedInvalidPage", forms), 500);
 
-            return (new ResultViewModel { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<Role_Workflow>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<IEnumerable<Role_Workflow>?> { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<Role_Workflow>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
 
         // GET: api/form/all  
         [HttpGet("role/all")]
-        public async Task<ResultViewModel> GetAllWorkflowRoleAndRole(int roleId, int pageSize, int pageNumber)
+        public async Task<ResultViewModel<IEnumerable<IsAccessModel>?>> GetAllWorkflowRoleAndRole(int roleId, int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -188,13 +189,13 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
                 throw new CustomException<ListDto<IsAccessModel>>(new ValidationDto<ListDto<IsAccessModel>>(false, "Form", "CorruptedInvalidPage", forms), 500);
 
-            return (new ResultViewModel { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<IsAccessModel>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<IEnumerable<IsAccessModel>?> { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<IsAccessModel>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         
         // GET: api/form/all  
         [HttpGet("workflow/all")]
-        public async Task<ResultViewModel> GetAllWorkflowRoleAndWorkflow(int WorkflowId, int pageSize, int pageNumber)
+        public async Task<ResultViewModel<IEnumerable<IsAccessModel>?>> GetAllWorkflowRoleAndWorkflow(int WorkflowId, int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -207,12 +208,12 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
                 throw new CustomException<ListDto<IsAccessModel>>(new ValidationDto<ListDto<IsAccessModel>>(false, "Form", "CorruptedInvalidPage", forms), 500);
 
-            return (new ResultViewModel { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<IsAccessModel>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<IEnumerable<IsAccessModel>?> { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<IsAccessModel>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/{id}  
         [HttpGet("{workflowUserId}")]
-        public async Task<ResultViewModel> GetWorkflowRole(int workflowRoleId)
+        public async Task<ResultViewModel<Role_Workflow?>> GetWorkflowRole(int workflowRoleId)
         {                        //is validation model
             if (workflowRoleId == 0)
                 throw new CustomException<int>(new ValidationDto<int>(false, "WorkflowRole", "CorruptedWorkflowRole", workflowRoleId), 500);
@@ -227,12 +228,12 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<Role_Workflow>(validationModel, 500);
 
             var form = await _WorkflowRoleService.GetWorkflowRoleById(workflowRoleId);
-            return (new ResultViewModel { Data = form, Message = new ValidationDto<Role_Workflow>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Role_Workflow?> { Data = form, Message = new ValidationDto<Role_Workflow>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/{id}  
         [HttpGet("RoleWorkflow")]
-        public async Task<ResultViewModel> GetRoleWorkflowByRoleId(int pageSize, int pageNumber)
+        public async Task<ResultViewModel<List<Role_Workflow>?>> GetRoleWorkflowByRoleId(int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -257,7 +258,7 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - RoleUser.TotalCount) > pageSize) && (pageSize * pageNumber) > RoleUser.TotalCount)
                 throw new CustomException<ListDto<Role_Workflow>>(new ValidationDto<ListDto<Role_Workflow>>(false, "Form", "CorruptedInvalidPage", RoleUser), 500);
 
-            return (new ResultViewModel { Data = workflows, ListNumber = RoleUser.ListNumber, ListSize = RoleUser.ListSize, TotalCount = RoleUser.TotalCount, Message = new ValidationDto<ListDto<Role_Workflow>>(true, "Success", "Success", RoleUser).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<List<Role_Workflow>?> { Data = workflows, ListNumber = RoleUser.ListNumber, ListSize = RoleUser.ListSize, TotalCount = RoleUser.TotalCount, Message = new ValidationDto<ListDto<Role_Workflow>>(true, "Success", "Success", RoleUser).GetMessage(200), Status = true, StatusCode = 200 });
         }
     }
 }

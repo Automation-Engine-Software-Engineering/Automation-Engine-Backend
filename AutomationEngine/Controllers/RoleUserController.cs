@@ -13,6 +13,7 @@ using Tools.TextTools;
 using Entities.Models.MainEngine;
 using Tools.AuthoraizationTools;
 using Entities.Models.Enums;
+using System.Numerics;
 
 namespace AutomationEngine.Controllers
 {
@@ -33,7 +34,7 @@ namespace AutomationEngine.Controllers
 
         // POST: api/form/create  
         [HttpPost("create")]
-        public async Task<ResultViewModel> CreateRoleUser([FromBody] RoleUserDto roleUser)
+        public async Task<ResultViewModel<Role_User?>> CreateRoleUser([FromBody] RoleUserDto roleUser)
         {
             if (roleUser == null)
                 throw new CustomException<Role_User>(new ValidationDto<Role_User>(false, "RoleUser", "CorruptedRoleUser", null), 500);
@@ -50,19 +51,19 @@ namespace AutomationEngine.Controllers
             if (roleUser.Id != 0)
                 throw new CustomException<Role_User>(new ValidationDto<Role_User>(false, "RoleUser", "CorruptedRoleUser", result), 500);
 
-            var validationModel = await _roleUserService.RoleUserValidation(result);
+            var validationModel = _roleUserService.RoleUserValidation(result);
             if (!validationModel.IsSuccess)
                 throw new CustomException<Role_User>(validationModel, 500);
 
 
             await _roleUserService.InsertRoleUserAsync(result);
             await _roleUserService.SaveChangesAsync();
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<Role_User>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Role_User?> { Data = result, Message = new ValidationDto<Role_User>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/form/update  
         [HttpPost("update")]
-        public async Task<ResultViewModel> UpdateRoleUser([FromBody] Role_User roleUser)
+        public async Task<ResultViewModel<Role_User?>> UpdateRoleUser([FromBody] Role_User roleUser)
         {
             if (roleUser == null)
                 throw new CustomException<Role_User>(new ValidationDto<Role_User>(false, "RoleUser", "CorruptedRoleUser", null), 500);
@@ -79,19 +80,19 @@ namespace AutomationEngine.Controllers
             if (roleUser.Id == 0)
                 throw new CustomException<Role_User>(new ValidationDto<Role_User>(false, "RoleUser", "CorruptedRoleUser", result), 500);
 
-            var validationModel = await _roleUserService.RoleUserValidation(result);
+            var validationModel = _roleUserService.RoleUserValidation(result);
             if (!validationModel.IsSuccess)
                 throw new CustomException<Role_User>(validationModel, 500);
 
 
             await _roleUserService.UpdateRoleUserAsync(result);
             await _roleUserService.SaveChangesAsync();
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<Role_User>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Role_User?> { Data = result, Message = new ValidationDto<Role_User>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // POST: api/form/delete  
         [HttpPost("remove")]
-        public async Task<ResultViewModel> RemoveRoleUser([FromBody] int roleUserId)
+        public async Task<ResultViewModel<Role_User?>> RemoveRoleUser([FromBody] int roleUserId)
         {
             //is validation model
             if (roleUserId == 0)
@@ -101,7 +102,7 @@ namespace AutomationEngine.Controllers
             if (fetchForm == null)
                 throw new CustomException<Role_User>(new ValidationDto<Role_User>(false, "WorkflowRole", "CorruptedWorkflowRole", fetchForm), 500);
 
-            var validationModel = await _roleUserService.RoleUserValidation(fetchForm);
+            var validationModel = _roleUserService.RoleUserValidation(fetchForm);
             if (!validationModel.IsSuccess)
                 throw new CustomException<Role_User>(validationModel, 500);
 
@@ -112,12 +113,12 @@ namespace AutomationEngine.Controllers
             if (!saveResult.IsSuccess)
                 throw new CustomException<string>(saveResult, 500);
 
-            return (new ResultViewModel { Data = fetchForm, Message = new ValidationDto<Role_User>(true, "Success", "Success", fetchForm).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Role_User?> { Data = fetchForm, Message = new ValidationDto<Role_User>(true, "Success", "Success", fetchForm).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/all  
         [HttpGet("all")]
-        public async Task<ResultViewModel> GetAllRoleUser(int pageSize, int pageNumber)
+        public async Task<ResultViewModel<IEnumerable<Role_User?>>> GetAllRoleUser(int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -130,12 +131,12 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
                 throw new CustomException<ListDto<Role_User>>(new ValidationDto<ListDto<Role_User>>(false, "Form", "CorruptedInvalidPage", forms), 500);
 
-            return (new ResultViewModel {Data = forms.Data , ListNumber = forms.ListNumber , ListSize = forms.ListSize , TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<Role_User>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<IEnumerable<Role_User?>> {Data = forms.Data , ListNumber = forms.ListNumber , ListSize = forms.ListSize , TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<Role_User>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/{id}  
         [HttpGet("{roleUserId}")]
-        public async Task<ResultViewModel> GetRoleUser(int roleUserId)
+        public async Task<ResultViewModel<Role_User?>> GetRoleUser(int roleUserId)
         {                        //is validation model
             if (roleUserId == 0)
                 throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "CorruptedUserWorkflow", roleUserId), 500);
@@ -145,17 +146,17 @@ namespace AutomationEngine.Controllers
             if (RoleUser == null)
                 throw new CustomException<Role_User>(new ValidationDto<Role_User>(false, "UserWorkflow", "CorruptedUserWorkflow", RoleUser), 500);
 
-            var validationModel = await _roleUserService.RoleUserValidation(RoleUser);
+            var validationModel = _roleUserService.RoleUserValidation(RoleUser);
             if (!validationModel.IsSuccess)
                 throw new CustomException<Role_User>(validationModel, 500);
 
             var form = await _roleUserService.GetRoleUserByIdAsync(roleUserId);
-            return (new ResultViewModel { Data = form, Message = new ValidationDto<Role_User>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<Role_User?> { Data = form, Message = new ValidationDto<Role_User>(true, "Success", "Success", form).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
         // GET: api/form/{id}  
         [HttpGet("roleUserById")]
-        public async Task<ResultViewModel> GetRoleUserBuUserId(int pageSize, int pageNumber)
+        public async Task<ResultViewModel<IEnumerable<Role_User?>>> GetRoleUserBuUserId(int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -176,12 +177,12 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - RoleUser.TotalCount) > pageSize) && (pageSize * pageNumber) > RoleUser.TotalCount)
                 throw new CustomException<ListDto<Role_User>>(new ValidationDto<ListDto<Role_User>>(false, "Form", "CorruptedInvalidPage", RoleUser), 500);
 
-            return (new ResultViewModel { Data = RoleUser.Data , ListNumber = RoleUser.ListNumber , ListSize = RoleUser.ListSize , TotalCount = RoleUser.TotalCount, Message = new ValidationDto<ListDto<Role_User>>(true, "Success", "Success", RoleUser).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<IEnumerable<Role_User?>> { Data = RoleUser.Data , ListNumber = RoleUser.ListNumber , ListSize = RoleUser.ListSize , TotalCount = RoleUser.TotalCount, Message = new ValidationDto<ListDto<Role_User>>(true, "Success", "Success", RoleUser).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
             // GET: api/form/all  
         [HttpGet("user")]
-        public async Task<ResultViewModel> GetAllRoleUserAndUser(int roleId, int pageSize, int pageNumber)
+        public async Task<ResultViewModel<IEnumerable<IsAccessModel>?>> GetAllRoleUserAndUser(int roleId, int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -194,7 +195,7 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
                 throw new CustomException<ListDto<IsAccessModel>>(new ValidationDto<ListDto<IsAccessModel>>(false, "Form", "CorruptedInvalidPage", forms), 500);
 
-            return (new ResultViewModel { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<IsAccessModel>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel<IEnumerable<IsAccessModel>?> { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<IsAccessModel>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
         }
     }
 }
