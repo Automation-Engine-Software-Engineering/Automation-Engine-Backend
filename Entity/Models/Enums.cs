@@ -27,6 +27,7 @@ namespace Entities.Models.Enums
         BinaryLong = 7,
         Color = 8,
         Email = 9,
-        Password = 10
+        Password = 10,
+        Select = 11,
     }
 }

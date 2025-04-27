@@ -91,6 +91,11 @@ namespace Services
                 case PropertyType.Time:
                     parameters.Add(("@Type", "time(7)"));
                     break;
+
+                case PropertyType.Select:
+                    parameters.Add(("@Type", "INT"));
+                    break;
+
             }
 
             //initial action

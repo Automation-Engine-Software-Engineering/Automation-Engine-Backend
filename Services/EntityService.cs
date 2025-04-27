@@ -175,7 +175,7 @@ namespace Services
 
         public async Task ReplaceEntityRolesByFormId(int formId, List<int> entiteIds)
         {
-            var form = _context.Form.Include(x => x.Entities).FirstOrDefault(x => x.Id != formId);
+            var form = _context.Form.Include(x => x.Entities).FirstOrDefault(x => x.Id == formId);
             form.Entities = new List<Entity>();
             var entites = _context.Entity.Where(x => entiteIds.Any(xx => xx == x.Id)).ToList();
             form.Entities = entites;

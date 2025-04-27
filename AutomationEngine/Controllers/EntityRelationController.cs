@@ -88,13 +88,13 @@ namespace AutomationEngine.Controllers
             if (pageNumber < 1)
                 pageNumber = 1;
 
-            var forms = await _entityRelationService.GetEntityRelationByParentId(parentId, pageSize, pageNumber);
+            var forms = await _entityRelationService.GetEntityRelationById(parentId, pageSize, pageNumber);
 
             //is valid data
             if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
-                throw new CustomException<ListDto<Entity_EntityRelation>>(new ValidationDto<ListDto<Entity_EntityRelation>>(false, "Form", "CorruptedInvalidPage", forms), 500);
+                throw new CustomException<ListDto<IsAccessModel>>(new ValidationDto<ListDto<IsAccessModel>>(false, "Form", "CorruptedInvalidPage", forms), 500);
 
-            return (new ResultViewModel { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<Entity_EntityRelation>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<IsAccessModel>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
     }

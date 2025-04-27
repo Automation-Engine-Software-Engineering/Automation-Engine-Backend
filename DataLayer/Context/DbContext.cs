@@ -71,6 +71,11 @@ namespace DataLayer.DbContext
                  .WithMany(n => n.Nodes)
                  .OnDelete(DeleteBehavior.Cascade);
 
+                 modelBuilder.Entity<Entity>()
+                 .HasMany(n => n.entity_EntityRelation)
+                 .WithOne()
+                 .HasForeignKey(n => n.ParentId);
+
         }
 
     }

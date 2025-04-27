@@ -298,7 +298,9 @@ namespace AutomationEngine.Controllers
             }
 
             await _entityService.ReplaceEntityRolesByFormId(FormId,Entites);
-            await _entityService.SaveChangesAsync();
+            var validation = await _entityService.SaveChangesAsync();
+            if(!validation.IsSuccess)
+            throw new CustomException<string?>(validation, 503);
             return (new ResultViewModel { Data = entites, Message = new ValidationDto<List<Entity>>(true, "Success", "Success", entites).GetMessage(200), Status = true, StatusCode = 200 });
         }
     }

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tools;
+using ViewModels.ViewModels.Workflow;
 
 namespace Services
 {
@@ -19,13 +20,14 @@ namespace Services
         Task ReplaceEntityRelationsByEntityId(int EntityId, List<int> EntityIds);
         Task<ValidationDto<string>> SaveChangesAsync();
         Task<ListDto<Entity_EntityRelation>> GetEntityRelationByParentId(int parentId, int pageSize, int pageNumber);
+         Task<ListDto<IsAccessModel>> GetEntityRelationById(int parentId, int pageSize, int pageNumber);
     }
 
-    public class Entity_EntityRelationService : IEntityRelationService
+    public class EntityRelationService : IEntityRelationService
     {
         private readonly Context _context;
 
-        public Entity_EntityRelationService(Context context)
+        public EntityRelationService(Context context)
         {
             _context = context;
         }
@@ -66,6 +68,23 @@ namespace Services
             var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 
             return new ListDto<Entity_EntityRelation>(items, count, pageSize, pageNumber);
+        }
+
+        
+     public async Task<ListDto<IsAccessModel>> GetEntityRelationById(int parentId, int pageSize, int pageNumber)
+        {
+            var count = await _context.Entity.CountAsync();
+            var Workflows = await _context.Entity.Include(x => x.entity_EntityRelation)
+            .Skip((pageNumber - 1) * pageSize).Take(pageSize)
+            .ToListAsync();
+            var entity = await _context.Entity.Include(x => x.entity_EntityRelation).FirstOrDefaultAsync(x => x.Id == parentId);
+            Workflows.Remove(entity);
+
+            var result = Workflows.Select(x => new IsAccessModel() { Id = x.Id, Name = x.PreviewName, IsAccess = entity.entity_EntityRelation.Any(xx => xx.ChildId == x.Id) ? true : false }).ToList();
+
+            var list = new ListDto<IsAccessModel>(result, count, pageSize = pageSize, pageNumber = pageNumber);
+
+            return list;
         }
     }
 }

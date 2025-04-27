@@ -209,9 +209,10 @@ namespace AutomationEngine.Controllers
             dto.Nodes = fetchModel.Nodes.Select(x => new NodeDto()
             {
                 Id = x.Id,
-                Data = new Data() { Icon = x.Icon, Name = x.Name, Type = x.Type == UnknownType.Form ? 1 : 2 },
+                Data = new Data() { Icon = x.Icon, Name = x.Name, Type = x.Type == UnknownType.Form ? 1 : 2 , FormId = x.FormId },
                 Position = new position() { X = x.X, Y = x.Y, Width = x.Width, Height = x.Height },
                 Type = "custom"
+            
             }).ToList();
             dto.Edges = new List<EdgeDto>();
             fetchModel.Nodes.ForEach(x =>
