@@ -15,6 +15,7 @@ namespace DataLayer.DbContext
         public DbSet<Form> Form { get; set; }
         public DbSet<Entity> Entity { get; set; }
         public DbSet<Entity_EntityRelation> Entity_EntityRelation { get; set; }
+        public DbSet<RelationList> RelationLists{ get; set; }
         public DbSet<EntityProperty> Property { get; set; }
         public DbSet<User> User { get; set; }
         public DbSet<Role> Roles { get; set; }

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Tools.TextTools;
 using ViewModels.ViewModels.Entity;
+using ViewModels.ViewModels.FormBuilder;
 
 namespace Services
 {
@@ -21,7 +22,8 @@ namespace Services
         Task<Form?> GetFormByIdIncEntityIncPropertyAsync(int formId);
         Task<ListDto<Form>> GetAllFormsAsync(int pageSize, int pageNumber);
         Task UpdateFormBodyAsync(int formId, string htmlContent);
-        Task<string> GetFormPreviewAsync(Form form);
+        Task SaveFormData(int workflowUserId, List<SaveDataDTO> formData);
+        Task<string> GetFormPreviewAsync(Form form , int workflowUserId);
         ValidationDto<Form> FormValidation(Form form);
         Task<ValidationDto<string>> SaveChangesAsync();
         Task<bool> IsFormExistAsync(int formId);
@@ -148,7 +150,7 @@ namespace Services
         }
 
 
-        public async Task<string> GetFormPreviewAsync(Form form)
+        public async Task<string> GetFormPreviewAsync(Form form, int workflowUserId)
         {
             if (form.HtmlFormBody == null)
                 return "<span>بیتا زر اندیش پارس<span>";
@@ -254,8 +256,198 @@ namespace Services
             //if(){
 
             //}
+
+            form.Entities.ForEach(entity =>
+            {
+                var updateQuery = $"SELECT TOP(1) * FROM [dbo].[{entity.TableName}] where WorkflowUserId = {workflowUserId}";
+                var Updatedata = _dynamicDbContext.ExecuteReaderAsync(updateQuery);
+                if (Updatedata.Result.TotalCount != 0)
+                {
+                    entity.Properties.ForEach(x =>
+                    {
+                       var res =  Updatedata.Result.Data.FirstOrDefault(xx => xx.Any(n => n.Key == x.PropertyName)).FirstOrDefault(n => n.Key == x.PropertyName).Value.ToString();
+                        if(res != null){
+                         htmlBody = htmlBody.Replace($"id=\"{x.Id}\"" , $"id=\"{x.Id}\" value=\"{res}\"");   
+                        }
+                    });
+                }
+            });
+
             return htmlBody;
         }
+
+        public async Task SaveFormData(int workflowUserId, List<SaveDataDTO> formData)
+        {
+            List<Entity> entites = new List<Entity>();
+            foreach (var prop in formData)
+            {
+                var property = await _context.Property.Include(x => x.Entity).FirstOrDefaultAsync(x => x.Id == prop.id);
+                if (property == null)
+                    throw new CustomException<int>(new ValidationDto<int>(false, "Property", "PropertyNotFound", workflowUserId), 500);
+
+                if (!entites.Any(x => property != null && x == property.Entity && x.Description == prop.group))
+                {
+                    var entity = property.Entity;
+                    entity.Description = prop.group;
+
+                    if (entity == null)
+                        throw new CustomException<int>(new ValidationDto<int>(false, "Entity", "EntityNotFound", workflowUserId), 500);
+
+                    entity.Properties = [property];
+                    entites.Add(entity);
+                }
+            }
+
+            await CreatAndExeQuery(workflowUserId, formData, entites);
+        }
+        private async Task CreatAndExeQuery(int workflowUserId, List<SaveDataDTO> formData, List<Entity> entites)
+        {
+
+            foreach (var entity in entites)
+            {
+                var updateQuery = $"SELECT TOP(1) Id FROM [dbo].[{entity.TableName}] where WorkflowUserId = {workflowUserId}";
+                var Updatedata = await _dynamicDbContext.ExecuteReaderAsync(updateQuery);
+                if (Updatedata.TotalCount != 0)
+                {
+                    string query = $"Update [dbo].[{entity.TableName}] set ";
+                    var propName = new List<string>();
+                    var propValue = new List<string>();
+
+                    entity.Properties?.ForEach(x =>
+                    {
+                        propName.Add(x.PropertyName);
+                        propValue.Add(formData.FirstOrDefault(xx => xx.id == x.Id).content.ToString() ?? "");
+                    });
+
+                    propValue.ForEach(x => x.IsValidString());
+                    int i = 0;
+                    propName.ForEach(x =>
+                    {
+                        if (i != 0)
+                            query += " , ";
+
+                        i++;
+
+                        query += " " + x + " =";
+
+                        if (x == "on" || x == "off")
+                        {
+                            if (x == "on")
+                                query += 1;
+                            else
+                                query += 0;
+                        }
+                        else
+                        {
+                            query += $"N'{x}'";
+                        }
+                    });
+
+                    await _dynamicDbContext.ExecuteSqlRawAsync(query);
+
+                }
+                else
+                {
+                    var countQuery = $"SELECT TOP(1) id FROM [dbo].[{entity.TableName}] ORDER BY id DESC";
+                    var data = await _dynamicDbContext.ExecuteReaderAsync(countQuery);
+
+                    string query = $"Insert into [dbo].[{entity.TableName}] (";
+                    int i = 0;
+                    var propName = new List<string>();
+                    var propValue = new List<string>();
+
+                    entity.Properties?.ForEach(x =>
+                    {
+                        propName.Add(x.PropertyName);
+                        propValue.Add(formData.FirstOrDefault(xx => xx.id == x.Id).content.ToString() ?? "");
+                    });
+
+                    propValue.ForEach(x => x.IsValidString());
+                    i = 0;
+                    if (entity.TableName != "User")
+                    {
+                        query += "Id";
+                        query += " , WorkflowUserId";
+                    }
+                    else
+                    {
+                        query += " WorkflowUserId";
+                    }
+
+                    propName.ForEach(x =>
+                    {
+                        query += " , ";
+                        query += x;
+                        i++;
+                    });
+                    query += ") Values (";
+                    i = 0;
+                    var id = 1;
+
+                    if (entity.TableName != "User")
+                    {
+                        if (data.Data.ToList().Count != 0)
+                        {
+                            id = int.Parse(data.Data.ToList()[0]["id"].ToString()) + 1;
+                        }
+                        query += id;
+                        query += " , " + workflowUserId;
+                    }
+                    else
+                    {
+                        query += workflowUserId;
+                    }
+
+                    propValue.ForEach(x =>
+                    {
+                        query += " , ";
+
+                        if (x == "on" || x == "off")
+                        {
+                            if (x == "on")
+                                query += 1;
+                            else
+                                query += 0;
+                        }
+                        else
+                        {
+                            query += $"N'{x}'";
+                        }
+                        i++;
+
+                    });
+
+                    query += ")";
+
+                    await _dynamicDbContext.ExecuteSqlRawAsync(query);
+
+                    var result = await _context.Entity_EntityRelation.Where(x => x.ParentId == entity.Id || x.ChildId == entity.Id).ToListAsync();
+                    result.ForEach(x =>
+                    {
+                        if (result != null && entites.Any(n => n.Id == x.Id))
+                        {
+                            var table = _context.Entity.FirstOrDefault(xx => xx.Id == (x.ParentId == entity.Id ? x.ChildId : x.ParentId));
+                            var query = $"select WorkflowUserId  , Id from {table.TableName}";
+                            var data2 = _dynamicDbContext.ExecuteReaderAsync(query);
+                            var wuId = int.Parse(data2.Result.Data.ToList()[0]["WorkflowUserId"].ToString());
+
+                            if (wuId == workflowUserId)
+                            {
+                                _context.RelationLists.AddAsync(new RelationList()
+                                {
+                                    RelationId = x.Id,
+                                    Element1 = x.ParentId == entity.Id ? id : int.Parse(data2.Result.Data.ToList()[0]["id"].ToString()),
+                                    Element2 = x.ChildId == entity.Id ? id : int.Parse(data2.Result.Data.ToList()[0]["id"].ToString())
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+
+        }
+
+
         public ValidationDto<Form> FormValidation(Form form)
         {
             if (form == null) return new ValidationDto<Form>(false, "Form", "CorruptedForm", form);

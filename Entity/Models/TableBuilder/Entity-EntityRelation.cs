@@ -11,7 +11,8 @@ namespace Entities.Models.TableBuilder
 
         public int Id { get; set; }
         public int ParentId { get; set; }
-
         public int ChildId { get; set; }
+
+        public List<RelationList> RelationLists { get; set; }
     }
 }

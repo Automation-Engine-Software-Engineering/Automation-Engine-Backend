@@ -203,7 +203,7 @@ namespace AutomationEngine.Controllers
 
             //initial action
             var form = await _formService.GetFormByIdAsync(formId);
-            var formBody = await _formService.GetFormPreviewAsync(form);
+            var formBody = await _formService.GetFormPreviewAsync(form , 0);
             if (formBody == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "FormNotfound", formId), 500);
 
@@ -222,8 +222,8 @@ namespace AutomationEngine.Controllers
             //initial action
             var workflowUser = await _workflowUserService.GetWorkflowUserById(workflowUserId);
             var node = workflowUser.Workflow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkflowState);
-            var form = await _formService.GetFormByIdAsync(node.FormId.Value);
-            var formBody = await _formService.GetFormPreviewAsync(form);
+            var form = await _formService.GetFormByIdIncEntityIncPropertyAsync(node.FormId.Value);
+            var formBody = await _formService.GetFormPreviewAsync(form , workflowUserId);
             if (formBody == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "FormNotfound", node.FormId.Value), 500);
 
@@ -275,7 +275,6 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<int>(new ValidationDto<int>(false, "UserWorkflow", "UserWorkflowNotfound", workflowUserId), 500);
 
             var claims = await HttpContext.Authorize();
-
             if (claims.UserId != workflowUser.UserId)
                 throw new CustomException<int>(new ValidationDto<int>(false, "User", "UserNotFound", workflowUserId), 500);
 
@@ -286,110 +285,8 @@ namespace AutomationEngine.Controllers
             var workflowRole = await _workflowRoleService.ExistAllWorkflowRolesBuRoleId(claims.RoleId, workflow.Id);
             if (!workflowRole)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Warning", "NotAuthorized", workflowUserId), 403);
-
-
-            List<Entity> entites = new List<Entity>();
-            foreach (var prop in formData)
-            {
-                var property = await _propertyService.GetColumnByIdIncEntityAsync(prop.id);
-                if (property == null)
-                    throw new CustomException<int>(new ValidationDto<int>(false, "Property", "PropertyNotFound", workflowUserId), 500);
-
-                if (!entites.Any(x => property != null && x == property.Entity))
-                {
-                    var entity = property.Entity;
-                    if (entity == null)
-                        throw new CustomException<int>(new ValidationDto<int>(false, "Entity", "EntityNotFound", workflowUserId), 500);
-
-                    entity.Properties = [property];
-                    entites.Add(entity);
-                }
-            }
-
-            foreach (var entity in entites)
-            {
-                var countQuery = $"SELECT TOP(1) id FROM [dbo].[{entity.TableName}] ORDER BY id DESC";
-                var data = await _dynamicDbContext.ExecuteReaderAsync(countQuery);
-                string query = $"Insert into [dbo].[{entity.TableName}] (";
-                int i = 0;
-                var propName = new List<string>();
-                var propValue = new List<string>();
-
-                entity.Properties?.ForEach(x =>
-                {
-                    propName.Add(x.PropertyName);
-                    propValue.Add(formData.FirstOrDefault(xx => xx.id == x.Id).content.ToString() ?? "");
-                });
-
-                propValue.ForEach(x => x.IsValidString());
-                i = 0;
-                if (entity.TableName != "User")
-                {
-                    query += "Id";
-                    query += " , WorkflowUserId";
-
-                }
-                else
-                {
-                    query += " WorkflowUserId";
-                }
-
-
-                propName.ForEach(x =>
-                {
-                    query += " , ";
-                    query += x;
-                    i++;
-                });
-
-                query += ") Values (";
-
-                i = 0;
-                if (entity.TableName != "User")
-                {
-                    if (data.Data.ToList().Count == 0)
-                    {
-                        query += "1";
-                    }
-                    else
-                    {
-                        query += int.Parse(data.Data.ToList()[0]["id"].ToString()) + 1;
-                    }
-                    query += " , " + workflowUserId;
-                }
-                else
-                {
-                    query += workflowUserId;
-
-                }
-
-
-
-                propValue.ForEach(x =>
-                {
-                    query += " , ";
-
-                    if (x == "on" || x == "off")
-                    {
-                        if(x == "on")
-                        query += 1;
-                        else
-                        query += 0;
-                    }
-                    else
-                    {
-                        query += $"N'{x}'";
-                    }
-                    i++;
-
-                });
-
-                query += ")";
-
-                await _dynamicDbContext.ExecuteSqlRawAsync(query);
-            }
-
-            return (new ResultViewModel { Data = entites, Message = new ValidationDto<List<Entity>>(true, "Success", "Success", entites).GetMessage(200), Status = true, StatusCode = 200 });
+            await _formService.SaveFormData(workflowUserId , formData);
+            return (new ResultViewModel { Data = formData, Message = new ValidationDto<List<SaveDataDTO>>(true, "Success", "Success", formData).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
     }
