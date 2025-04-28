@@ -5,10 +5,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using Services;
 using System.Text;
 using System.Threading.RateLimiting;
 using Tools.AuthoraizationTools;
+using Serilog.Settings.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,10 +64,6 @@ builder.Services.AddRateLimiter(options =>
     {
         var ex = new CustomException<object>(new FrameWork.Model.DTO.ValidationDto<object>(false, "Authentication", "TooManyRequests", null), 429);
         throw ex;
-        //return new ValueTask(ExceptionHandling.HandleCustomExceptionAsync(context.HttpContext, ex));
-        context.HttpContext.Response.StatusCode = 429;
-        await context.HttpContext.Response.WriteAsync("Too many requests. Please try later again... ", cancellationToken: token);
-
     };
 });
 
@@ -127,6 +125,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.RequireHttpsMetadata = true;
     });
 
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration.ReadFrom.Configuration(context.Configuration,new ConfigurationReaderOptions
+    {
+        SectionName =  "Logger"
+    })
+        .Enrich.FromLogContext();
+});
+builder.Host.UseSerilog();
+
+
 builder.Services.AddScoped<Context>();
 builder.Services.AddScoped<DynamicDbContext>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -159,6 +168,7 @@ builder.Services.AddAntiforgery(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseSerilogRequestLogging();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 if (app.Environment.IsDevelopment())
 {

@@ -11,16 +11,20 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using ViewModels.ViewModels.Workflow;
 using FrameWork;
+using AutomationEngine.Controllers;
+using Microsoft.Extensions.Logging;
 
 namespace AutomationEngine.CustomMiddlewares
 {
     public class ExceptionHandlingMiddleware
     {
         private readonly RequestDelegate _next;
+        private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-        public ExceptionHandlingMiddleware(RequestDelegate next)
+        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
         {
             _next = next;
+            _logger = logger;
         }
         public async Task InvokeAsync(HttpContext context)
         {
@@ -31,10 +35,12 @@ namespace AutomationEngine.CustomMiddlewares
             }
             catch (CustomException ex)
             {
+                _logger.LogWarning(ex,ex.Message,ex.Data);
                 await ExceptionHandling.HandleCustomExceptionAsync(context, ex);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, ex.Message, ex.Data);
                 await ExceptionHandling.HandleGeneralExceptionAsync(context, ex);
             }
         }
@@ -49,7 +55,7 @@ namespace AutomationEngine.CustomMiddlewares
                 status = false,
                 statusCode = ex.StatusId
             };
-
+            
             var environment = context.RequestServices.GetService<IWebHostEnvironment>();
             if (environment != null && environment.IsDevelopment())
             {
