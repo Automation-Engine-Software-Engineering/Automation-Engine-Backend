@@ -127,14 +127,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Host.UseSerilog((context, services, configuration) =>
 {
-    configuration.ReadFrom.Configuration(context.Configuration,new ConfigurationReaderOptions
-    {
-        SectionName =  "Logger"
-    })
-        .Enrich.FromLogContext();
+    configuration.ReadFrom.Configuration(context.Configuration, new ConfigurationReaderOptions())
+    .Enrich.FromLogContext();
 });
 builder.Host.UseSerilog();
-
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
+Log.Information("Application Starting...");
 
 builder.Services.AddScoped<Context>();
 builder.Services.AddScoped<DynamicDbContext>();
