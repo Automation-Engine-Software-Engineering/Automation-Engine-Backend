@@ -112,7 +112,7 @@ namespace AutomationEngine.Controllers
         }
 
         // GET: api/form/all  
-        [HttpGet("all")]
+        [HttpGet("all/Role")]
         public async Task<ResultViewModel> GetAllRoleUser()
         {
             var claims = await HttpContext.Authorize();
@@ -120,5 +120,25 @@ namespace AutomationEngine.Controllers
 
             return (new ResultViewModel { Data = forms, Message = new ValidationDto<List<ViewModels.ViewModels.RoleDtos.MenueElementDTO>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
         }
+
+        
+        // GET: api/form/all  
+        [HttpGet("all")]
+        public async Task<ResultViewModel> GetAllMenueElement(int pageSize, int pageNumber)
+        {
+            if (pageSize > 100)
+                pageSize = 100;
+            if (pageNumber < 1)
+                pageNumber = 1;
+
+            var forms = await _menueService.GetAllMenueElement(pageSize, pageNumber);
+
+            //is valid data
+            if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
+                throw new CustomException<ListDto<MenueElement>>(new ValidationDto<ListDto<MenueElement>>(false, "Form", "CorruptedInvalidPage", forms), 500);
+
+            return (new ResultViewModel {Data = forms.Data , ListNumber = forms.ListNumber , ListSize = forms.ListSize , TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<MenueElement>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
+        }
+
     }
 }

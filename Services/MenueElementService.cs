@@ -20,7 +20,7 @@ namespace Services
         Task DeleteMenueElement(int Id);
         Task<List<MenueElementDTO>> GetMenueElementByRoleId(int roleId);
         Task<MenueElement> GetMenueElementById(int id);
-
+        Task<ListDto<MenueElement>> GetAllMenueElement(int pageSize, int pageNumber);
         Task<ValidationDto<string>> SaveChangesAsync();
     }
 
@@ -110,5 +110,14 @@ namespace Services
             }
         }
 
+        public async Task<ListDto<MenueElement>> GetAllMenueElement(int pageSize, int pageNumber)
+        {
+            var query = _context.MenueElements;
+
+            var count = await query.CountAsync();
+            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return new ListDto<MenueElement>(items, count, pageSize, pageNumber);
+        }
     }
 }
