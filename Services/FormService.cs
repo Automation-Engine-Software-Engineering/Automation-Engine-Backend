@@ -23,7 +23,7 @@ namespace Services
         Task<ListDto<Form>> GetAllFormsAsync(int pageSize, int pageNumber);
         Task UpdateFormBodyAsync(int formId, string htmlContent);
         Task SaveFormData(int workflowUserId, List<SaveDataDTO> formData);
-        Task<string> GetFormPreviewAsync(Form form , int workflowUserId);
+        Task<string> GetFormPreviewAsync(Form form, int workflowUserId);
         ValidationDto<Form> FormValidation(Form form);
         Task<ValidationDto<string>> SaveChangesAsync();
         Task<bool> IsFormExistAsync(int formId);
@@ -171,12 +171,31 @@ namespace Services
             foreach (var tag in tags)
             {
                 var tableId = _htmlService.GetTagAttributesValue(tag, "data-tableid");
-                var condition = _htmlService.GetTagAttributesValue(tag, "data-condition");
-                var filter = _htmlService.GetTagAttributesValue(tag, "data-filter");
 
-                var table = await _context.Entity.FirstAsync(x => x.Id == int.Parse(tableId));
-                // var query = $"select * from {table.TableName} where" + filter;
-                var query = $"select * from [dbo].[{table.TableName}]";
+                var condition = _htmlService.GetTagAttributesValue(tag, "data-condition");
+                condition = condition.Replace("{{", "");
+                condition = condition.Replace("}}", "");
+                condition = condition.Replace("و", ",");
+                condition = condition.Replace("&nbsp;", " ");
+
+                var filter = _htmlService.GetTagAttributesValue(tag, "data-filter");
+                filter = filter.Replace("{{", "");
+                filter = filter.Replace("}}", "");
+                filter = filter.Replace("و", " ");
+                filter = filter.Replace(",", " ");
+                filter = filter.Replace("&nbsp;", " ");
+
+                var relation = _htmlService.GetTagAttributesValue(tag, "data-relation");
+                relation = relation.Replace("{{", "");
+                relation = relation.Replace("}}", "");
+                relation = relation.Replace("و", " ");
+                relation = relation.Replace(",", " ");
+                relation = relation.Replace("&nbsp;", " ");
+
+                var table = await _context.Entity.Include(c => c.Properties).FirstAsync(x => x.Id == int.Parse(tableId));
+                var query = $"select " + condition + $" from [dbo].[{table.TableName}]  {relation} where {filter}";
+                query = query.Replace("&nbsp;", " ");
+
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
 
                 if (data != null && data.TotalCount != 0)
@@ -203,7 +222,7 @@ namespace Services
             }
 
             tagName = "table";
-            attributes = new List<string> { "data-tableid", "data-condition", "data-filter" };
+            attributes = new List<string> { "data-tableid", "data-condition", "data-filter", "data-relation" };
             tags = _htmlService.FindHtmlTag(htmlBody, tagName, attributes);
             foreach (var tag in tags)
             {
@@ -216,9 +235,21 @@ namespace Services
                 condition = condition.Replace("&nbsp;", " ");
 
                 var filter = _htmlService.GetTagAttributesValue(tag, "data-filter");
+                filter = filter.Replace("{{", "");
+                filter = filter.Replace("}}", "");
+                filter = filter.Replace("و", " ");
+                filter = filter.Replace(",", " ");
+                filter = filter.Replace("&nbsp;", " ");
+
+                var relation = _htmlService.GetTagAttributesValue(tag, "data-relation");
+                relation = relation.Replace("{{", "");
+                relation = relation.Replace("}}", "");
+                relation = relation.Replace("و", " ");
+                relation = relation.Replace(",", " ");
+                relation = relation.Replace("&nbsp;", " ");
 
                 var table = await _context.Entity.Include(c => c.Properties).FirstAsync(x => x.Id == int.Parse(tableId));
-                var query = $"select " + condition + $" from [dbo].[{table.TableName}]";
+                var query = $"select " + condition + $" from [dbo].[{table.TableName}]  {relation} where {filter}";
                 query = query.Replace("&nbsp;", " ");
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
 
@@ -256,22 +287,23 @@ namespace Services
             //if(){
 
             //}
-
-            form.Entities.ForEach(entity =>
-            {
-                var updateQuery = $"SELECT TOP(1) * FROM [dbo].[{entity.TableName}] where WorkflowUserId = {workflowUserId}";
-                var Updatedata = _dynamicDbContext.ExecuteReaderAsync(updateQuery);
-                if (Updatedata.Result.TotalCount != 0)
+            if (form.Entities != null)
+                form.Entities.ForEach(entity =>
                 {
-                    entity.Properties.ForEach(x =>
+                    var updateQuery = $"SELECT TOP(1) * FROM [dbo].[{entity.TableName}] where WorkflowUserId = {workflowUserId}";
+                    var Updatedata = _dynamicDbContext.ExecuteReaderAsync(updateQuery);
+                    if (Updatedata.Result.TotalCount != 0)
                     {
-                       var res =  Updatedata.Result.Data.FirstOrDefault(xx => xx.Any(n => n.Key == x.PropertyName)).FirstOrDefault(n => n.Key == x.PropertyName).Value.ToString();
-                        if(res != null){
-                         htmlBody = htmlBody.Replace($"id=\"{x.Id}\"" , $"id=\"{x.Id}\" value=\"{res}\"");   
-                        }
-                    });
-                }
-            });
+                        entity.Properties.ForEach(x =>
+                        {
+                            var res = Updatedata.Result.Data.FirstOrDefault(xx => xx.Any(n => n.Key == x.PropertyName)).FirstOrDefault(n => n.Key == x.PropertyName).Value.ToString();
+                            if (res != null)
+                            {
+                                htmlBody = htmlBody.Replace($"id=\"{x.Id}\"", $"id=\"{x.Id}\" value=\"{res}\"");
+                            }
+                        });
+                    }
+                });
 
             return htmlBody;
         }

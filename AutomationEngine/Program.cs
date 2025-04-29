@@ -137,6 +137,7 @@ builder.Services.AddScoped<IWorkflowRoleService, WorkflowRoleService>();
 builder.Services.AddScoped<IRoleUserService, RoleUserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IHtmlService, HtmlService>();
+builder.Services.AddScoped<IMenueElementService, MenueElementService>();
 builder.Services.AddScoped<IEntityRelationService, EntityRelationService>();
 builder.Services.AddSingleton<TokenGenerator>();
 builder.Services.AddSingleton<EncryptionTool>();

@@ -203,7 +203,7 @@ namespace AutomationEngine.Controllers
 
             //initial action
             var form = await _formService.GetFormByIdAsync(formId);
-            var formBody = await _formService.GetFormPreviewAsync(form , 0);
+            var formBody = await _formService.GetFormPreviewAsync(form, 0);
             if (formBody == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "FormNotfound", formId), 500);
 
@@ -223,7 +223,7 @@ namespace AutomationEngine.Controllers
             var workflowUser = await _workflowUserService.GetWorkflowUserById(workflowUserId);
             var node = workflowUser.Workflow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkflowState);
             var form = await _formService.GetFormByIdIncEntityIncPropertyAsync(node.FormId.Value);
-            var formBody = await _formService.GetFormPreviewAsync(form , workflowUserId);
+            var formBody = await _formService.GetFormPreviewAsync(form, workflowUserId);
             if (formBody == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "FormNotfound", node.FormId.Value), 500);
 
@@ -285,7 +285,8 @@ namespace AutomationEngine.Controllers
             var workflowRole = await _workflowRoleService.ExistAllWorkflowRolesBuRoleId(claims.RoleId, workflow.Id);
             if (!workflowRole)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Warning", "NotAuthorized", workflowUserId), 403);
-            await _formService.SaveFormData(workflowUserId , formData);
+
+            await _formService.SaveFormData(workflowUserId, formData);
             return (new ResultViewModel { Data = formData, Message = new ValidationDto<List<SaveDataDTO>>(true, "Success", "Success", formData).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
