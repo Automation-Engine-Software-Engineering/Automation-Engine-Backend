@@ -3,12 +3,12 @@ using Entities.Models.Workflows;
 
 namespace Entities.Models.MainEngine
 {
-    public class MenueElement
+    public class MenuElement
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public int MenueType { get; set; }
-        public int? ParentMenueElemntId { get; set; }
+        public int MenuType { get; set; }
+        public int? ParentMenuElemntId { get; set; }
         public int? WorkflowId { get; set; }
         [ForeignKey(nameof(WorkflowId))]
         
@@ -18,7 +18,7 @@ namespace Entities.Models.MainEngine
         public Role Role { get; set; }
     }
 
-    public enum MenueType
+    public enum MenuType
     {
         parent = 1, linke = 2
     }

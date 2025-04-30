@@ -102,12 +102,12 @@ builder.Services.AddSwaggerGen(c =>
 //Add-Migration InitialCreate -Context Context
 //Update-Database InitialCreate -Context Context
 builder.Services.AddDbContext<DataLayer.DbContext.Context>(options =>
-           options.UseSqlServer(builder.Configuration.GetConnectionString("Basic")));
+           options.UseSqlServer(builder.Configuration.GetConnectionString("Basic2")));
 
 //Add-Migration InitialCreate -DbContext DynamicDbContext
 //Update-Database InitialCreate -DbContext DynamicDbContext
 builder.Services.AddDbContext<DynamicDbContext>(options =>
-           options.UseSqlServer(builder.Configuration.GetConnectionString("Dynamic")));
+           options.UseSqlServer(builder.Configuration.GetConnectionString("Dynamic2")));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -137,7 +137,7 @@ builder.Services.AddScoped<IWorkflowRoleService, WorkflowRoleService>();
 builder.Services.AddScoped<IRoleUserService, RoleUserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IHtmlService, HtmlService>();
-builder.Services.AddScoped<IMenueElementService, MenueElementService>();
+builder.Services.AddScoped<IMenuElementService, MenuElementService>();
 builder.Services.AddScoped<IEntityRelationService, EntityRelationService>();
 builder.Services.AddSingleton<TokenGenerator>();
 builder.Services.AddSingleton<EncryptionTool>();
