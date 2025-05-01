@@ -52,7 +52,7 @@ namespace AutomationEngine.Controllers
 
             //is validation model
             if (form.Id != 0)
-                throw new CustomException<Form>(new ValidationDto<Form>(false, "Form", "CorruptedForm", result), 500);
+                throw new CustomException("Form", "CorruptedForm");
 
             var validationModel = _formService.FormValidation(result);
             if (!validationModel.IsSuccess)

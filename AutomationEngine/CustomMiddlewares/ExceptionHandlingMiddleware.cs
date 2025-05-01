@@ -13,6 +13,8 @@ using ViewModels.ViewModels.Workflow;
 using FrameWork;
 using AutomationEngine.Controllers;
 using Microsoft.Extensions.Logging;
+using System.Collections;
+using Tools.TextTools;
 
 namespace AutomationEngine.CustomMiddlewares
 {
@@ -35,37 +37,52 @@ namespace AutomationEngine.CustomMiddlewares
             }
             catch (CustomException ex)
             {
-                _logger.LogWarning(ex,ex.Message,ex.Data);
-                await ExceptionHandling.HandleCustomExceptionAsync(context, ex);
+                var resultModel = await ExceptionHandling.HandleCustomExceptionAsync(context, ex);
+                _logger.LogCritical(
+                    ex,
+                    resultModel.message + " {LogData: {LogData}, RequestBody: {RequestBody}, RequestFormData: {RequestFormData}, Headers: {Headers}}",
+                    ConvertToString.ConvertObjectToString(ex.LogData),
+                    await ExceptionHandling.GetRequestBodyAsync(context),
+                    ExceptionHandling.GetFormDataAsync(context),
+                    JsonConvert.SerializeObject(context.Request.Headers)
+                    );
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message, ex.Data);
-                await ExceptionHandling.HandleGeneralExceptionAsync(context, ex);
+                var resultModel = await ExceptionHandling.HandleGeneralExceptionAsync(context, ex);
+                _logger.LogCritical(
+                    ex,
+                    resultModel.message + " {LogData: {LogData}, RequestBody: {RequestBody}, RequestFormData: {RequestFormData}, Headers: {Headers}}",
+                    ConvertToString.ConvertObjectToString(ex.Data),
+                    await ExceptionHandling.GetRequestBodyAsync(context),
+                    ExceptionHandling.GetFormDataAsync(context),
+                    JsonConvert.SerializeObject(context.Request.Headers)
+                    );
             }
         }
     }
     public static class ExceptionHandling
     {
-        public static async Task HandleCustomExceptionAsync(HttpContext context, CustomException ex)
+        public static async Task<ResultViewModel> HandleCustomExceptionAsync(HttpContext context, CustomException ex)
         {
             var output = new ResultViewModel()
             {
-                message = ex.Message,
+                message = ex.GetMessage(),
                 status = false,
-                statusCode = ex.StatusId
+                statusCode = ex.GetStatusCode()
             };
-            
+
             var environment = context.RequestServices.GetService<IWebHostEnvironment>();
             if (environment != null && environment.IsDevelopment())
             {
                 output.data = ex;
             }
 
-            await WriteJsonResponseAsync(context, ex.StatusId, output);
+            await WriteJsonResponseAsync(context, ex.GetStatusCode(), output);
+            return output;
         }
 
-        public static async Task HandleGeneralExceptionAsync(HttpContext context, Exception ex)
+        public static async Task<ResultViewModel> HandleGeneralExceptionAsync(HttpContext context, Exception ex)
         {
             var output = new ResultViewModel()
             {
@@ -92,10 +109,12 @@ namespace AutomationEngine.CustomMiddlewares
             };
 
             await WriteJsonResponseAsync(context, statusCode, output);
+            return output;
         }
 
         private static async Task WriteJsonResponseAsync(HttpContext context, int statusCode, ResultViewModel output)
         {
+
             string jsonString = JsonConvert.SerializeObject(output);
             byte[] byteArray = Encoding.UTF8.GetBytes(jsonString);
 
@@ -104,5 +123,38 @@ namespace AutomationEngine.CustomMiddlewares
 
             await context.Response.Body.WriteAsync(byteArray, 0, byteArray.Length, CancellationToken.None);
         }
+        public static async Task<string> GetRequestBodyAsync(HttpContext context)
+        {
+            var request = context.Request;
+
+            string requestBody = string.Empty;
+            if (request.Body.CanSeek)
+            {
+                request.Body.Position = 0;
+                using var reader = new StreamReader(request.Body);
+                requestBody = await reader.ReadToEndAsync();
+                request.Body.Position = 0;
+            }
+            return requestBody;
+        }
+
+        public static string GetFormDataAsync(HttpContext context)
+        {
+            if (context.Request.HasFormContentType)
+            {
+                var form = context.Request.Form;
+                var formData = new Dictionary<string, string>();
+
+                foreach (var key in form.Keys)
+                {
+                    formData[key] = form[key];
+                }
+
+                return JsonConvert.SerializeObject(formData);
+            }
+
+            return string.Empty; // اگر فرم دیتا وجود نداشت
+        }
+
     }
-    }
+}
