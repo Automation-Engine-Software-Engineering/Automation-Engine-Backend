@@ -161,7 +161,6 @@ namespace Services
             htmlBody = htmlBody.Replace("contenteditable=\"true\"", " ");
             htmlBody = htmlBody.Replace("contenteditable=\"false\"", " ");
             htmlBody = htmlBody.Replace("resize: both;", " ");
-            htmlBody = htmlBody.Replace("<tr><td>پیش نمایش</td></tr>", " ");
 
             //define the preview
             string tagName = "select";
@@ -176,21 +175,28 @@ namespace Services
                 condition = condition.Replace("{{", "");
                 condition = condition.Replace("}}", "");
                 condition = condition.Replace("و", ",");
+                condition = condition.Replace("-", ",");
                 condition = condition.Replace("&nbsp;", " ");
 
                 var filter = _htmlService.GetTagAttributesValue(tag, "data-filter");
-                filter = filter.Replace("{{", "");
-                filter = filter.Replace("}}", "");
-                filter = filter.Replace("و", " ");
-                filter = filter.Replace(",", " ");
-                filter = filter.Replace("&nbsp;", " ");
-
+                if (filter != null && filter != "")
+                {
+                    filter = filter.Replace("{{", "");
+                    filter = filter.Replace("}}", "");
+                    filter = filter.Replace("و", " ");
+                    filter = filter.Replace(",", " ");
+                    filter = filter.Replace("&nbsp;", " ");
+                }
+                filter = (filter == null || filter == "") ? "1 = 1" : filter;
                 var relation = _htmlService.GetTagAttributesValue(tag, "data-relation");
-                relation = relation.Replace("{{", "");
-                relation = relation.Replace("}}", "");
-                relation = relation.Replace("و", " ");
-                relation = relation.Replace(",", " ");
-                relation = relation.Replace("&nbsp;", " ");
+                if (relation != null && relation != "")
+                {
+                    relation = relation.Replace("{{", "");
+                    relation = relation.Replace("}}", "");
+                    relation = relation.Replace("و", " ");
+                    relation = relation.Replace(",", " ");
+                    relation = relation.Replace("&nbsp;", " ");
+                }
 
                 var table = await _context.Entity.Include(c => c.Properties).FirstAsync(x => x.Id == int.Parse(tableId));
                 var query = $"select " + condition + $" from [dbo].[{table.TableName}]  {relation} where {filter}";
@@ -232,22 +238,30 @@ namespace Services
                 condition = condition.Replace("{{", "");
                 condition = condition.Replace("}}", "");
                 condition = condition.Replace("و", ",");
+                condition = condition.Replace("-", ",");
                 condition = condition.Replace("&nbsp;", " ");
 
                 var filter = _htmlService.GetTagAttributesValue(tag, "data-filter");
-                filter = filter.Replace("{{", "");
-                filter = filter.Replace("}}", "");
-                filter = filter.Replace("و", " ");
-                filter = filter.Replace(",", " ");
-                filter = filter.Replace("&nbsp;", " ");
+                if (filter != null && filter != "")
+                {
+                    filter = filter.Replace("{{", "");
+                    filter = filter.Replace("}}", "");
+                    filter = filter.Replace("و", " ");
+                    filter = filter.Replace(",", " ");
+                    filter = filter.Replace("&nbsp;", " ");
+                }
+                filter = (filter == null || filter == "") ? "1 = 1" : filter;
 
                 var relation = _htmlService.GetTagAttributesValue(tag, "data-relation");
-                relation = relation.Replace("{{", "");
-                relation = relation.Replace("}}", "");
-                relation = relation.Replace("و", " ");
-                relation = relation.Replace(",", " ");
-                relation = relation.Replace("&nbsp;", " ");
 
+                if (relation != null && relation != "")
+                {
+                    relation = relation.Replace("{{", "");
+                    relation = relation.Replace("}}", "");
+                    relation = relation.Replace("و", " ");
+                    relation = relation.Replace(",", " ");
+                    relation = relation.Replace("&nbsp;", " ");
+                }
                 var table = await _context.Entity.Include(c => c.Properties).FirstAsync(x => x.Id == int.Parse(tableId));
                 var query = $"select " + condition + $" from [dbo].[{table.TableName}]  {relation} where {filter}";
                 query = query.Replace("&nbsp;", " ");
@@ -255,12 +269,16 @@ namespace Services
 
                 if (data != null && data.TotalCount != 0)
                 {
+                    var icon = _htmlService.ExtractContentAfterTableCell(tag);
+
                     var childTags = new List<string>();
+                    var headerCount = condition.Split(",").ToList().Count;
+
                     string header = "<tr>";
                     foreach (var item in condition.Split(",").ToList())
                     {
                         var name = table.Properties.FirstOrDefault(x => x.PropertyName == item.Replace(" ", "")).PreviewName;
-                        header += $"<th>{name}</th>";
+                        header += $"<th style=\"width: {100/headerCount}%;\">{name}</th>";
                     }
                     header += "</tr>";
                     childTags.Add(header);
@@ -271,16 +289,28 @@ namespace Services
                             string body = "<tr>";
                             foreach (var item2 in condition.Split(",").ToList())
                             {
-                                body += $"<td>{item.GetValueOrDefault(item2.Replace(" ", ""))}</td>";
+                                body += $"<td style=\"width: {100/headerCount}%;\">{item.GetValueOrDefault(item2.Replace(" ", ""))}</td>";
                             }
+                            body += icon;
                             body += "</tr>";
                             childTags.Add(body);
                         }
 
                     var newTag = _htmlService.InsertTag(tag, childTags);
                     htmlBody = htmlBody.Replace(tag, newTag);
+                    htmlBody = htmlBody.Replace("<tr>\n         <td>\n          پیش نمایش جدول\n         \n<tr>", "");
                 }
             }
+
+            tagName = "input";
+            tags = _htmlService.FindSingleHtmlTag(htmlBody);
+            var curentTime = DateTime.Now;
+            tags.ForEach(x =>
+            {
+                var replace = x.Replace("value=\"\" =\"\"", "value=\"2025-01-26\" disabled");
+                htmlBody = htmlBody.Replace(x, replace);
+            });
+
 
             ////define the edit
             //var query = "select ";

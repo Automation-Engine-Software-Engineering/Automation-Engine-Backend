@@ -7,9 +7,11 @@ namespace Services
     public interface IHtmlService
     {
         List<string> FindHtmlTag(string htmBody, string htmlTag, List<string> attributes);
+         List<string> FindSingleHtmlTag(string htmlBody);
         string InsertTag(string parentTag, List<string> childTags);
         string? GetTagAttributesValue(string TagBody, string attributeName);
         List<string> GetAttributeConditionValues(string input);
+        string ExtractContentAfterTableCell(string htmlBody);
     }
 
     public class HtmlService : IHtmlService
@@ -19,28 +21,62 @@ namespace Services
         {
             _context = context;
         }
-
-        public List<string> FindHtmlTag(string htmBody, string htmlTag, List<string> attributes)
+        public List<string> FindHtmlTag(string htmlBody, string htmlTag, List<string> attributes)
         {
             var result = new List<string>();
 
-            if (string.IsNullOrWhiteSpace(htmBody) || string.IsNullOrWhiteSpace(htmlTag) || attributes == null || attributes.Count == 0)
+            if (string.IsNullOrWhiteSpace(htmlBody) || string.IsNullOrWhiteSpace(htmlTag) || attributes == null || attributes.Count == 0)
             {
                 return result;
             }
 
-            var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(htmBody);
+            string pattern = $@"<{htmlTag}\b[^>]*\b(?:{string.Join("|", attributes.ConvertAll(a => $@"\b{Regex.Escape(a)}=""[^""]*"""))})[^>]*>(.*?)</{htmlTag}>";
+            var matches = Regex.Matches(htmlBody, pattern, RegexOptions.Singleline);
 
-            var nodes = htmlDoc.DocumentNode.Descendants(htmlTag)
-                .Where(node => attributes.All(attr => node.Attributes[attr] != null));
-
-            foreach (var node in nodes)
+            foreach (Match match in matches)
             {
-                result.Add(node.OuterHtml);
+                result.Add(match.Value);
             }
 
             return result;
+        }
+
+        public  List<string> FindSingleHtmlTag(string htmlBody)
+        {
+            var result = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(htmlBody))
+            {
+                return result;
+            }
+
+            string pattern = @"<input\b[^>]*\bdata-current-date=""true""[^>]*>";
+            var matches = Regex.Matches(htmlBody, pattern, RegexOptions.Singleline);
+
+            foreach (Match match in matches)
+            {
+                result.Add(match.Value);
+            }
+
+            return result;
+        }
+
+        public string ExtractContentAfterTableCell(string htmlBody)
+        {
+            if (string.IsNullOrWhiteSpace(htmlBody))
+            {
+                return string.Empty;
+            }
+
+            string pattern = @"<td>\n\s*پیش\s*نمایش\s*جدول\s*\n\s*</td>(.*?)</tbody>";
+            var match = Regex.Match(htmlBody, pattern, RegexOptions.Singleline);
+
+            if (match.Success)
+            {
+                return match.Groups[1].Value;
+            }
+
+            return string.Empty;
         }
 
         public List<string> GetAttributeConditionValues(string input)
@@ -91,9 +127,29 @@ namespace Services
             string openingPart = parentTag.Substring(0, closingTagIndex);
             string closingPart = parentTag.Substring(closingTagIndex);
 
+            closingPart = RemoveSpecificTag(closingPart);
+
             string embeddedContent = string.Join("\n", childTags);
 
             return openingPart + "\n" + embeddedContent + "\n" + closingPart;
+        }
+
+        public string RemoveSpecificTag(string htmlBody)
+        {
+            if (string.IsNullOrWhiteSpace(htmlBody))
+            {
+                return string.Empty;
+            }
+
+            // بررسی وجود عبارت data-listener-added
+            if (htmlBody.Contains("data-listener-added"))
+            {
+                // الگوی حذف آخرین تگ <td>
+                string pattern = @"(<td\b[^>]*>.*?</td>)(?!.*<td\b[^>]*>.*?</td>)";
+                htmlBody = Regex.Replace(htmlBody, pattern, string.Empty, RegexOptions.Singleline);
+            }
+
+            return htmlBody;
         }
     }
 }

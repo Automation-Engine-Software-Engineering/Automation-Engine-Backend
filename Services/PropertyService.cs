@@ -89,7 +89,7 @@ namespace Services
                     break;
 
                 case PropertyType.Time:
-                    parameters.Add(("@Type", "time(7)"));
+                    parameters.Add(("@Type", "Nvarchar(50)"));
                     break;
 
                 case PropertyType.Select:

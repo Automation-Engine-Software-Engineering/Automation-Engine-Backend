@@ -19,9 +19,11 @@ namespace Services
         Task<Workflow> GetWorkflowIncRolesById(int id);
         Task<Workflow> GetWorkflowByIdIncNodesAsync(int id);
         Task<ListDto<Workflow>> GetAllWorkflowsAsync(int pageSize, int pageNumber);
+        Task<ListDto<Node>> GetAllNodsAsync(int pageSize, int pageNumber);
         Task<ValidationDto<Workflow>> WorkflowValidationAsync(Workflow workflow);
         Task<ValidationDto<string>> SaveChangesAsync();
         Task<bool> IsWorkflowExistAsync(int formId);
+        Task<Node> GetNodByIdAsync(string NodeId);
     }
     public class WorkflowService : IWorkflowService
     {
@@ -65,7 +67,7 @@ namespace Services
 
         }
 
-        
+
 
         public async Task<Workflow> GetWorkflowByIdAsync(int id)
         {
@@ -133,6 +135,23 @@ namespace Services
         public async Task<Workflow> GetWorkflowIncRolesById(int id)
         {
             var result = await _context.Workflow.Include(x => x.Role_Workflows).FirstAsync(x => x.Id == id);
+            return result;
+        }
+
+        public async Task<ListDto<Node>> GetAllNodsAsync(int pageSize, int pageNumber)
+        {
+            //create query
+            var query = _context.Node;
+
+            //get Value and count
+            var count = await query.CountAsync();
+            var result = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            return new ListDto<Node>(result, count, pageSize, pageNumber);
+        }
+
+        public async Task<Node> GetNodByIdAsync(string NodeId)
+        {
+           var result = await _context.Node.FirstAsync(x => x.Id == NodeId);
             return result;
         }
     }
