@@ -291,6 +291,7 @@ namespace Services
                             {
                                 body += $"<td style=\"width: {100/headerCount}%;\">{item.GetValueOrDefault(item2.Replace(" ", ""))}</td>";
                             }
+                            var newIcon = icon.Replace("data-workflow-user=\"\"" , $"data-workflow-user=\"{1}\"");
                             body += icon;
                             body += "</tr>";
                             childTags.Add(body);
