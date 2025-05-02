@@ -263,7 +263,7 @@ namespace Services
                     relation = relation.Replace("&nbsp;", " ");
                 }
                 var table = await _context.Entity.Include(c => c.Properties).FirstAsync(x => x.Id == int.Parse(tableId));
-                var query = $"select " + condition + $" from [dbo].[{table.TableName}]  {relation} where {filter}";
+                var query = $"select WorkflowUserId , " + condition + $" from [dbo].[{table.TableName}]  {relation} where {filter}";
                 query = query.Replace("&nbsp;", " ");
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
 
@@ -292,7 +292,7 @@ namespace Services
                                 body += $"<td style=\"width: {100/headerCount}%;\">{item.GetValueOrDefault(item2.Replace(" ", ""))}</td>";
                             }
                             var newIcon = icon.Replace("data-workflow-user=\"\"" , $"data-workflow-user=\"{1}\"");
-                            body += icon;
+                            body += newIcon;
                             body += "</tr>";
                             childTags.Add(body);
                         }
