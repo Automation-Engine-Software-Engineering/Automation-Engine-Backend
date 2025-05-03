@@ -47,6 +47,7 @@ namespace AutomationEngine.Controllers
                 Id = 0,
                 MenuType = MenuElement.MenuType,
                 Name = MenuElement.Name,
+                link = MenuElement.link,
                 ParentMenuElemntId = MenuElement.ParentMenuElemntId,
                 RoleId = MenuElement.RoleId,
                 WorkflowId = MenuElement.WorkflowId == 0 ? null : MenuElement.WorkflowId
@@ -73,6 +74,7 @@ namespace AutomationEngine.Controllers
                 Id = workflow.Id,
                 MenuType = MenuElement.MenuType,
                 Name = MenuElement.Name,
+                link = MenuElement.link,
                 ParentMenuElemntId = MenuElement.ParentMenuElemntId,
                 RoleId = MenuElement.RoleId,
                 WorkflowId = MenuElement.WorkflowId
@@ -121,7 +123,7 @@ namespace AutomationEngine.Controllers
             return (new ResultViewModel { Data = forms, Message = new ValidationDto<List<ViewModels.ViewModels.RoleDtos.MenuElementDTO>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
-        
+
         // GET: api/form/all  
         [HttpGet("all")]
         public async Task<ResultViewModel> GetAllMenuElement(int pageSize, int pageNumber)
@@ -137,7 +139,7 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
                 throw new CustomException<ListDto<MenuElement>>(new ValidationDto<ListDto<MenuElement>>(false, "Form", "CorruptedInvalidPage", forms), 500);
 
-            return (new ResultViewModel {Data = forms.Data , ListNumber = forms.ListNumber , ListSize = forms.ListSize , TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<MenuElement>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
+            return (new ResultViewModel { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<MenuElement>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
         }
 
     }

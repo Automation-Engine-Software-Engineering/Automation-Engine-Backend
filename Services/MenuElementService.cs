@@ -76,6 +76,7 @@ namespace Services
                 Name = e.Name,
                 MenuType = e.MenuType,
                 workflow = e.workflow,
+                link = e.link,
                 childs = new List<MenuElementDTO>()
             });
 

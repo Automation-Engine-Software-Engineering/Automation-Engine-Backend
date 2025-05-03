@@ -11,6 +11,7 @@ namespace ViewModels.ViewModels.RoleDtos
     {
         public string Name { get; set; }
         public int MenuType { get; set; }
+         public string? link { get; set; }
         public Entities.Models.Workflows.Workflow? workflow { get; set; }
         public List<MenuElementDTO> childs { get; set; } = new List<MenuElementDTO>();
     }
@@ -20,6 +21,7 @@ namespace ViewModels.ViewModels.RoleDtos
         public int Id { get; set; }
         public string Name { get; set; }
         public int MenuType { get; set; }
+        public string? link { get; set; }
         public int? ParentMenuElemntId { get; set; }
         public int WorkflowId { get; set; }
         public int RoleId { get; set; }
