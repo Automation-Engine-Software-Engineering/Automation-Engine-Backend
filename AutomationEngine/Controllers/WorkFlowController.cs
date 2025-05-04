@@ -339,6 +339,7 @@ namespace AutomationEngine.Controllers
                 {
                     var workflowUserModel = await _workflowUserService.GetWorkflowUserById(newWorkflowUserId);
                     workflowUserModel.WorkflowState = linkNode.Id;
+                    resultWorkflowUserId = newWorkflowUserId ;
                 }
             }
 
