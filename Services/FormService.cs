@@ -156,11 +156,14 @@ namespace Services
                 return "<span>بیتا زر اندیش پارس<span>";
 
             var htmlBody = form.HtmlFormBody.ToString();
+            htmlBody = htmlBody.Replace("data-disabled=\"true\"", "??>> ");
+            htmlBody = htmlBody.Replace("data-readonly=\"true\"", "data-readonly=\"true\" ??>> ");
             htmlBody = htmlBody.Replace("disabled", "");
             // htmlBody = htmlBody.Replace("&nbsp;", " ");
             htmlBody = htmlBody.Replace("contenteditable=\"true\"", " ");
             htmlBody = htmlBody.Replace("contenteditable=\"false\"", " ");
             htmlBody = htmlBody.Replace("resize: both;", " ");
+            htmlBody = htmlBody.Replace("??>>", "disabled ");
 
             //define the preview
             string tagName = "select";
@@ -181,6 +184,8 @@ namespace Services
                 var filter = _htmlService.GetTagAttributesValue(tag, "data-filter");
                 if (filter != null && filter != "")
                 {
+                    var userId = _context.Workflow_User.FirstOrDefault(x => x.Id == workflowUserId).UserId;
+                    filter = filter.Replace("{{UserId}}", " "+userId+" ");
                     filter = filter.Replace("{{", "");
                     filter = filter.Replace("}}", "");
                     filter = filter.Replace("و", " ");
@@ -278,7 +283,7 @@ namespace Services
                     foreach (var item in condition.Split(",").ToList())
                     {
                         var name = table.Properties.FirstOrDefault(x => x.PropertyName == item.Replace(" ", "")).PreviewName;
-                        header += $"<th style=\"width: {100/headerCount}%;\">{name}</th>";
+                        header += $"<th style=\"width: {100 / headerCount}%;\">{name}</th>";
                     }
                     header += "</tr>";
                     childTags.Add(header);
@@ -289,9 +294,9 @@ namespace Services
                             string body = "<tr>";
                             foreach (var item2 in condition.Split(",").ToList())
                             {
-                                body += $"<td style=\"width: {100/headerCount}%;\">{item.GetValueOrDefault(item2.Replace(" ", ""))}</td>";
+                                body += $"<td style=\"width: {100 / headerCount}%;\">{item.GetValueOrDefault(item2.Replace(" ", ""))}</td>";
                             }
-                            var newIcon = icon.Replace("data-workflow-user=\"\"" , $"data-workflow-user=\"{item.GetValueOrDefault("WorkflowUserId")}\"");
+                            var newIcon = icon.Replace("data-workflow-user=\"\"", $"data-workflow-user=\"{item.GetValueOrDefault("WorkflowUserId")}\"");
                             body += newIcon;
                             body += "</tr>";
                             childTags.Add(body);
