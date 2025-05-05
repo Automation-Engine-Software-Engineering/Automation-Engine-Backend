@@ -99,15 +99,15 @@ namespace AutomationEngine.CustomMiddlewares
             }
 
             // تعیین کد وضعیت بر اساس نوع استثنا
-            int statusCode = ex switch
-            {
-                ArgumentNullException => 400, // Bad Request
-                UnauthorizedAccessException => 401, // Unauthorized
-                KeyNotFoundException => 404, // Not Found
-                InvalidOperationException => 405, // Method Not Allowed
-                _ => 503 // Service Unavailable
-            };
-
+            //int statusCode = ex switch
+            //{
+            //    ArgumentNullException => 400, // Bad Request
+            //    UnauthorizedAccessException => 401, // Unauthorized
+            //    KeyNotFoundException => 404, // Not Found
+            //    InvalidOperationException => 405, // Method Not Allowed
+            //    _ => 503 // Service Unavailable
+            //};
+            int statusCode = 503;
             await WriteJsonResponseAsync(context, statusCode, output);
             return output;
         }

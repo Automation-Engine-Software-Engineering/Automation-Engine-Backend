@@ -1,6 +1,7 @@
 ﻿using DataLayer.DbContext;
 using Entities.Models.FormBuilder;
 using Entities.Models.TableBuilder;
+using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -17,8 +18,8 @@ namespace Services
         Task<ListDto<Entity>> GetAllEntitiesAsync(int pageSize, int pageNumber, string? search = null, int? formId = null);
         Task<ListDto<Entity>> GetAllEntitiesByFormIdAsync(int formId, int pageSize, int pageNumber);
         Task<Entity?> GetEntitiesByIdAsync(int entityId);
-        ValidationDto<Entity> EntityValidation(Entity entity);
-        Task<ValidationDto<string>> SaveChangesAsync();
+        CustomException EntityValidation(Entity entity);
+        Task SaveChangesAsync();
     }
 
     public class EntityService : IEntityService
@@ -74,13 +75,13 @@ namespace Services
             //sql query command       
 
             var commandText = $"EXEC sp_rename @OldTableName , @NewTableName";
-          
+
             var parameters = new List<(string ParameterName, string ParameterValue)>();
             parameters.Add(("@OldTableName", fetchModel.TableName));
             parameters.Add(("@NewTableName", entity.TableName));
 
             await _dynamicDbContext.ExecuteSqlRawAsync(commandText, parameters);
-     
+
 
             //transfer model
             fetchModel.PreviewName = entity.PreviewName;
@@ -91,7 +92,7 @@ namespace Services
             _context.Entity.Update(fetchModel);
         }
 
-        public async Task<ListDto<Entity>> GetAllEntitiesAsync(int pageSize, int pageNumber,string search = "",int? formId = null)
+        public async Task<ListDto<Entity>> GetAllEntitiesAsync(int pageSize, int pageNumber, string search = "", int? formId = null)
         {
             //create query
             var query = _context.Entity.AsQueryable();
@@ -102,7 +103,7 @@ namespace Services
 
             //only get items with this form
             if (formId != null && formId != 0)
-                query = query.Include(x=>x.Forms).Where(x => x.Forms.Any(x=>x.Id == formId));
+                query = query.Include(x => x.Forms).Where(x => x.Forms.Any(x => x.Id == formId));
 
             //get Value and count
             var count = await query.CountAsync();
@@ -129,25 +130,17 @@ namespace Services
             return result;
         }
 
-        public ValidationDto<Entity> EntityValidation(Entity entity)
+        public CustomException EntityValidation(Entity entity)
         {
-            if (entity == null) return new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", entity);
-            if (entity.PreviewName == null || !entity.PreviewName.IsValidString()) return new ValidationDto<Entity>(false, "Entity", "CorruptedEntityPreviewName", entity);
-            if (entity.TableName == null || !entity.TableName.IsValidStringCommand()) return new ValidationDto<Entity>(false, "Entity", "CorruptedEntityTableName", entity);
-            return new ValidationDto<Entity>(true, "Success", "Success", entity);
+            if (entity == null) return new CustomException("Entity", "CorruptedEntity");
+            if (entity.PreviewName == null || !entity.PreviewName.IsValidString()) return new CustomException("Entity", "CorruptedEntityPreviewName", entity);
+            if (entity.TableName == null || !entity.TableName.IsValidStringCommand()) return new CustomException("Entity", "CorruptedEntityTableName", entity);
+            return new CustomException("Success", "Success");
         }
 
-        public async Task<ValidationDto<string>> SaveChangesAsync()
+        public async Task SaveChangesAsync()
         {
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new ValidationDto<string>(true, "Success", "Success", null);
-            }
-            catch (Exception ex)
-            {
-                return new ValidationDto<string>(false, "Form", "CorruptedForm", ex.Message);
-            }
+            await _context.SaveChangesAsync();
         }
     }
 }

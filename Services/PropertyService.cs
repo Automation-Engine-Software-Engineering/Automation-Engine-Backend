@@ -20,8 +20,8 @@ namespace Services
         Task<ListDto<Dictionary<string, object>>> GetColumnValuesByIdAsync(int propertyId, int pageSize, int pageNumber);
         Task<ListDto<EntityProperty>> GetAllColumnByEntityIdAsync(int entityId, int pageSize, int pageNumber);
         Task<ListDto<Dictionary<string, object>>> GetAllColumnValuesByEntityIdAsync(int entityId, int pageSize, int pageNumber);
-        ValidationDto<EntityProperty> PropertyValidation(EntityProperty property);
-        Task<ValidationDto<string>> SaveChangesAsync();
+        CustomException PropertyValidation(EntityProperty property);
+        Task SaveChangesAsync();
     }
 
     public class PropertyService : IPropertyService
@@ -59,35 +59,35 @@ namespace Services
                 case PropertyType.Float:
                     parameters.Add(("@Type", "Float"));
                     break;
-                    
+
                 case PropertyType.Email:
                     parameters.Add(("@Type", "Nvarchar(50)"));
                     break;
-                    
+
                 case PropertyType.Color:
                     parameters.Add(("@Type", "Nvarchar(50)"));
                     break;
-                    
+
                 case PropertyType.BIT:
                     parameters.Add(("@Type", "BIT"));
                     break;
-                    
+
                 case PropertyType.BinaryLong:
                     parameters.Add(("@Type", "binary(max)"));
                     break;
-                    
+
                 case PropertyType.NvarcharLong:
                     parameters.Add(("@Type", "Nvarchar(max)"));
                     break;
-                    
+
                 case PropertyType.NvarcharShort:
                     parameters.Add(("@Type", "Nvarchar(50)"));
                     break;
-                    
+
                 case PropertyType.Password:
                     parameters.Add(("@Type", "Nvarchar(50)"));
                     break;
-                    
+
                 case PropertyType.Time:
                     parameters.Add(("@Type", "time(7)"));
                     break;
@@ -149,7 +149,7 @@ namespace Services
         }
         public async Task<EntityProperty?> GetColumnByIdIncEntityAsync(int propertyId)
         {
-            var result = await _context.Property.Include(x=>x.Entity).FirstOrDefaultAsync(x => x.Id == propertyId);
+            var result = await _context.Property.Include(x => x.Entity).FirstOrDefaultAsync(x => x.Id == propertyId);
             return result;
         }
 
@@ -181,27 +181,20 @@ namespace Services
             return await _dynamicDbContext.ExecuteReaderAsync(commandText);
         }
 
-        public ValidationDto<EntityProperty> PropertyValidation(EntityProperty property)
+        public CustomException PropertyValidation(EntityProperty property)
         {
-            if (property == null) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", property);
-            if (property.EntityId == 0) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", property);
-            if (property.PreviewName.IsNullOrEmpty() || !property.PreviewName.IsValidString()) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyPreviewName", property);
-            if (property.PropertyName.IsNullOrEmpty() || !property.PropertyName.IsValidStringCommand()) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyPropertyName", property);
-            if (property.Type.GetType() != new PropertyType().GetType()) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyType", property);
-            return new ValidationDto<EntityProperty>(true, "Success", "Success", property);
+            var invalidValidation = new CustomException("Property", "CorruptedProperty", property);
+            if (property == null) return invalidValidation;
+            if (property.EntityId == 0) return invalidValidation;
+            if (property.PreviewName.IsNullOrEmpty() || !property.PreviewName.IsValidString()) return invalidValidation;
+            if (property.PropertyName.IsNullOrEmpty() || !property.PropertyName.IsValidStringCommand()) return invalidValidation;
+            if (property.Type.GetType() != new PropertyType().GetType()) return invalidValidation;
+            return new CustomException("Success", "Success", property);
         }
 
-        public async Task<ValidationDto<string>> SaveChangesAsync()
+        public async Task SaveChangesAsync()
         {
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new ValidationDto<string>(true, "Success", "Success", null);
-            }
-            catch (Exception ex)
-            {
-                return new ValidationDto<string>(false, "Form", "CorruptedForm", ex.Message);
-            }
+            await _context.SaveChangesAsync();
         }
     }
 }

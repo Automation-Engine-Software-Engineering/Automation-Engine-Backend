@@ -71,7 +71,7 @@ namespace AutomationEngine.ControllerAttributes
             var token = encryptionToolService.DecryptCookie(encryptedToken);
 
             if (token == null || token.IsNullOrWhiteSpace())
-                throw new CustomException<object>(new ValidationDto<object>(false, "Authentication", "NotAuthorized", null), 403);
+                throw new CustomException("Authentication", "NotAuthorized");
 
             var claims = tokenGeneratorService.ValidateToken(token);
 
@@ -94,7 +94,7 @@ namespace AutomationEngine.ControllerAttributes
             var currentUserAgent = httpContext.GetUserAgent();
             if (user.IP != currentIp || user.UserAgent != currentUserAgent)
             {
-                throw new CustomException<(string, string)>(new ValidationDto<(string, string)>(false, "Authentication", "NotAuthorized", (currentIp, currentUserAgent)), 403);
+                throw new CustomException("Authentication", "NotAuthorized", (currentIp, currentUserAgent));
             }
 
             // چک کردن دسترسی به Workflow
@@ -106,7 +106,7 @@ namespace AutomationEngine.ControllerAttributes
                 var hasAccess = workflow.Role_Workflows.Any(x => x.RoleId == roleId);
                 if (!hasAccess)
                 {
-                    throw new CustomException<(string, string)>(new ValidationDto<(string, string)>(false, "Authentication", "NotAuthorized", (currentIp, currentUserAgent)), 403);
+                    throw new CustomException("Authentication", "NotAuthorized", (currentIp, currentUserAgent));
                 }
             }
             return tokenClaims;
@@ -141,7 +141,7 @@ namespace AutomationEngine.ControllerAttributes
             var token = encryptionToolService.DecryptCookie(encryptedToken);
 
             if (token == null || token.IsNullOrWhiteSpace())
-                throw new CustomException<object>(new ValidationDto<object>(false, "Authentication", "NotAuthorized", null), 403);
+                throw new CustomException("Authentication", "NotAuthorized");
 
             var claims = tokenGeneratorService.ValidateToken(token,true);
 
@@ -164,7 +164,7 @@ namespace AutomationEngine.ControllerAttributes
             var currentUserAgent = httpContext.GetUserAgent();
             if (user.IP != currentIp || user.UserAgent != currentUserAgent)
             {
-                throw new CustomException<(string, string)>(new ValidationDto<(string, string)>(false, "Authentication", "NotAuthorized", (currentIp, currentUserAgent)), 403);
+                throw new CustomException("Authentication", "NotAuthorized", (currentIp, currentUserAgent));
             }
 
             return tokenClaims;

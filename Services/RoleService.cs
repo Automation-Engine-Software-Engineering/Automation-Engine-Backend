@@ -27,8 +27,8 @@ namespace Services
         Task DeleteRoleAsync(int id);
         Task<Role?> GetRoleByIdAsync(int id);
         Task<ListDto<Role>> GetAllRolesAsync(int pageSize, int pageNumber);
-        ValidationDto<Role> RoleValidation(Role role);
-        Task<ValidationDto<string>> SaveChangesAsync();
+        CustomException RoleValidation(Role role);
+        Task SaveChangesAsync();
         Task<ListDto<IsAccessModel>> GetAllUserForRoleAccessAsync(int roleId, int pageSize, int pageNumber);
     }
     public class RoleService : IRoleService
@@ -77,13 +77,13 @@ namespace Services
             if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password)) throw new CustomException("نام کاربری و رمز عبور نمی تواند خالی باشد");
 
             var user = await _dynamicContext.User.SingleOrDefaultAsync(x => x.UserName == userName)
-                   ?? throw new CustomException<object>(new ValidationDto<object>(false, "Authentication", "Login", null), 401);
+                   ?? throw new CustomException("Authentication", "Login");
 
             if (!user.Password.IsNullOrEmpty())
             {
                 var hashPassword = HashString.HashPassword(password, user.Salt);
                 if (hashPassword != user.Password)
-                    throw new CustomException<object>(new ValidationDto<object>(false, "Authentication", "Login", null), 401);
+                    throw new CustomException("Authentication", "Login");
             }
             var roleUser = await _context.Role_Users.FirstOrDefaultAsync(x => x.UserId == user.Id);
 
@@ -125,25 +125,18 @@ namespace Services
             return new ListDto<Role>(items, count, pageSize, pageNumber);
         }
 
-        public ValidationDto<Role> RoleValidation(Role role)
+        public CustomException RoleValidation(Role role)
         {
-            if (role == null) return new ValidationDto<Role>(false, "Role", "InvalidRole", role);
-            if (string.IsNullOrWhiteSpace(role.Name)) return new ValidationDto<Role>(false, "Role", "InvalidName", role);
-            if (string.IsNullOrWhiteSpace(role.Description)) return new ValidationDto<Role>(false, "Role", "InvalidDescription", role);
-            return new ValidationDto<Role>(true, "Success", "ValidationPassed", role);
+            var invalidRole = new CustomException("Role", "InvalidRole", role);
+            if (role == null) return invalidRole;
+            if (string.IsNullOrWhiteSpace(role.Name)) return invalidRole;
+            if (string.IsNullOrWhiteSpace(role.Description)) return invalidRole;
+            return new CustomException("Success", "Success", role);
         }
 
-        public async Task<ValidationDto<string>> SaveChangesAsync()
+        public async Task SaveChangesAsync()
         {
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new ValidationDto<string>(true, "Success", "ChangesSaved", null);
-            }
-            catch (Exception ex)
-            {
-                return new ValidationDto<string>(false, "Error", "SaveFailed", ex.Message);
-            }
+            await _context.SaveChangesAsync();
         }
 
         public async Task<ListDto<IsAccessModel>> GetAllUserForRoleAccessAsync(int roleId, int pageSize, int pageNumber)
@@ -154,7 +147,7 @@ namespace Services
             var users = await _dynamicContext.User.Skip((pageNumber - 1) * pageSize).Take(pageSize)
             .ToListAsync();
 
-            var result = users.Select(x => new IsAccessModel() { Id = x.Id, Name = x.Name, IsAccess = roles.role_User.Any(xx => xx.UserId == x.Id), UserName = x.UserName}).ToList();
+            var result = users.Select(x => new IsAccessModel() { Id = x.Id, Name = x.Name, IsAccess = roles.role_User.Any(xx => xx.UserId == x.Id), UserName = x.UserName }).ToList();
 
             var list = new ListDto<IsAccessModel>(result, result.Count, pageSize, pageNumber);
 

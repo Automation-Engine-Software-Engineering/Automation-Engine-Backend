@@ -60,9 +60,9 @@ builder.Services.AddRateLimiter(options =>
        )
    );
     // response of error
-    options.OnRejected = async (context, token) =>
+    options.OnRejected = (context, token) =>
     {
-        var ex = new CustomException<object>(new FrameWork.Model.DTO.ValidationDto<object>(false, "Authentication", "TooManyRequests", null), 429);
+        var ex = new CustomException("Authentication", "TooManyRequests", null);
         throw ex;
     };
 });

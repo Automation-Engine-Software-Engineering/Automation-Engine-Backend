@@ -34,7 +34,7 @@ namespace AutomationEngine.Controllers
         //     };
 
         //     await _propertyService.SaveChangesAsync();
-        //     return (new ResultViewModel { Data = result, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
+        //     return (new ResultViewModel { Data = result });
         // }
     }
 }

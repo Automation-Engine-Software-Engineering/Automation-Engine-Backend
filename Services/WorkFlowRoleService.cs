@@ -1,4 +1,5 @@
 ﻿using DataLayer.DbContext;
+using Entities.Models.Enums;
 using Entities.Models.MainEngine;
 using Entities.Models.Workflows;
 using FrameWork.ExeptionHandler.ExeptionModel;
@@ -28,10 +29,10 @@ namespace Services
         Task<ListDto<IsAccessModel>> GetRolesAccessByWorkflowId(int workflowId, int pageSize, int pageNumber);
         Task<ListDto<IsAccessModel>> GetWorkflowsAccessByRoleId(int RoleId, int pageSize, int pageNumber);
         Task<bool> ExistAllWorkflowRolesBuRoleId(int RoleId, int WorkflowId);
-        Task<ValidationDto<Role_Workflow>> WorkflowRoleValidation(Role_Workflow workflowUser);
+        CustomException WorkflowRoleValidation(Role_Workflow workflowUser);
         Task ReplaceWorkflowRolesByRoleId(int roleId,List<int> workflowIds);
         Task ReplaceWorkflowRolesByWorkflowId(int workflowId,List<int> roleIds);
-        Task<ValidationDto<string>> SaveChangesAsync();
+        Task SaveChangesAsync();
     }
 
     public class WorkflowRoleService : IWorkflowRoleService
@@ -122,26 +123,18 @@ namespace Services
             _context.Update(fetchModel);
         }
 
-        public async Task<ValidationDto<Role_Workflow>> WorkflowRoleValidation(Role_Workflow workflowUser)
+        public CustomException WorkflowRoleValidation(Role_Workflow workflowUser)
         {
-            if (workflowUser == null) return new ValidationDto<Role_Workflow>(false, "WorkflowRole", "CorruptedWorkflowRole", workflowUser);
-            if (workflowUser.WorkflowId == 0) return new ValidationDto<Role_Workflow>(false, "WorkflowRole", "CorruptedWorkflow", workflowUser);
-            if (workflowUser.RoleId == 0 ) return new ValidationDto<Role_Workflow>(false, "WorkflowRole", "CorruptedRole", workflowUser);
-
-            return new ValidationDto<Role_Workflow>(true, "Success", "Success", workflowUser);
+            var invalidValidation = new CustomException("Property", "CorruptedProperty", workflowUser);
+            if (workflowUser == null) return invalidValidation;
+            if (workflowUser.WorkflowId == 0) return invalidValidation;
+            if (workflowUser.RoleId == 0) return invalidValidation;
+            return new CustomException("Success", "Success", workflowUser);
         }
 
-        public async Task<ValidationDto<string>> SaveChangesAsync()
+        public async Task SaveChangesAsync()
         {
-            try
-            {
                 await _context.SaveChangesAsync();
-                return new ValidationDto<string>(true, "Success", "Success", null);
-            }
-            catch (Exception ex)
-            {
-                return new ValidationDto<string>(false, "Form", "CorruptedForm", ex.Message);
-            }
         }
 
         public async Task<bool> ExistAllWorkflowRolesBuRoleId(int RoleId, int WorkflowId)

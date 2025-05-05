@@ -1,4 +1,5 @@
 ﻿using DataLayer.DbContext;
+using Entities.Models.Enums;
 using Entities.Models.Workflows;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
@@ -20,9 +21,9 @@ namespace Services
         Task DeleteWorkflowUser(int id);
         Task<Workflow_User> GetWorkflowUserById(int id);
         Task<ListDto<Workflow_User>> GetAllWorkflowUsers(int pageSize, int pageNumber);
-        Task<ValidationDto<Workflow_User>> WorkflowValidation(Workflow_User workflowUser);
+        CustomException WorkflowValidation(Workflow_User workflowUser);
         Task<Workflow_User> GetWorkflowUserByWorkflowAndUserId(int WorkflowId, int userId);
-        Task<ValidationDto<string>> SaveChangesAsync();
+        Task SaveChangesAsync();
     }
 
     public class WorkflowUserService : IWorkflowUserService
@@ -80,26 +81,18 @@ namespace Services
             _context.Update(fetchModel);
         }
 
-        public async Task<ValidationDto<Workflow_User>> WorkflowValidation(Workflow_User workflowUser)
+        public CustomException WorkflowValidation(Workflow_User workflowUser)
         {
-            if (workflowUser == null) return new ValidationDto<Workflow_User>(false, "Form", "CorruptedForm", workflowUser);
-            if (workflowUser.UserId == null) return new ValidationDto<Workflow_User>(false, "Form", "CorruptedForm", workflowUser);
-            if (workflowUser.WorkflowState == null) return new ValidationDto<Workflow_User>(false, "Form", "CorruptedForm", workflowUser);
-            if (workflowUser.Workflow == null) return new ValidationDto<Workflow_User>(false, "Form", "CorruptedForm", workflowUser);
-
-            return new ValidationDto<Workflow_User>(true, "Success", "Success", workflowUser);
+            var invalidValidation = new CustomException("Property", "CorruptedProperty", workflowUser);
+            if (workflowUser == null) return invalidValidation;
+            if (workflowUser.UserId == 0) return invalidValidation;
+            if (workflowUser.WorkflowState == null) return invalidValidation;
+            if (workflowUser.Workflow == null) return invalidValidation;
+            return new CustomException("Success", "Success", workflowUser);
         }
-        public async Task<ValidationDto<string>> SaveChangesAsync()
+        public async Task SaveChangesAsync()
         {
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new ValidationDto<string>(true, "Success", "Success", null);
-            }
-            catch (Exception ex)
-            {
-                return new ValidationDto<string>(false, "Form", "CorruptedForm", ex.Message);
-            }
+            await _context.SaveChangesAsync();
         }
     }
 }

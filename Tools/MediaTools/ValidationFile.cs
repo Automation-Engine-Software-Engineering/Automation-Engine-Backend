@@ -18,15 +18,15 @@ namespace Tools.MediaTools
             // 1. بررسی پسوند فایل
             string fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
             if (!ValidExtensions.Contains(fileExtension))
-                throw new CustomException<long>(new ValidationDto<long>(false, "File", "FileType", maxFileSizeInBytes), 500);
+                throw new CustomException("File", "FileType", maxFileSizeInBytes);
 
             // 2. بررسی حجم فایل
             if (file.Length > maxFileSizeInBytes)
-                throw new CustomException<long>(new ValidationDto<long>(false, "File", "FileSize", maxFileSizeInBytes), 500);
+                throw new CustomException("File", "FileSize", maxFileSizeInBytes);
 
             // 3. بررسی ساختار داخلی فایل برای تایید عکس بودن
             if (!IsValidImage(file))
-                throw new CustomException<long>(new ValidationDto<long>(false, "File", "CorruptedFile", maxFileSizeInBytes), 500);
+                throw new CustomException("File", "CorruptedFile", maxFileSizeInBytes);
 
             return true;
         }
@@ -37,17 +37,15 @@ namespace Tools.MediaTools
             {
                 using (var stream = file.OpenReadStream())
                 {
-                    // استفاده از System.Drawing برای بررسی نوع تصویر
                     using var image = Image.FromStream(stream);
-                    return true; // اگر موفق شد تصویر را بخواند، فایل معتبر است
+                    return true;
                 }
             }
             catch
             {
-                return false; // هرگونه خطا نشان‌دهنده فایل نامعتبر است
+                return false; 
             }
         }
-        
     }
     public static class ValidationFileExtention
     {

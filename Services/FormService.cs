@@ -23,10 +23,10 @@ namespace Services
         Task UpdateFormBodyAsync(int formId, string htmlContent);
         Task SetTheParameterAsync(List<AddPropertyInputDto> data);
         Task<string> GetFormPreviewAsync(Form form);
-        ValidationDto<Form> FormValidation(Form form);
-        Task<ValidationDto<string>> SaveChangesAsync();
+        CustomException FormValidation(Form form);
         Task<bool> IsFormExistAsync(int formId);
         Task AddEntitiesToFormAsync(int formId, IEnumerable<int> entityIds);
+        Task SaveChangesAsync();
     }
 
     public class FormService : IFormService
@@ -280,23 +280,16 @@ namespace Services
 
             return htmlBody;
         }
-        public ValidationDto<Form> FormValidation(Form form)
+        public CustomException FormValidation(Form form)
         {
-            if (form == null) return new ValidationDto<Form>(false, "Form", "CorruptedForm", form);
-            if (form.Name == null || !form.Name.IsValidString()) return new ValidationDto<Form>(false, "Form", "CorruptedFormName", form);
-            return new ValidationDto<Form>(true, "Success", "Success", form);
+            var invalidValidation = new CustomException("Form", "CorruptedForm", form);
+            if (form == null) return invalidValidation;
+            if (form.Name == null || !form.Name.IsValidString()) return invalidValidation;
+            return new CustomException("Success", "Success", form);
         }
-        public async Task<ValidationDto<string>> SaveChangesAsync()
+        public async Task SaveChangesAsync()
         {
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new ValidationDto<string>(true, "Success", "Success", null);
-            }
-            catch (Exception ex)
-            {
-                return new ValidationDto<string>(false, "Form", "CorruptedForm", ex.Message);
-            }
+            await _context.SaveChangesAsync();
         }
     }
 }

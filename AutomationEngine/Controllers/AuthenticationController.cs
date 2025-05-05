@@ -96,7 +96,7 @@ namespace AutomationEngine.Controllers
             else
                 result.NeedNewPassword = needNewPassword;
 
-            return (new ResultViewModel<TokenResultViewModel> { Data = result, Message = new ValidationDto<TokenResultViewModel>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+            return new ResultViewModel<TokenResultViewModel>(result);
         }
 
         // POST: api/generateToken
@@ -108,7 +108,7 @@ namespace AutomationEngine.Controllers
             var user = await _userService.GetUserByIdAsync(claims.UserId);
 
             if (user.RefreshToken != claims.Token)
-                throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "Login", claims.Token), 401);
+                throw new CustomException("Authentication", "Login");
 
             var tokens = GenerateTokens(user, claims.RoleId);
 
@@ -127,7 +127,7 @@ namespace AutomationEngine.Controllers
             else
                 result.NeedNewPassword = needNewPassword;
 
-            return (new ResultViewModel<TokenResultViewModel> { Data = result, Message = new ValidationDto<string>(true, "Success", "Success", tokens.AccessToken).GetMessage(200), Status = true, StatusCode = 200 });
+            return new ResultViewModel<TokenResultViewModel>(result);
         }
         [HttpPost("logout")]
         [EnableRateLimiting("LoginRateLimit")]
@@ -136,11 +136,11 @@ namespace AutomationEngine.Controllers
             var claims = await HttpContext.AuthorizeRefreshToken();
 
             if (string.IsNullOrEmpty(claims.Token) || claims.UserId == 0)
-                throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "Login", claims.Token), 401);
+                throw new CustomException("Authentication", "Login", 401);
 
             var user = await _userService.GetUserByIdAsync(claims.UserId);
             if (user.RefreshToken != claims.Token)
-                throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "Login", claims.Token), 401);
+                throw new CustomException("Authentication", "Login", claims.Token);
 
             if (user != null)
             {
@@ -169,7 +169,7 @@ namespace AutomationEngine.Controllers
             await _userService.UpdateUserAsync(userIdRoleId.User);
             await _userService.SaveChangesAsync();
 
-            return (new ResultViewModel<ChangePasswordInputModel> { Data = input, Message = new ValidationDto<ChangePasswordInputModel>(true, "Success", "Success", input).GetMessage(200), Status = true, StatusCode = 200 });
+            return new ResultViewModel<ChangePasswordInputModel>(input);
         }
 
         // POST: api/ChangePassword/{userName}  
@@ -184,7 +184,7 @@ namespace AutomationEngine.Controllers
                 Id = user.Id,
                 Name = user.Name
             };
-            return (new ResultViewModel<UserDashboardViewModel> { Data = data, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
+            return new ResultViewModel<UserDashboardViewModel>(data);
         }
         private (string AccessToken, string RefreshToken) GenerateTokens(User User, int? RoleId)
         {
