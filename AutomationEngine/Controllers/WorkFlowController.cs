@@ -180,6 +180,24 @@ namespace AutomationEngine.Controllers
                 TotalCount = workflows.TotalCount
             };
         }
+
+        // GET: api/form/all  
+        [HttpGet("nodes/all")]
+        public async Task<ResultViewModel> GetAllNods(int pageSize, int pageNumber)
+        {
+            if (pageSize > 100)
+                pageSize = 100;
+            if (pageNumber < 1)
+                pageNumber = 1;
+
+            var workflows = await _workflowService.GetAllNodsAsync(pageSize, pageNumber);
+            //is valid data
+            if ((((pageSize * pageNumber) - workflows.TotalCount) > pageSize) && (pageSize * pageNumber) > workflows.TotalCount)
+                throw new CustomException("Workflow", "CorruptedWorkflow", workflows);
+
+            return new ResultViewModel { Data = workflows.Data, ListNumber = workflows.ListNumber, ListSize = workflows.ListSize, TotalCount = workflows.TotalCount};
+        }
+
         // GET: api/form/{id}  
         [HttpGet("{workflowId}")]
         public async Task<ResultViewModel<WorkflowDto?>> GetWorkflow(int workflowId)
@@ -203,9 +221,10 @@ namespace AutomationEngine.Controllers
             dto.Nodes = fetchModel.Nodes?.Select(x => new NodeDto()
             {
                 Id = x.Id,
-                Data = new Data() { Icon = x.Icon, Name = x.Name, Type = x.Type == UnknownType.Form ? 1 : 2 },
+                Data = new Data() { Icon = x.Icon, Name = x.Name, Type = x.Type == UnknownType.Form ? 1 : 2, FormId = x.FormId },
                 Position = new position() { X = x.X, Y = x.Y, Width = x.Width, Height = x.Height },
                 Type = "custom"
+
             }).ToList();
             dto.Edges = new List<EdgeDto>();
             fetchModel.Nodes?.ForEach(x =>
@@ -261,7 +280,7 @@ namespace AutomationEngine.Controllers
 
         // GET: api/nodeMove  
         [HttpGet("nodeMove")]
-        public async Task<ResultViewModel<Node?>> NodeMove(int WorkflowUserId, int state)
+        public async Task<ResultViewModel<int>> NodeMove(int WorkflowUserId, int state, string? nodeId, int newWorkflowUserId)
         {
             if (WorkflowUserId == 0)
                 throw new CustomException("Workflow", "WorkflowNotfound", WorkflowUserId);
@@ -278,6 +297,7 @@ namespace AutomationEngine.Controllers
             if (node == null)
                 throw new CustomException("Workflow", "NodeNotFound", WorkflowUserId);
 
+            var resultWorkflowUserId = WorkflowUserId;
             if (state == 1)
             {
                 if (node.NextNodeId == null || node.NextNode == null)
@@ -294,9 +314,32 @@ namespace AutomationEngine.Controllers
             }
             else if (state == 3)
                 await _workflowUserService.DeleteWorkflowUser(workflowUser.Id);
+            else if (state == 4)
+            {
+                if (nodeId == null)
+                {
+                    throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "CorruptedWorkflowPreviousNode", WorkflowUserId), 500);
+                }
+                var linkNode = await _workflowService.GetNodByIdAsync(nodeId);
+                if (linkNode == null)
+                {
+                    throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "CorruptedWorkflowPreviousNode", WorkflowUserId), 500);
+                }
+
+                if (newWorkflowUserId == 0)
+                {
+                    workflowUser.WorkflowState = linkNode.Id;
+                }
+                else
+                {
+                    var workflowUserModel = await _workflowUserService.GetWorkflowUserById(newWorkflowUserId);
+                    workflowUserModel.WorkflowState = linkNode.Id;
+                    resultWorkflowUserId = newWorkflowUserId ;
+                }
+            }
 
             await _workflowUserService.SaveChangesAsync();
-            return new ResultViewModel<Node?>(node);
+            return new ResultViewModel<int>(resultWorkflowUserId);
         }
     }
 }

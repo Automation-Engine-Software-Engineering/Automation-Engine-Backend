@@ -3,6 +3,7 @@ using DataLayer.DbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20250124165818_add relation")]
+    partial class addrelation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,7 +47,7 @@ namespace DataLayer.Migrations
                     b.ToTable("Form");
                 });
 
-            modelBuilder.Entity("Entities.Models.MainEngine.MenuElement", b =>
+            modelBuilder.Entity("Entities.Models.MainEngine.MenueElement", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -52,24 +55,21 @@ namespace DataLayer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("MenuType")
+                    b.Property<int>("MenueType")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ParentMenuElemntId")
+                    b.Property<int?>("ParentMenueElemntId")
                         .HasColumnType("int");
 
                     b.Property<int>("RoleId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("WorkflowId")
+                    b.Property<int>("WorkflowId")
                         .HasColumnType("int");
-
-                    b.Property<string>("link")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -77,7 +77,7 @@ namespace DataLayer.Migrations
 
                     b.HasIndex("WorkflowId");
 
-                    b.ToTable("MenuElements");
+                    b.ToTable("MenueElements");
                 });
 
             modelBuilder.Entity("Entities.Models.MainEngine.Role", b =>
@@ -460,7 +460,7 @@ namespace DataLayer.Migrations
                     b.ToTable("EntityForm");
                 });
 
-            modelBuilder.Entity("Entities.Models.MainEngine.MenuElement", b =>
+            modelBuilder.Entity("Entities.Models.MainEngine.MenueElement", b =>
                 {
                     b.HasOne("Entities.Models.MainEngine.Role", "Role")
                         .WithMany()
@@ -470,7 +470,9 @@ namespace DataLayer.Migrations
 
                     b.HasOne("Entities.Models.Workflows.Workflow", "workflow")
                         .WithMany()
-                        .HasForeignKey("WorkflowId");
+                        .HasForeignKey("WorkflowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Role");
 

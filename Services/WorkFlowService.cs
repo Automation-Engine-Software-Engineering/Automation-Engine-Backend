@@ -6,6 +6,7 @@ using Entities.Models.Workflows;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 using Tools.TextTools;
 
 namespace Services
@@ -22,7 +23,9 @@ namespace Services
         Task<ListDto<Workflow>> GetAllWorkflowsAsync(int pageSize, int pageNumber);
         CustomException WorkflowValidation(Workflow workflow);
         Task SaveChangesAsync();
+        Task<ListDto<Node>> GetAllNodsAsync(int pageSize, int pageNumber);
         Task<bool> IsWorkflowExistAsync(int formId);
+        Task<Node> GetNodByIdAsync(string NodeId);
     }
     public class WorkflowService : IWorkflowService
     {
@@ -126,6 +129,23 @@ namespace Services
         public async Task<Workflow> GetWorkflowIncRolesById(int id)
         {
             var result = await _context.Workflow.Include(x => x.Role_Workflows).FirstAsync(x => x.Id == id);
+            return result;
+        }
+
+        public async Task<ListDto<Node>> GetAllNodsAsync(int pageSize, int pageNumber)
+        {
+            //create query
+            var query = _context.Node;
+
+            //get Value and count
+            var count = await query.CountAsync();
+            var result = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            return new ListDto<Node>(result, count, pageSize, pageNumber);
+        }
+
+        public async Task<Node> GetNodByIdAsync(string NodeId)
+        {
+           var result = await _context.Node.FirstAsync(x => x.Id == NodeId);
             return result;
         }
     }

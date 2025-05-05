@@ -11,7 +11,7 @@ namespace ViewModels.ViewModels.Entity
     {
         public int Id { get; set; } = 0;
         public string? PreviewName { get; set; }
-        public required string PropertyName { get; set; }
+        public string PropertyName { get; set; }="";
         public string? Description { get; set; }
         public string Type { get; set; } = "1";
         public string? DefaultValue { get; set; }

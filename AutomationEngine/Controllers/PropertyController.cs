@@ -47,7 +47,7 @@ namespace AutomationEngine.Controllers
 				throw new CustomException("Property", "CorruptedProperty");
 
 
-			var result = new EntityProperty(property.PropertyName, property.PropertyName, property.Description, property.DefaultValue, propertyType, entity);
+			var result = new EntityProperty(property.PreviewName, property.PropertyName, property.Description, property.DefaultValue, propertyType, entity);
 
             if (result.Id != 0)
                 throw new CustomException("Property", "CorruptedProperty");

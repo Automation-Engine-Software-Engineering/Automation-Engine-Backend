@@ -3,6 +3,7 @@ using DataLayer.DbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20250123150750_add relation2")]
+    partial class addrelation2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,42 +45,6 @@ namespace DataLayer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Form");
-                });
-
-            modelBuilder.Entity("Entities.Models.MainEngine.MenuElement", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("MenuType")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ParentMenuElemntId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("WorkflowId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("link")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RoleId");
-
-                    b.HasIndex("WorkflowId");
-
-                    b.ToTable("MenuElements");
                 });
 
             modelBuilder.Entity("Entities.Models.MainEngine.Role", b =>
@@ -290,38 +257,17 @@ namespace DataLayer.Migrations
                     b.Property<int>("ChildId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("EntityId")
+                        .HasColumnType("int");
+
                     b.Property<int>("ParentId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ParentId");
+                    b.HasIndex("EntityId");
 
                     b.ToTable("Entity_EntityRelation");
-                });
-
-            modelBuilder.Entity("Entities.Models.TableBuilder.RelationList", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Element1")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Element2")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RelationId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RelationId");
-
-                    b.ToTable("RelationLists");
                 });
 
             modelBuilder.Entity("Entities.Models.Workflows.Node", b =>
@@ -460,23 +406,6 @@ namespace DataLayer.Migrations
                     b.ToTable("EntityForm");
                 });
 
-            modelBuilder.Entity("Entities.Models.MainEngine.MenuElement", b =>
-                {
-                    b.HasOne("Entities.Models.MainEngine.Role", "Role")
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Models.Workflows.Workflow", "workflow")
-                        .WithMany()
-                        .HasForeignKey("WorkflowId");
-
-                    b.Navigation("Role");
-
-                    b.Navigation("workflow");
-                });
-
             modelBuilder.Entity("Entities.Models.MainEngine.Role_User", b =>
                 {
                     b.HasOne("Entities.Models.MainEngine.Role", "Role")
@@ -522,20 +451,7 @@ namespace DataLayer.Migrations
                 {
                     b.HasOne("Entities.Models.TableBuilder.Entity", null)
                         .WithMany("entity_EntityRelation")
-                        .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Entities.Models.TableBuilder.RelationList", b =>
-                {
-                    b.HasOne("Entities.Models.TableBuilder.Entity_EntityRelation", "Relation")
-                        .WithMany("RelationLists")
-                        .HasForeignKey("RelationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Relation");
+                        .HasForeignKey("EntityId");
                 });
 
             modelBuilder.Entity("Entities.Models.Workflows.Node", b =>
@@ -607,11 +523,6 @@ namespace DataLayer.Migrations
                     b.Navigation("Properties");
 
                     b.Navigation("entity_EntityRelation");
-                });
-
-            modelBuilder.Entity("Entities.Models.TableBuilder.Entity_EntityRelation", b =>
-                {
-                    b.Navigation("RelationLists");
                 });
 
             modelBuilder.Entity("Entities.Models.Workflows.Workflow", b =>

@@ -21,7 +21,7 @@ namespace Services
     {
         Task InsertWorkflowRole(Role_Workflow workflow);
         Task<ListDto<Role_Workflow>> GetAllWorkflowRolesByRoleId(int RoleId, int pageSize, int pageNumber);
-        Task InsertRengeWorkflowRole(List<Role_Workflow> workflows);
+        Task InsertRangeWorkflowRole(List<Role_Workflow> workflows);
         Task UpdateWorkflowRole(Role_Workflow workflow);
         Task DeleteWorkflowRole(int id);
         Task<Role_Workflow> GetWorkflowRoleById(int id);
@@ -85,32 +85,34 @@ namespace Services
         }
 
 
-        public async Task InsertRengeWorkflowRole(List<Role_Workflow> workflows)
+        public async Task InsertRangeWorkflowRole(List<Role_Workflow> workflows)
         {
             await _context.Role_Workflows.AddRangeAsync(workflows);
         }
-        public async Task ReplaceWorkflowRolesByRoleId(int roleId,List<int> workflowIds)
+        public async Task ReplaceWorkflowRolesByRoleId(int roleId, List<int> workflowIds)
         {
-            var roleWorkflows = await _context.Role_Workflows.Where(x=>x.RoleId == roleId).ToListAsync();
+            var roleWorkflows = await _context.Role_Workflows.Where(x => x.RoleId == roleId).ToListAsync();
             _context.Role_Workflows.RemoveRange(roleWorkflows);
 
-            var newRoleWorkflows = workflowIds.Select(x=>new Role_Workflow{
+            var newRoleWorkflows = workflowIds.Select(x => new Role_Workflow
+            {
                 RoleId = roleId,
                 WorkflowId = x
             }).ToList();
-            await InsertRengeWorkflowRole(newRoleWorkflows);
+            await InsertRangeWorkflowRole(newRoleWorkflows);
         }
 
-        public async Task ReplaceWorkflowRolesByWorkflowId(int workflowId,List<int> roleIds)
+        public async Task ReplaceWorkflowRolesByWorkflowId(int workflowId, List<int> roleIds)
         {
-            var roleWorkflows = await _context.Role_Workflows.Where(x=>x.WorkflowId == workflowId).ToListAsync();
+            var roleWorkflows = await _context.Role_Workflows.Where(x => x.WorkflowId == workflowId).ToListAsync();
             _context.Role_Workflows.RemoveRange(roleWorkflows);
 
-            var newRoleWorkflows = roleIds.Select(x=>new Role_Workflow{
+            var newRoleWorkflows = roleIds.Select(x => new Role_Workflow
+            {
                 RoleId = x,
                 WorkflowId = workflowId
             }).ToList();
-            await InsertRengeWorkflowRole(newRoleWorkflows);
+            await InsertRangeWorkflowRole(newRoleWorkflows);
         }
 
         public async Task UpdateWorkflowRole(Role_Workflow workflow)
@@ -145,27 +147,29 @@ namespace Services
 
         public async Task<ListDto<IsAccessModel>> GetRolesAccessByWorkflowId(int workflowId, int pageSize, int pageNumber)
         {
+            var count = await _context.Roles.CountAsync();
             var Workflows = await _context.Roles.Include(x => x.role_Workflows)
             .Skip((pageNumber - 1) * pageSize).Take(pageSize)
             .ToListAsync();
 
             var result = Workflows.Select(x => new IsAccessModel() { Id = x.Id, Name = x.Name, IsAccess = x.role_Workflows.Any(x => x.WorkflowId == workflowId) ? true : false }).ToList();
 
-            var list = new ListDto<IsAccessModel>(result, result.Count, pageSize = pageSize, pageNumber = pageNumber);
+            var list = new ListDto<IsAccessModel>(result, count, pageSize = pageSize, pageNumber = pageNumber);
 
             return list;
         }
 
-        
+
         public async Task<ListDto<IsAccessModel>> GetWorkflowsAccessByRoleId(int roleId, int pageSize, int pageNumber)
         {
+            var count = await _context.Workflow.CountAsync();
             var Workflows = await _context.Workflow.Include(x => x.Role_Workflows)
             .Skip((pageNumber - 1) * pageSize).Take(pageSize)
             .ToListAsync();
 
             var result = Workflows.Select(x => new IsAccessModel() { Id = x.Id, Name = x.Name, IsAccess = x.Role_Workflows.Any(x => x.RoleId == roleId) ? true : false }).ToList();
 
-            var list = new ListDto<IsAccessModel>(result, result.Count, pageSize = pageSize, pageNumber = pageNumber);
+            var list = new ListDto<IsAccessModel>(result, count, pageSize = pageSize, pageNumber = pageNumber);
 
             return list;
         }

@@ -13,6 +13,9 @@ using Entities.Models.Workflows;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using DataLayer.DbContext;
 using Tools.AuthoraizationTools;
+using Tools.TextTools;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AutomationEngine.Controllers
 {
@@ -26,17 +29,15 @@ namespace AutomationEngine.Controllers
         private readonly IWorkflowService _workflowService;
         private readonly IPropertyService _propertyService;
         private readonly DynamicDbContext _dynamicDbContext;
-        private readonly TokenGenerator _tokenGenerator;
         private readonly IWorkflowRoleService _workflowRoleService;
 
-        public FormController(IFormService formService, IWorkflowUserService workflowUserService, IWorkflowService workflowService, IPropertyService propertyService, DynamicDbContext dynamicDbContext, TokenGenerator tokenGenerator, IWorkflowRoleService workflowRoleService)
+        public FormController(IFormService formService, IWorkflowUserService workflowUserService, IWorkflowService workflowService, IPropertyService propertyService, DynamicDbContext dynamicDbContext, IWorkflowRoleService workflowRoleService)
         {
             _formService = formService;
             _workflowUserService = workflowUserService;
             _workflowService = workflowService;
             _propertyService = propertyService;
             _dynamicDbContext = dynamicDbContext;
-            _tokenGenerator = tokenGenerator;
             _workflowRoleService = workflowRoleService;
         }
 
@@ -195,7 +196,7 @@ namespace AutomationEngine.Controllers
 
             //initial action
             var form = await _formService.GetFormByIdAsync(formId);
-            var formBody = await _formService.GetFormPreviewAsync(form);
+            var formBody = await _formService.GetFormPreviewAsync(form, 0);
             if (formBody == null)
                 throw new CustomException("Form", "FormNotfound", formId);
 
@@ -214,8 +215,8 @@ namespace AutomationEngine.Controllers
             //initial action
             var workflowUser = await _workflowUserService.GetWorkflowUserById(workflowUserId);
             var node = workflowUser.Workflow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkflowState);
-            var form = await _formService.GetFormByIdAsync(node.FormId.Value);
-            var formBody = await _formService.GetFormPreviewAsync(form);
+            var form = await _formService.GetFormByIdIncEntityIncPropertyAsync(node.FormId.Value);
+            var formBody = await _formService.GetFormPreviewAsync(form, workflowUserId);
             if (formBody == null)
                 throw new CustomException("Form", "FormNotfound", node.FormId.Value);
 
@@ -254,95 +255,30 @@ namespace AutomationEngine.Controllers
         }
 
         // POST: api/form/{formId}/updateBody  
-        [HttpPost("{formId}/sendFormData")]
-        public async Task<ResultViewModel<List<Entity>>> SendFormData(int formId, int workflowUserId, [FromBody] List<(int id, object content)> formData)
+        [HttpPost("saveFormData")]
+        public async Task<ResultViewModel<List<SaveDataDTO>>> SaveFormData(int workflowUserId, [FromBody] List<SaveDataDTO> formData)
         {
-            if (formId == 0 && workflowUserId == 0 && formData.Any(x => x.id == 0))
-                throw new CustomException("Form", "CorruptedFormData", formId);
+            if (workflowUserId == 0 && formData.Any(x => x.id == 0))
+                throw new CustomException("Form", "CorruptedFormData");
 
             var workflowUser = await _workflowUserService.GetWorkflowUserById(workflowUserId);
             if (workflowUser == null)
                 throw new CustomException("UserWorkflow", "UserWorkflowNotfound", workflowUserId);
 
-            var form = await _formService.GetFormByIdIncEntityIncPropertyAsync(formId);
-            if (form == null)
-                throw new CustomException("Form", "FormNotfound", formId);
-
             var claims = await HttpContext.Authorize();
-
             if (claims.UserId != workflowUser.UserId)
-                throw new CustomException("User", "UserNotFound", formId);
+                throw new CustomException("User", "UserNotFound");
 
             var workflow = await _workflowService.GetWorkflowByIdIncNodesAsync(workflowUser.WorkflowId);
             if (workflow == null)
-                throw new CustomException("Workflow", "WorkflowRoleNotfound", formId);
+                throw new CustomException("Workflow", "WorkflowRoleNotfound");
 
             var workflowRole = await _workflowRoleService.ExistAllWorkflowRolesBuRoleId(claims.RoleId, workflow.Id);
             if (!workflowRole)
-                throw new CustomException("Warning", "NotAuthorized", formId);
+                throw new CustomException("Warning", "NotAuthorized");
 
-            var currentNode = workflow.Nodes.FirstOrDefault(x => x.Id == workflowUser.WorkflowState);
-            if (currentNode?.FormId != formId)
-                throw new CustomException("Form", "FormNotfound", currentNode);
-
-            List<Entity> entites = new List<Entity>();
-            foreach (var prop in formData)
-            {
-                var property = await _propertyService.GetColumnByIdIncEntityAsync(prop.id);
-                if(property == null)
-                    throw new CustomException("Property", "PropertyNotFound", formId);
-
-                if (entites.Any(x => property != null && x == property.Entity ))
-                {
-                    entites.First(x => x == property?.Entity).Properties?.Add(property);
-                }
-                else
-                {
-                    var entity = property.Entity;
-                    if(entity == null)
-                        throw new CustomException("Entity", "EntityNotFound", formId);
-
-                    entity.Properties = [property];
-                }
-            }
-
-            foreach (var entity in entites)
-            {
-                string query = $"Insert into {entity.TableName} (";
-                int i = 0;
-                var propName = new List<string>();
-                var propValue = new List<string>();
-
-                entity.Properties?.ForEach(x =>
-                {
-                    propName.Add(x.PropertyName);
-                    propValue.Add(formData.FirstOrDefault(xx => xx.id == x.Id).content.ToString() ?? "");
-                });
-
-                i = 0;
-                propName.ForEach(x =>
-                {
-                    if (i != 0)
-                        query += " , ";
-                    query += x;
-                });
-
-                query += ") Value (";
-
-                i = 0;
-                propValue.ForEach(x =>
-                {
-                    if (i != 0)
-                        query += " , ";
-                    query += x;
-                });
-
-                query += ")";
-
-                await _dynamicDbContext.ExecuteSqlRawAsync(query);
-            }
-
-            return new ResultViewModel<List<Entity>>(entites);
+            await _formService.SaveFormData(workflowUserId, formData);
+            return new ResultViewModel<List<SaveDataDTO>>(formData);
         }
     }
 }

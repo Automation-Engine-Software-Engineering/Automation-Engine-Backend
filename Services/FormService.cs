@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Tools.TextTools;
 using ViewModels.ViewModels.Entity;
+using ViewModels.ViewModels.FormBuilder;
 
 namespace Services
 {
@@ -21,8 +22,8 @@ namespace Services
         Task<Form?> GetFormByIdIncEntityIncPropertyAsync(int formId);
         Task<ListDto<Form>> GetAllFormsAsync(int pageSize, int pageNumber);
         Task UpdateFormBodyAsync(int formId, string htmlContent);
-        Task SetTheParameterAsync(List<AddPropertyInputDto> data);
-        Task<string> GetFormPreviewAsync(Form form);
+        Task SaveFormData(int workflowUserId, List<SaveDataDTO> formData);
+        Task<string> GetFormPreviewAsync(Form form, int workflowUserId);
         CustomException FormValidation(Form form);
         Task<bool> IsFormExistAsync(int formId);
         Task AddEntitiesToFormAsync(int formId, IEnumerable<int> entityIds);
@@ -147,54 +148,24 @@ namespace Services
 
             await UpdateFormAsync(fetchModel);
         }
-        public async Task SetTheParameterAsync(List<AddPropertyInputDto> data)
-        {
-            var entityIds = new List<int>();
-            data.Select(x => x.EntityId).ToList().ForEach(x =>
-            {
-                if (entityIds.Any(xx => xx == x))
-                {
-                    entityIds.Add(x);
-                }
-            });
-            foreach (var x in entityIds)
-            {
-                var entity = _context.Entity.FirstOrDefaultAsync(xx => xx.Id == x);
 
-                var properties = data.Where(x => x.EntityId == entity.Id).ToList();
-                var propertiesValues = properties.Select(x => _context.Property.FirstOrDefaultAsync(xx => xx.Id == x.PropertyId)).ToList();
-                var propertiesQuery = "";
-                propertiesValues.ForEach(x =>
-                {
-                    propertiesQuery += x.Result?.PropertyName + " ,";
-                });
-                propertiesQuery += ".";
-                propertiesQuery.Replace(",.", "");
 
-                var propertiesQueryValue = "";
-                data.Where(x => x.EntityId == x.EntityId).ToList().ForEach(xx =>
-                {
-                    propertiesQueryValue += xx.Value?.ToString() + " ,";
-                });
-                propertiesQueryValue += ".";
-                propertiesQueryValue.Replace(",.", "");
-
-                var query = $"INSERT INTO {entity.Result?.TableName} ({propertiesQuery})" +
-                $" VALUES ({propertiesQueryValue});";
-
-                await _dynamicDbContext.ExecuteSqlRawAsync(query);
-            }
-        }
-
-        public async Task<string> GetFormPreviewAsync(Form form)
+        public async Task<string> GetFormPreviewAsync(Form form, int workflowUserId)
         {
             if (form.HtmlFormBody == null)
-                return "<span>                      <span>";
+                return "<span>بیتا زر اندیش پارس<span>";
 
             var htmlBody = form.HtmlFormBody.ToString();
+            htmlBody = htmlBody.Replace("data-disabled=\"true\"", "??>> ");
+            htmlBody = htmlBody.Replace("data-readonly=\"true\"", "data-readonly=\"true\" ??>> ");
             htmlBody = htmlBody.Replace("disabled", "");
-            htmlBody = htmlBody.Replace("&nbsp;", " ");
+            // htmlBody = htmlBody.Replace("&nbsp;", " ");
+            htmlBody = htmlBody.Replace("contenteditable=\"true\"", " ");
+            htmlBody = htmlBody.Replace("contenteditable=\"false\"", " ");
+            htmlBody = htmlBody.Replace("resize: both;", " ");
+            htmlBody = htmlBody.Replace("??>>", "disabled ");
 
+            //define the preview
             string tagName = "select";
             var attributes = new List<string> { "data-tableid", "data-condition", "data-filter" };
             var tags = _htmlService.FindHtmlTag(htmlBody, tagName, attributes);
@@ -202,12 +173,40 @@ namespace Services
             foreach (var tag in tags)
             {
                 var tableId = _htmlService.GetTagAttributesValue(tag, "data-tableid");
-                var condition = _htmlService.GetTagAttributesValue(tag, "data-condition");
-                var filter = _htmlService.GetTagAttributesValue(tag, "data-filter");
 
-                var table = await _context.Entity.FirstAsync(x => x.Id == int.Parse(tableId));
-                // var query = $"select * from {table.TableName} where" + filter;
-                var query = $"select * from {table.TableName}";
+                var condition = _htmlService.GetTagAttributesValue(tag, "data-condition");
+                condition = condition.Replace("{{", "");
+                condition = condition.Replace("}}", "");
+                condition = condition.Replace("و", ",");
+                condition = condition.Replace("-", ",");
+                condition = condition.Replace("&nbsp;", " ");
+
+                var filter = _htmlService.GetTagAttributesValue(tag, "data-filter");
+                if (filter != null && filter != "")
+                {
+                    var userId = _context.Workflow_User.FirstOrDefault(x => x.Id == workflowUserId).UserId;
+                    filter = filter.Replace("{{UserId}}", " "+userId+" ");
+                    filter = filter.Replace("{{", "");
+                    filter = filter.Replace("}}", "");
+                    filter = filter.Replace("و", " ");
+                    filter = filter.Replace(",", " ");
+                    filter = filter.Replace("&nbsp;", " ");
+                }
+                filter = (filter == null || filter == "") ? "1 = 1" : filter;
+                var relation = _htmlService.GetTagAttributesValue(tag, "data-relation");
+                if (relation != null && relation != "")
+                {
+                    relation = relation.Replace("{{", "");
+                    relation = relation.Replace("}}", "");
+                    relation = relation.Replace("و", " ");
+                    relation = relation.Replace(",", " ");
+                    relation = relation.Replace("&nbsp;", " ");
+                }
+
+                var table = await _context.Entity.Include(c => c.Properties).FirstAsync(x => x.Id == int.Parse(tableId));
+                var query = $"select " + condition + $" from [dbo].[{table.TableName}]  {relation} where {filter}";
+                query = query.Replace("&nbsp;", " ");
+
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
 
                 if (data != null && data.TotalCount != 0)
@@ -224,7 +223,7 @@ namespace Services
                                 textValue = textValue.Replace("{{" + value + "}}", item.FirstOrDefault(x => x.Key == value).Value.ToString());
                             }
 
-                            var childTag = $"<option value=\"textValue\">{textValue}</option>";
+                            var childTag = $"<option value=\"{textValue}\">{textValue}</option>";
                             childTags.Add(childTag);
                         }
 
@@ -234,7 +233,7 @@ namespace Services
             }
 
             tagName = "table";
-            attributes = new List<string> { "data-tableid", "data-condition", "data-filter" };
+            attributes = new List<string> { "data-tableid", "data-condition", "data-filter", "data-relation" };
             tags = _htmlService.FindHtmlTag(htmlBody, tagName, attributes);
             foreach (var tag in tags)
             {
@@ -244,19 +243,47 @@ namespace Services
                 condition = condition.Replace("{{", "");
                 condition = condition.Replace("}}", "");
                 condition = condition.Replace("و", ",");
-                var filter = _htmlService.GetTagAttributesValue(tag, "data-filter");
+                condition = condition.Replace("-", ",");
+                condition = condition.Replace("&nbsp;", " ");
 
-                var table = await _context.Entity.FirstAsync(x => x.Id == int.Parse(tableId));
-                var query = $"select " + condition + $" from [dbo].[{table.TableName}]";
+                var filter = _htmlService.GetTagAttributesValue(tag, "data-filter");
+                if (filter != null && filter != "")
+                {
+                    filter = filter.Replace("{{", "");
+                    filter = filter.Replace("}}", "");
+                    filter = filter.Replace("و", " ");
+                    filter = filter.Replace(",", " ");
+                    filter = filter.Replace("&nbsp;", " ");
+                }
+                filter = (filter == null || filter == "") ? "1 = 1" : filter;
+
+                var relation = _htmlService.GetTagAttributesValue(tag, "data-relation");
+
+                if (relation != null && relation != "")
+                {
+                    relation = relation.Replace("{{", "");
+                    relation = relation.Replace("}}", "");
+                    relation = relation.Replace("و", " ");
+                    relation = relation.Replace(",", " ");
+                    relation = relation.Replace("&nbsp;", " ");
+                }
+                var table = await _context.Entity.Include(c => c.Properties).FirstAsync(x => x.Id == int.Parse(tableId));
+                var query = $"select WorkflowUserId , " + condition + $" from [dbo].[{table.TableName}]  {relation} where {filter}";
+                query = query.Replace("&nbsp;", " ");
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
 
                 if (data != null && data.TotalCount != 0)
                 {
+                    var icon = _htmlService.ExtractContentAfterTableCell(tag);
+
                     var childTags = new List<string>();
+                    var headerCount = condition.Split(",").ToList().Count;
+
                     string header = "<tr>";
                     foreach (var item in condition.Split(",").ToList())
                     {
-                        header += $"<th>{item}</th>";
+                        var name = table.Properties.FirstOrDefault(x => x.PropertyName == item.Replace(" ", "")).PreviewName;
+                        header += $"<th style=\"width: {100 / headerCount}%;\">{name}</th>";
                     }
                     header += "</tr>";
                     childTags.Add(header);
@@ -267,19 +294,228 @@ namespace Services
                             string body = "<tr>";
                             foreach (var item2 in condition.Split(",").ToList())
                             {
-                                body += $"<td>{item.GetValueOrDefault(item2.Replace(" ", ""))}</td>";
+                                body += $"<td style=\"width: {100 / headerCount}%;\">{item.GetValueOrDefault(item2.Replace(" ", ""))}</td>";
                             }
+                            var newIcon = icon.Replace("data-workflow-user=\"\"", $"data-workflow-user=\"{item.GetValueOrDefault("WorkflowUserId")}\"");
+                            body += newIcon;
                             body += "</tr>";
                             childTags.Add(body);
                         }
 
                     var newTag = _htmlService.InsertTag(tag, childTags);
                     htmlBody = htmlBody.Replace(tag, newTag);
+                    htmlBody = htmlBody.Replace("<tr>\n         <td>\n          پیش نمایش جدول\n         \n<tr>", "");
                 }
             }
 
+            tagName = "input";
+            tags = _htmlService.FindSingleHtmlTag(htmlBody);
+            var curentTime = DateTime.Now;
+            tags.ForEach(x =>
+            {
+                var replace = x.Replace("value=\"\" =\"\"", "value=\"2025-01-26\" disabled");
+                htmlBody = htmlBody.Replace(x, replace);
+            });
+
+
+            ////define the edit
+            //var query = "select ";
+            //if(){
+
+            //}
+            if (form.Entities != null)
+                form.Entities.ForEach(entity =>
+                {
+                    var updateQuery = $"SELECT TOP(1) * FROM [dbo].[{entity.TableName}] where WorkflowUserId = {workflowUserId}";
+                    var Updatedata = _dynamicDbContext.ExecuteReaderAsync(updateQuery);
+                    if (Updatedata.Result.TotalCount != 0)
+                    {
+                        entity.Properties.ForEach(x =>
+                        {
+                            var res = Updatedata.Result.Data.FirstOrDefault(xx => xx.Any(n => n.Key == x.PropertyName)).FirstOrDefault(n => n.Key == x.PropertyName).Value.ToString();
+                            if (res != null)
+                            {
+                                htmlBody = htmlBody.Replace($"id=\"{x.Id}\"", $"id=\"{x.Id}\" value=\"{res}\"");
+                            }
+                        });
+                    }
+                });
+
             return htmlBody;
         }
+
+        public async Task SaveFormData(int workflowUserId, List<SaveDataDTO> formData)
+        {
+            List<Entity> entites = new List<Entity>();
+            foreach (var prop in formData)
+            {
+                var property = await _context.Property.Include(x => x.Entity).FirstOrDefaultAsync(x => x.Id == prop.id);
+                if (property == null)
+                    throw new CustomException<int>(new ValidationDto<int>(false, "Property", "PropertyNotFound", workflowUserId), 500);
+
+                if (!entites.Any(x => property != null && x == property.Entity && x.Description == prop.group))
+                {
+                    var entity = property.Entity;
+                    entity.Description = prop.group;
+
+                    if (entity == null)
+                        throw new CustomException<int>(new ValidationDto<int>(false, "Entity", "EntityNotFound", workflowUserId), 500);
+
+                    entity.Properties = [property];
+                    entites.Add(entity);
+                }
+            }
+
+            await CreatAndExeQuery(workflowUserId, formData, entites);
+        }
+        private async Task CreatAndExeQuery(int workflowUserId, List<SaveDataDTO> formData, List<Entity> entites)
+        {
+
+            foreach (var entity in entites)
+            {
+                var updateQuery = $"SELECT TOP(1) Id FROM [dbo].[{entity.TableName}] where WorkflowUserId = {workflowUserId}";
+                var Updatedata = await _dynamicDbContext.ExecuteReaderAsync(updateQuery);
+                if (Updatedata.TotalCount != 0)
+                {
+                    string query = $"Update [dbo].[{entity.TableName}] set ";
+                    var propName = new List<string>();
+                    var propValue = new List<string>();
+
+                    entity.Properties?.ForEach(x =>
+                    {
+                        propName.Add(x.PropertyName);
+                        propValue.Add(formData.FirstOrDefault(xx => xx.id == x.Id).content.ToString() ?? "");
+                    });
+
+                    propValue.ForEach(x => x.IsValidString());
+                    int i = 0;
+                    propName.ForEach(x =>
+                    {
+                        if (i != 0)
+                            query += " , ";
+
+                        i++;
+
+                        query += " " + x + " =";
+
+                        if (x == "on" || x == "off")
+                        {
+                            if (x == "on")
+                                query += 1;
+                            else
+                                query += 0;
+                        }
+                        else
+                        {
+                            query += $"N'{x}'";
+                        }
+                    });
+
+                    await _dynamicDbContext.ExecuteSqlRawAsync(query);
+
+                }
+                else
+                {
+                    var countQuery = $"SELECT TOP(1) id FROM [dbo].[{entity.TableName}] ORDER BY id DESC";
+                    var data = await _dynamicDbContext.ExecuteReaderAsync(countQuery);
+
+                    string query = $"Insert into [dbo].[{entity.TableName}] (";
+                    int i = 0;
+                    var propName = new List<string>();
+                    var propValue = new List<string>();
+
+                    entity.Properties?.ForEach(x =>
+                    {
+                        propName.Add(x.PropertyName);
+                        propValue.Add(formData.FirstOrDefault(xx => xx.id == x.Id).content.ToString() ?? "");
+                    });
+
+                    propValue.ForEach(x => x.IsValidString());
+                    i = 0;
+                    if (entity.TableName != "User")
+                    {
+                        query += "Id";
+                        query += " , WorkflowUserId";
+                    }
+                    else
+                    {
+                        query += " WorkflowUserId";
+                    }
+
+                    propName.ForEach(x =>
+                    {
+                        query += " , ";
+                        query += x;
+                        i++;
+                    });
+                    query += ") Values (";
+                    i = 0;
+                    var id = 1;
+
+                    if (entity.TableName != "User")
+                    {
+                        if (data.Data.ToList().Count != 0)
+                        {
+                            id = int.Parse(data.Data.ToList()[0]["id"].ToString()) + 1;
+                        }
+                        query += id;
+                        query += " , " + workflowUserId;
+                    }
+                    else
+                    {
+                        query += workflowUserId;
+                    }
+
+                    propValue.ForEach(x =>
+                    {
+                        query += " , ";
+
+                        if (x == "on" || x == "off")
+                        {
+                            if (x == "on")
+                                query += 1;
+                            else
+                                query += 0;
+                        }
+                        else
+                        {
+                            query += $"N'{x}'";
+                        }
+                        i++;
+
+                    });
+
+                    query += ")";
+
+                    await _dynamicDbContext.ExecuteSqlRawAsync(query);
+
+                    var result = await _context.Entity_EntityRelation.Where(x => x.ParentId == entity.Id || x.ChildId == entity.Id).ToListAsync();
+                    result.ForEach(x =>
+                    {
+                        if (result != null && entites.Any(n => n.Id == x.Id))
+                        {
+                            var table = _context.Entity.FirstOrDefault(xx => xx.Id == (x.ParentId == entity.Id ? x.ChildId : x.ParentId));
+                            var query = $"select WorkflowUserId  , Id from {table.TableName}";
+                            var data2 = _dynamicDbContext.ExecuteReaderAsync(query);
+                            var wuId = int.Parse(data2.Result.Data.ToList()[0]["WorkflowUserId"].ToString());
+
+                            if (wuId == workflowUserId)
+                            {
+                                _context.RelationLists.AddAsync(new RelationList()
+                                {
+                                    RelationId = x.Id,
+                                    Element1 = x.ParentId == entity.Id ? id : int.Parse(data2.Result.Data.ToList()[0]["id"].ToString()),
+                                    Element2 = x.ChildId == entity.Id ? id : int.Parse(data2.Result.Data.ToList()[0]["id"].ToString())
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+
+        }
+
+
         public CustomException FormValidation(Form form)
         {
             var invalidValidation = new CustomException("Form", "CorruptedForm", form);

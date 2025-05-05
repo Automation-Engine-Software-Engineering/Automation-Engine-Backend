@@ -12,7 +12,7 @@ namespace Services
     public interface IPropertyService
     {
         Task AddColumnToTableAsync(EntityProperty property);
-        Task UpdateColumnInTableAsync(EntityProperty property);
+         Task UpdateColumssnInTableAsync(EntityProperty property);
         Task RemoveColumnByIdAsync(int propertyId);
         Task<ListDto<EntityProperty>> GetAllColumnsAsync(int pageSize, int pageNumber);
         Task<EntityProperty?> GetColumnByIdAsync(int propertyId);
@@ -41,7 +41,7 @@ namespace Services
 
             property.DefaultValue.IsValidString();
             //create query             ALTER TABLE string ADD string2 INT  DEFAULT 1  Null
-            var commandText = $"ALTER TABLE {entity.TableName} ADD ";
+            var commandText = $"ALTER TABLE [dbo].[{entity.TableName}] ADD ";
             commandText += property.PropertyName + " " + "@Type ";
             //commandText += "COMMENT" + " " + "@DescriptionValue ";
             commandText += "DEFAULT" + " " + $"'{property.DefaultValue}' ";
@@ -89,8 +89,13 @@ namespace Services
                     break;
 
                 case PropertyType.Time:
-                    parameters.Add(("@Type", "time(7)"));
+                    parameters.Add(("@Type", "Nvarchar(50)"));
                     break;
+
+                case PropertyType.Select:
+                    parameters.Add(("@Type", "INT"));
+                    break;
+
             }
 
             //initial action

@@ -6,7 +6,9 @@ using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.IdentityModel.Tokens;
+using System.Threading.Tasks;
 using Tools.TextTools;
+using ViewModels.ViewModels.Workflow;
 namespace Services
 {
     public interface IEntityService
@@ -20,6 +22,9 @@ namespace Services
         Task<Entity?> GetEntitiesByIdAsync(int entityId);
         CustomException EntityValidation(Entity entity);
         Task SaveChangesAsync();
+        Task<ListDto<IsAccessModel>> GetAllEntityForFormAccess(int FormId, int pageSize, int pageNumber);
+        Task ReplaceEntityRolesByFormId(int formId, List<int> entiteIds);
+        Task<bool> IsEntityExistAsync(int entityId);
     }
 
     public class EntityService : IEntityService
@@ -36,7 +41,7 @@ namespace Services
         public async Task CreateEntityAsync(Entity entity)
         {
             //sql query command
-            var columnDefinitions = "Id INT PRIMARY KEY";
+            var columnDefinitions = "Id INT PRIMARY KEY , WorkflowUserId INT";
             var CommandText = $"CREATE TABLE @TableName ({columnDefinitions})";
             var parameters = new List<(string ParameterName, string ParameterValue)>();
             parameters.Add(("@TableName", entity.TableName));
@@ -129,6 +134,11 @@ namespace Services
             var result = await _context.Entity.Include(x => x.Properties).FirstOrDefaultAsync(x => x.Id == entityId);
             return result;
         }
+        public async Task<bool> IsEntityExistAsync(int entityId)
+        {
+            var result = await _context.Entity.AnyAsync(x => x.Id == entityId);
+            return result;
+        }
 
         public CustomException EntityValidation(Entity entity)
         {
@@ -141,6 +151,30 @@ namespace Services
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<ListDto<IsAccessModel>> GetAllEntityForFormAccess(int FormId, int pageSize, int pageNumber)
+        {
+            var count = await _context.Entity.CountAsync();
+            var entites = await _context.Entity.Include(x => x.Forms)
+            .Skip((pageNumber - 1) * pageSize).Take(pageSize)
+            .ToListAsync();
+
+            var result = entites.Select(x => new IsAccessModel() { Id = x.Id, Name = x.PreviewName, IsAccess = x.Forms.Any(x => x.Id == FormId) ? true : false }).ToList();
+
+            var list = new ListDto<IsAccessModel>(result, count, pageSize = pageSize, pageNumber = pageNumber);
+
+            return list;
+        }
+
+        public async Task ReplaceEntityRolesByFormId(int formId, List<int> entiteIds)
+        {
+            var form = _context.Form.Include(x => x.Entities).FirstOrDefault(x => x.Id == formId);
+            form.Entities = new List<Entity>();
+            var entites = _context.Entity.Where(x => entiteIds.Any(xx => xx == x.Id)).ToList();
+            form.Entities = entites;
+
+            _context.Form.Update(form);
         }
     }
 }

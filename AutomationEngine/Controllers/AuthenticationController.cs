@@ -56,10 +56,10 @@ namespace AutomationEngine.Controllers
                 Expires = DateTimeOffset.UtcNow.Add(_accessTokenLifetime),
                 MaxAge = _accessTokenLifetime,
                 SameSite = SameSiteMode.None,
-                HttpOnly = true,
+                HttpOnly = false,
                 Secure = _secure,
                 Domain = _issuer,
-                IsEssential = true,
+                IsEssential = false,
                 Path = "/api",
             };
             _accessTokenCookieOptions = cookieOptions;
@@ -87,14 +87,11 @@ namespace AutomationEngine.Controllers
 
             var needNewPassword = userRoleId.User.Password.IsNullOrEmpty();
             var result = new TokenResultViewModel();
-            if (_webHostEnvironment.IsDevelopment())
-            {
-                result.AccessToken = tokens.AccessToken;
-                result.RefreshToken = tokens.RefreshToken;
-                result.NeedNewPassword = needNewPassword;
-            }
-            else
-                result.NeedNewPassword = needNewPassword;
+            //if (_webHostEnvironment.IsDevelopment())
+            //{
+            result.AccessToken = tokens.AccessToken;
+            result.RefreshToken = tokens.RefreshToken;
+            //}
 
             return new ResultViewModel<TokenResultViewModel>(result);
         }
@@ -118,14 +115,11 @@ namespace AutomationEngine.Controllers
 
             var needNewPassword = user.Password.IsNullOrEmpty();
             var result = new TokenResultViewModel();
-            if (_webHostEnvironment.IsDevelopment())
-            {
-                result.AccessToken = tokens.AccessToken;
-                result.RefreshToken = tokens.RefreshToken;
-                result.NeedNewPassword = needNewPassword;
-            }
-            else
-                result.NeedNewPassword = needNewPassword;
+            //if (_webHostEnvironment.IsDevelopment())
+            //{
+            result.AccessToken = tokens.AccessToken;
+            result.RefreshToken = tokens.RefreshToken;
+            //}
 
             return new ResultViewModel<TokenResultViewModel>(result);
         }
@@ -182,7 +176,8 @@ namespace AutomationEngine.Controllers
             var data = new UserDashboardViewModel
             {
                 Id = user.Id,
-                Name = user.Name
+                Name = user.Name,
+                NeedNewPassword = user.Password.IsNullOrEmpty()
             };
             return new ResultViewModel<UserDashboardViewModel>(data);
         }

@@ -25,6 +25,7 @@ namespace Entities.Models.TableBuilder
         #region relations
         public List<EntityProperty>? Properties { get; set; }
         public List<Form>? Forms { get; set; }
+        public  List<Entity_EntityRelation> entity_EntityRelation{ get; set; }
         //  public List<Node> nodes { get; set; }
         #endregion
     }

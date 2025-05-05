@@ -364,3 +364,4 @@ FodyWeavers.xsd
 /AutomationEngine/appsettings.json
 /AutomationEngine/wwwroot/upload/
 /AutomationEngine/appsettings.Development.json
+/AutomationEngine/Properties/launchSettings.json

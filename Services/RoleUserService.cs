@@ -18,10 +18,12 @@ namespace Services
         Task InsertRoleUserAsync(Role_User roleUser);
         Task UpdateRoleUserAsync(Role_User roleUser);
         Task DeleteRoleUserAsync(int id);
-        Task<Role_User?> GetRoleUserByIdAsync(int userId);
+        Task<Role_User> GetRoleUserByIdAsync(int userId);
         Task<ListDto<Role_User>> GetRoleUserByUserIdAsync(int userId, int pageSize, int pageNumber);
         Task<ListDto<Role_User>> GetAllRoleUsersAsync(int pageSize, int pageNumber);
         CustomException RoleUserValidation(Role_User roleUser);
+        Task InsertRangeUserRole(List<Role_User> Users);
+        Task ReplaceUserRolesByRoleId(int RoleId, List<int> UserIds);
         Task SaveChangesAsync();
     }
 
@@ -48,7 +50,24 @@ namespace Services
             _context.Role_Users.Update(existingRoleUser);
         }
 
-        public async Task DeleteRoleUserAsync(int id)
+        public async Task InsertRangeUserRole(List<Role_User> Users)
+        {
+            await _context.Role_Users.AddRangeAsync(Users);
+        }
+        public async Task ReplaceUserRolesByRoleId(int RoleId, List<int> UserIds)
+        {
+            var roleWorkflows = await _context.Role_Users.Where(x => x.RoleId == RoleId).ToListAsync();
+            _context.Role_Users.RemoveRange(roleWorkflows);
+
+            var newRoleWorkflows = UserIds.Select(x => new Role_User
+            {
+                RoleId = RoleId,
+                UserId = x
+            }).ToList();
+            await InsertRangeUserRole(newRoleWorkflows);
+        }
+
+        public async Task DeleteRoleUser(int id)
         {
             var roleUser = await _context.Role_Users.FirstAsync(x => x.Id == id);
 

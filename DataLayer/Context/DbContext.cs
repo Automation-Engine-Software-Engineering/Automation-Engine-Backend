@@ -13,9 +13,11 @@ namespace DataLayer.DbContext
         public Context(DbContextOptions<Context> options) : base(options) { }
         #region basic database
         public DbSet<Form> Form { get; set; }
-
         public DbSet<Entity> Entity { get; set; }
+        public DbSet<Entity_EntityRelation> Entity_EntityRelation { get; set; }
+        public DbSet<RelationList> RelationLists{ get; set; }
         public DbSet<EntityProperty> Property { get; set; }
+        public DbSet<MenuElement> MenuElements{ get; set; }
         public DbSet<User> User { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Role_User> Role_Users { get; set; }
@@ -70,6 +72,11 @@ namespace DataLayer.DbContext
                  .HasOne(n => n.Workflow)
                  .WithMany(n => n.Nodes)
                  .OnDelete(DeleteBehavior.Cascade);
+
+                 modelBuilder.Entity<Entity>()
+                 .HasMany(n => n.entity_EntityRelation)
+                 .WithOne()
+                 .HasForeignKey(n => n.ParentId);
 
         }
 
