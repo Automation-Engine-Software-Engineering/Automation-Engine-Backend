@@ -10,7 +10,7 @@ namespace Tools.TextTools
 {
     public class ConvertToString
     {
-        public static string ConvertObjectToString(object input)
+        public static string ConvertObjectToString(object? input)
         {
             if (input == null)
             {

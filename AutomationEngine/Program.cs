@@ -11,22 +11,26 @@ using System.Text;
 using System.Threading.RateLimiting;
 using Tools.AuthoraizationTools;
 using Serilog.Settings.Configuration;
+using Tools.LoggingTools;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var audience = builder.Configuration["JWTSettings:Audience"] ?? throw new CustomException("Audience در appsettings یافت نشد");
-var accessTokenSecret = builder.Configuration["JWTSettings:AccessTokenSecret"] ?? throw new CustomException("Audience در appsettings یافت نشد");
-var issuer = builder.Configuration["JWTSettings:Issuer"] ?? throw new CustomException("Issuer در appsettings یافت نشد");
-var secure = bool.Parse(builder.Configuration["JWTSettings:Secure"] ?? throw new CustomException("Secure در appsettings یافت نشد"));
+var exceptionJWTSettings = new CustomException("AppSettings", "JWTSettings");
+var audience = builder.Configuration["JWTSettings:Audience"] ?? throw exceptionJWTSettings;
+var accessTokenSecret = builder.Configuration["JWTSettings:AccessTokenSecret"] ?? throw exceptionJWTSettings;
+var issuer = builder.Configuration["JWTSettings:Issuer"] ?? throw exceptionJWTSettings;
+var secure = bool.Parse(builder.Configuration["JWTSettings:Secure"] ?? throw exceptionJWTSettings);
 
-var queueLimit = int.Parse(builder.Configuration["RateLimiter:QueueLimit"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
-var permitLimit = int.Parse(builder.Configuration["RateLimiter:PermitLimit"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
-var window = TimeSpan.Parse(builder.Configuration["RateLimiter:Window"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
 
-var queueLimitLogin = int.Parse(builder.Configuration["RateLimiter:QueueLimitLogin"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
-var permitLimitLogin = int.Parse(builder.Configuration["RateLimiter:PermitLimitLogin"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
-var windowLogin = TimeSpan.Parse(builder.Configuration["RateLimiter:WindowLogin"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
+var exceptionRateLimiter = new CustomException("AppSettings", "RateLimiter");
+var queueLimit = int.Parse(builder.Configuration["RateLimiter:QueueLimit"] ?? throw exceptionRateLimiter);
+var permitLimit = int.Parse(builder.Configuration["RateLimiter:PermitLimit"] ?? throw exceptionRateLimiter);
+var window = TimeSpan.Parse(builder.Configuration["RateLimiter:Window"] ?? throw exceptionRateLimiter);
+
+var queueLimitLogin = int.Parse(builder.Configuration["RateLimiter:QueueLimitLogin"] ?? throw exceptionRateLimiter);
+var permitLimitLogin = int.Parse(builder.Configuration["RateLimiter:PermitLimitLogin"] ?? throw exceptionRateLimiter);
+var windowLogin = TimeSpan.Parse(builder.Configuration["RateLimiter:WindowLogin"] ?? throw exceptionRateLimiter);
 
 
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -153,6 +157,7 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IHtmlService, HtmlService>();
 builder.Services.AddScoped<IMenuElementService, MenuElementService>();
 builder.Services.AddScoped<IEntityRelationService, EntityRelationService>();
+builder.Services.AddSingleton<Logging>();
 builder.Services.AddSingleton<TokenGenerator>();
 builder.Services.AddSingleton<EncryptionTool>();
 

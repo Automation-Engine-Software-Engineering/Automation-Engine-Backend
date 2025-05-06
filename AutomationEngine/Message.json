@@ -2,7 +2,7 @@
   "fa": {
     "Error": {
       "503": {
-        "SaveFailed": "خطا در اطلاعات جدول وجود دارد"
+        "SaveFailed": "خطا در دخیره اطلاعات وجود دارد"
       }
     },
     "Entity": {
@@ -60,6 +60,9 @@
       }
     },
     "User": {
+      "503": {
+        "CorruptedUser": "اطلاعات کاربر معتبر نمی باشد"
+      },
       "404": {
         "UserNotFound": "کاربر یافت نشد"
       }
@@ -110,7 +113,8 @@
         "NotAuthorized": "شما به این بخش دسترسی ندارید"
       },
       "401": {
-        "Login": "رمز عبور یا نام کاربری اشتباه است"
+        "LoginFailed": "رمز عبور یا نام کاربری اشتباه است",
+        "FieldIsEmpty": "نام کاربری و رمز عبور نمی تواند خالی باشد"
       },
       "429": {
         "TooManyRequests": "تعداد درخواست های شما بیش از حد مجاز است. لطفاً بعداً تلاش کنید"
@@ -119,6 +123,18 @@
     "Success": {
       "200": {
         "Success": "عملیات با موفقیت انجام شد"
+      }
+    },
+    "AppSettings": {
+      "504": {
+        "RateLimiter": "عناصر بخش RateLimiter در AppSettings یافت نشد",
+        "Serilog": "عناصر بخش Serilog در AppSettings یافت نشد",
+        "JWTSettings": "عناصر بخش JWTSettings در AppSettings یافت نشد"
+      }
+    },
+    "Service": {
+      "504": {
+        "ServiceNotFound": "سرویس موردنظر یافت نشد"
       }
     }
   }

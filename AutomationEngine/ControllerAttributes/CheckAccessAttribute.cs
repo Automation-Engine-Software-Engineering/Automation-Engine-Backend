@@ -43,10 +43,11 @@ namespace AutomationEngine.ControllerAttributes
         public static async Task<TokenClaims> Authorize(this HttpContext httpContext, int? workflowId = null)
         {
             // گرفتن از Dependency Injection
-            var userService = httpContext.RequestServices.GetService<IUserService>() ?? throw new CustomException("IUserService وجود ندارد");
-            var tokenGeneratorService = httpContext.RequestServices.GetService<TokenGenerator>() ?? throw new CustomException("TokenGenerator وجود ندارد");
-            var encryptionToolService = httpContext.RequestServices.GetService<EncryptionTool>() ?? throw new CustomException("EncryptionTool وجود ندارد");
-            var workflowService = httpContext.RequestServices.GetService<IWorkflowService>() ?? throw new CustomException("TokenGenerator وجود ندارد");
+            var exceptionService = new CustomException("Service", "ServiceNotFound");
+            var userService = httpContext.RequestServices.GetService<IUserService>() ?? throw exceptionService;
+            var tokenGeneratorService = httpContext.RequestServices.GetService<TokenGenerator>() ?? throw exceptionService;
+            var encryptionToolService = httpContext.RequestServices.GetService<EncryptionTool>() ?? throw exceptionService;
+            var workflowService = httpContext.RequestServices.GetService<IWorkflowService>() ?? throw exceptionService;
 
             //ویندوز: cmd: set ASPNETCORE_ENVIRONMENT = Production
             var environment = httpContext.RequestServices.GetService<IWebHostEnvironment>();
@@ -89,7 +90,7 @@ namespace AutomationEngine.ControllerAttributes
             var user = await userService.GetUserByIdAsync(tokenClaims.UserId);
 
             if (user == null)
-                throw new CustomException("کاربر یافت نشد");
+                throw new CustomException("User","UserNotFound");
 
             var currentIp = httpContext.GetIP();
             var currentUserAgent = httpContext.GetUserAgent();
@@ -115,10 +116,11 @@ namespace AutomationEngine.ControllerAttributes
         public static async Task<TokenClaims> AuthorizeRefreshToken(this HttpContext httpContext)
         {
             // گرفتن از Dependency Injection
-            var userService = httpContext.RequestServices.GetService<IUserService>() ?? throw new CustomException("IUserService وجود ندارد");
-            var tokenGeneratorService = httpContext.RequestServices.GetService<TokenGenerator>() ?? throw new CustomException("TokenGenerator وجود ندارد");
-            var encryptionToolService = httpContext.RequestServices.GetService<EncryptionTool>() ?? throw new CustomException("EncryptionTool وجود ندارد");
-
+            var exceptionService = new CustomException("Service", "ServiceNotFound");
+            var userService = httpContext.RequestServices.GetService<IUserService>() ?? throw exceptionService;
+            var tokenGeneratorService = httpContext.RequestServices.GetService<TokenGenerator>() ?? throw exceptionService;
+            var encryptionToolService = httpContext.RequestServices.GetService<EncryptionTool>() ?? throw exceptionService;
+            
             //ویندوز: cmd: set ASPNETCORE_ENVIRONMENT = Production
             var environment = httpContext.RequestServices.GetService<IWebHostEnvironment>();
             if (environment != null && environment.IsDevelopment())
@@ -161,7 +163,7 @@ namespace AutomationEngine.ControllerAttributes
             var user = await userService.GetUserByIdAsync(tokenClaims.UserId);
 
             if (user == null)
-                throw new CustomException("کاربر یافت نشد");
+                throw new CustomException("User", "UserNotFound");
 
             var currentIp = httpContext.GetIP();
             var currentUserAgent = httpContext.GetUserAgent();

@@ -18,10 +18,9 @@ namespace Services
 {
     public interface IRoleService
     {
-        Task<(User User, int? RoleId)> Login(string userName, string password);
-        Task<List<Workflow>> GetWorkflowsByRoleAsync(int roleId);
+        Task<List<Workflow?>> GetWorkflowsByRoleAsync(int roleId);
         Task<List<Workflow_User>> GetWorkflowUsersByRoleAsync(int userId);
-        Task<Role> GetRoleByUserAsync(int userId);
+        Task<Role?> GetRoleByUserAsync(int userId);
         Task InsertRoleAsync(Role role);
         Task UpdateRoleAsync(Role role);
         Task DeleteRoleAsync(int id);
@@ -42,22 +41,15 @@ namespace Services
             _dynamicContext = dynamicContext;
         }
 
-        public async Task<Role> GetRoleByUserAsync(int userId)
+        public async Task<Role?> GetRoleByUserAsync(int userId)
         {
-            if (userId == 0) throw new CustomException("فرد یافت نشد.");
-            var roleUser = await _context.Role_Users.Include(x => x.Role).FirstOrDefaultAsync(x => x.UserId == userId)
-              ?? throw new CustomException("نقش مورد نظر یافت نشد.");
-
-            return roleUser.Role;
+            var roleUser = await _context.Role_Users.Include(x => x.Role).FirstOrDefaultAsync(x => x.UserId == userId);
+            return roleUser?.Role;
         }
 
-        public async Task<List<Workflow>> GetWorkflowsByRoleAsync(int roleId)
+        public async Task<List<Workflow?>> GetWorkflowsByRoleAsync(int roleId)
         {
-            if (roleId == 0) throw new CustomException("نقش یافت نشد.");
-
-            var RoleWorkflow = await _context.Role_Workflows.Include(x => x.Workflow).Where(x => x.RoleId == roleId).ToListAsync()
-                ?? throw new CustomException("نقش یافت نشد.");
-
+            var RoleWorkflow = await _context.Role_Workflows.Include(x => x.Workflow).Where(x => x.RoleId == roleId).ToListAsync();
             var Workflows = RoleWorkflow.Select(x => x.Workflow).ToList();
 
             return Workflows;
@@ -65,30 +57,10 @@ namespace Services
 
         public async Task<List<Workflow_User>> GetWorkflowUsersByRoleAsync(int userId)
         {
-            if (userId == 0) throw new CustomException("فرد یافت نشد.");
-            var workflowUser = await _context.Workflow_User.Where(x => x.UserId == userId).ToListAsync()
-                ?? throw new CustomException("نقش یافت نشد.");
-
+            var workflowUser = await _context.Workflow_User.Where(x => x.UserId == userId).ToListAsync();
             return workflowUser;
         }
 
-        public async Task<(User User, int? RoleId)> Login(string userName, string password)
-        {
-            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password)) throw new CustomException("نام کاربری و رمز عبور نمی تواند خالی باشد");
-
-            var user = await _dynamicContext.User.SingleOrDefaultAsync(x => x.UserName == userName)
-                   ?? throw new CustomException("Authentication", "Login");
-
-            if (!user.Password.IsNullOrEmpty())
-            {
-                var hashPassword = HashString.HashPassword(password, user.Salt);
-                if (hashPassword != user.Password)
-                    throw new CustomException("Authentication", "Login");
-            }
-            var roleUser = await _context.Role_Users.FirstOrDefaultAsync(x => x.UserId == user.Id);
-
-            return (user, roleUser?.RoleId);
-        }
         public async Task InsertRoleAsync(Role role)
         {
             await _context.Roles.AddAsync(role);

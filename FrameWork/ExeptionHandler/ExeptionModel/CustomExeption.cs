@@ -7,7 +7,7 @@ namespace FrameWork.ExeptionHandler.ExeptionModel
 {
     public class CustomException : Exception
     {
-        public CustomException(string messageParentKey = "", string messageKey = "", object? logData = null, int? statusCode = null)
+        public CustomException(string messageParentKey, string messageKey, object? logData = null, int? statusCode = null)
         {
             LogData = logData;
             MessageParentKey = messageParentKey;

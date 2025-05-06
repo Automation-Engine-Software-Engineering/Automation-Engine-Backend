@@ -30,4 +30,14 @@ namespace Entities.Models.Enums
         Password = 10,
         Select = 11,
     }
+    public enum LogLevel
+    {
+        Critical,
+        Error,
+        Warning,
+        Information,
+        Debug,
+        Trace
+    }
+
 }

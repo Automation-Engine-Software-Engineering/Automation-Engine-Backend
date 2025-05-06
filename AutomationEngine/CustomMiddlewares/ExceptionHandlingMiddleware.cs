@@ -15,15 +15,16 @@ using AutomationEngine.Controllers;
 using Microsoft.Extensions.Logging;
 using System.Collections;
 using Tools.TextTools;
+using Tools.LoggingTools;
 
 namespace AutomationEngine.CustomMiddlewares
 {
     public class ExceptionHandlingMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+        private readonly Logging _logger;
 
-        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+        public ExceptionHandlingMiddleware(RequestDelegate next, Logging logger)
         {
             _next = next;
             _logger = logger;
@@ -32,30 +33,31 @@ namespace AutomationEngine.CustomMiddlewares
         {
             try
             {
+                context.Request.EnableBuffering();
                 // فراخوانی middleware بعدی
                 await _next(context);
             }
             catch (CustomException ex)
             {
                 var resultModel = await ExceptionHandling.HandleCustomExceptionAsync(context, ex);
-                _logger.LogCritical(
+                _logger.LogErrorMiddleware(
                     ex,
-                    resultModel.message + " {LogData: {LogData}, RequestBody: {RequestBody}, RequestFormData: {RequestFormData}, Headers: {Headers}}",
-                    ConvertToString.ConvertObjectToString(ex.LogData),
+                    resultModel.message + " Custom Exception : ",
+                    ex.LogData,
                     await ExceptionHandling.GetRequestBodyAsync(context),
-                    ExceptionHandling.GetFormDataAsync(context),
+                    ExceptionHandling.GetFormData(context),
                     JsonConvert.SerializeObject(context.Request.Headers)
                     );
             }
             catch (Exception ex)
             {
                 var resultModel = await ExceptionHandling.HandleGeneralExceptionAsync(context, ex);
-                _logger.LogCritical(
+                _logger.LogErrorMiddleware(
                     ex,
-                    resultModel.message + " {LogData: {LogData}, RequestBody: {RequestBody}, RequestFormData: {RequestFormData}, Headers: {Headers}}",
-                    ConvertToString.ConvertObjectToString(ex.Data),
+                    resultModel.message + " General Exception : ",
+                    ex.Data,
                     await ExceptionHandling.GetRequestBodyAsync(context),
-                    ExceptionHandling.GetFormDataAsync(context),
+                    ExceptionHandling.GetFormData(context),
                     JsonConvert.SerializeObject(context.Request.Headers)
                     );
             }
@@ -138,7 +140,7 @@ namespace AutomationEngine.CustomMiddlewares
             return requestBody;
         }
 
-        public static string GetFormDataAsync(HttpContext context)
+        public static string GetFormData(HttpContext context)
         {
             if (context.Request.HasFormContentType)
             {
