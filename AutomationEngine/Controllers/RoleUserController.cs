@@ -64,24 +64,24 @@ namespace AutomationEngine.Controllers
 
             // POST: api/form/create  
         [HttpPost("create/allByRoleId/{roleId}")]
-        public async Task<ResultViewModel> CreateUserRoleAllByroleId([FromBody] List<int> UserIds,int roleId)
+        public async Task<ResultViewModel<List<Role_User>>> CreateUserRoleAllByroleId([FromBody] List<int> UserIds,int roleId)
         {
             if (UserIds == null)
-                throw new CustomException<Role_Workflow>(new ValidationDto<Role_Workflow>(false, "RoleUser", "CorruptedRoleUser", null), 500);
+                throw new CustomException("RoleUser", "CorruptedRoleUser");
 
             var users = new List<Role_User>();
             
             //is validation model
             foreach (var role in users)
             {
-                var validationModel = await _roleUserService.RoleUserValidation(role);
+                var validationModel = _roleUserService.RoleUserValidation(role);
                 if (!validationModel.IsSuccess)
-                    throw new CustomException<Role_User>(validationModel, 500);
+                    throw validationModel;
             }
 
             await _roleUserService.ReplaceUserRolesByRoleId(roleId,UserIds);
             await _roleUserService.SaveChangesAsync();
-            return (new ResultViewModel { Data = users, Message = new ValidationDto<List<Role_User>>(true, "Success", "Success", users).GetMessage(200), Status = true, StatusCode = 200 });
+            return new ResultViewModel<List<Role_User>>(users);
         }
 
         // POST: api/form/update  

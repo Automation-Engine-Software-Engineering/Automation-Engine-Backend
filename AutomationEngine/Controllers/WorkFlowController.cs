@@ -183,7 +183,7 @@ namespace AutomationEngine.Controllers
 
         // GET: api/form/all  
         [HttpGet("nodes/all")]
-        public async Task<ResultViewModel> GetAllNods(int pageSize, int pageNumber)
+        public async Task<ResultViewModel<IEnumerable<Node>>> GetAllNods(int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -195,7 +195,7 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - workflows.TotalCount) > pageSize) && (pageSize * pageNumber) > workflows.TotalCount)
                 throw new CustomException("Workflow", "CorruptedWorkflow", workflows);
 
-            return new ResultViewModel { Data = workflows.Data, ListNumber = workflows.ListNumber, ListSize = workflows.ListSize, TotalCount = workflows.TotalCount};
+            return new ResultViewModel<IEnumerable<Node>> { Data = workflows.Data, ListNumber = workflows.ListNumber, ListSize = workflows.ListSize, TotalCount = workflows.TotalCount};
         }
 
         // GET: api/form/{id}  
@@ -318,12 +318,12 @@ namespace AutomationEngine.Controllers
             {
                 if (nodeId == null)
                 {
-                    throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "CorruptedWorkflowPreviousNode", WorkflowUserId), 500);
+                    throw new CustomException("Workflow", "CorruptedWorkflowPreviousNode");
                 }
                 var linkNode = await _workflowService.GetNodByIdAsync(nodeId);
                 if (linkNode == null)
                 {
-                    throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "CorruptedWorkflowPreviousNode", WorkflowUserId), 500);
+                    throw new CustomException("Workflow", "CorruptedWorkflowPreviousNode");
                 }
 
                 if (newWorkflowUserId == 0)

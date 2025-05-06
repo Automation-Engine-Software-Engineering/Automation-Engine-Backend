@@ -97,7 +97,7 @@ namespace AutomationEngine.Controllers
             await _entityService.UpdateEntityAsync(result);
             await _entityService.SaveChangesAsync();
 
-            return new ResultViewModel<Entity?> (result);
+            return new ResultViewModel<Entity?>(result);
         }
 
         // POST: api/entity/remove  
@@ -257,7 +257,7 @@ namespace AutomationEngine.Controllers
 
         // GET: api/form/all  
         [HttpGet("form/all")]
-        public async Task<ResultViewModel> GetAllRoleUserAndUser(int FormId, int pageSize, int pageNumber)
+        public async Task<ResultViewModel<IEnumerable<IsAccessModel>>> GetAllRoleUserAndUser(int FormId, int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -268,33 +268,31 @@ namespace AutomationEngine.Controllers
 
             //is valid data
             if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
-                throw new CustomException<ListDto<IsAccessModel>>(new ValidationDto<ListDto<IsAccessModel>>(false, "Form", "CorruptedInvalidPage", forms), 500);
+                throw new CustomException("Form", "CorruptedInvalidPage");
 
-            return (new ResultViewModel { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<IsAccessModel>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
+            return new ResultViewModel<IEnumerable<IsAccessModel>> { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount };
         }
 
-              // POST: api/form/create  
+        // POST: api/form/create  
         [HttpPost("create/allByFormId/{FormId}")]
-        public async Task<ResultViewModel> CreateWorkflowRoleAllByWorkflowId([FromBody] List<int> Entites,int FormId)
+        public async Task<ResultViewModel<List<Entity>>> CreateWorkflowRoleAllByWorkflowId([FromBody] List<int> Entites, int FormId)
         {
             if (Entites == null)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
+                throw new CustomException("Entity", "CorruptedEntity");
 
             var entites = new List<Entity>();
-            
+
             //is validation model
             foreach (var entite in entites)
             {
                 var validationModel = _entityService.EntityValidation(entite);
                 if (!validationModel.IsSuccess)
-                    throw new CustomException<Entity>(validationModel, 500);
+                    throw validationModel;
             }
 
-            await _entityService.ReplaceEntityRolesByFormId(FormId,Entites);
-            var validation = await _entityService.SaveChangesAsync();
-            if(!validation.IsSuccess)
-            throw new CustomException<string?>(validation, 503);
-            return (new ResultViewModel { Data = entites, Message = new ValidationDto<List<Entity>>(true, "Success", "Success", entites).GetMessage(200), Status = true, StatusCode = 200 });
+            await _entityService.ReplaceEntityRolesByFormId(FormId, Entites);
+            await _entityService.SaveChangesAsync();
+            return new ResultViewModel<List<Entity>>(entites);
         }
     }
 }

@@ -351,7 +351,7 @@ namespace Services
             {
                 var property = await _context.Property.Include(x => x.Entity).FirstOrDefaultAsync(x => x.Id == prop.id);
                 if (property == null)
-                    throw new CustomException<int>(new ValidationDto<int>(false, "Property", "PropertyNotFound", workflowUserId), 500);
+                    throw new CustomException("Property", "PropertyNotFound");
 
                 if (!entites.Any(x => property != null && x == property.Entity && x.Description == prop.group))
                 {
@@ -359,7 +359,7 @@ namespace Services
                     entity.Description = prop.group;
 
                     if (entity == null)
-                        throw new CustomException<int>(new ValidationDto<int>(false, "Entity", "EntityNotFound", workflowUserId), 500);
+                        throw new CustomException("Entity", "EntityNotFound");
 
                     entity.Properties = [property];
                     entites.Add(entity);

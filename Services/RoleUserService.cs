@@ -67,7 +67,7 @@ namespace Services
             await InsertRangeUserRole(newRoleWorkflows);
         }
 
-        public async Task DeleteRoleUser(int id)
+        public async Task DeleteRoleUserAsync(int id)
         {
             var roleUser = await _context.Role_Users.FirstAsync(x => x.Id == id);
 

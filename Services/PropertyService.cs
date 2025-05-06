@@ -12,7 +12,7 @@ namespace Services
     public interface IPropertyService
     {
         Task AddColumnToTableAsync(EntityProperty property);
-         Task UpdateColumssnInTableAsync(EntityProperty property);
+        Task UpdateColumnInTableAsync(EntityProperty property);
         Task RemoveColumnByIdAsync(int propertyId);
         Task<ListDto<EntityProperty>> GetAllColumnsAsync(int pageSize, int pageNumber);
         Task<EntityProperty?> GetColumnByIdAsync(int propertyId);

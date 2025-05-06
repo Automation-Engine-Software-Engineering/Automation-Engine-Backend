@@ -18,9 +18,9 @@ namespace Services
     {
         Task InsertRangeEntityRelation(List<Entity_EntityRelation> Entity_EntityRelations);
         Task ReplaceEntityRelationsByEntityId(int EntityId, List<int> EntityIds);
-        Task<ValidationDto<string>> SaveChangesAsync();
+        Task SaveChangesAsync();
         Task<ListDto<Entity_EntityRelation>> GetEntityRelationByParentId(int parentId, int pageSize, int pageNumber);
-         Task<ListDto<IsAccessModel>> GetEntityRelationById(int parentId, int pageSize, int pageNumber);
+        Task<ListDto<IsAccessModel>> GetEntityRelationById(int parentId, int pageSize, int pageNumber);
     }
 
     public class EntityRelationService : IEntityRelationService
@@ -49,17 +49,9 @@ namespace Services
             }).ToList();
             await InsertRangeEntityRelation(newRelation);
         }
-        public async Task<ValidationDto<string>> SaveChangesAsync()
+        public async Task SaveChangesAsync()
         {
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new ValidationDto<string>(true, "Success", "ChangesSaved", null);
-            }
-            catch (Exception ex)
-            {
-                return new ValidationDto<string>(false, "Error", "SaveFailed", ex.Message);
-            }
+            await _context.SaveChangesAsync();
         }
         public async Task<ListDto<Entity_EntityRelation>> GetEntityRelationByParentId(int parentId, int pageSize, int pageNumber)
         {
@@ -70,8 +62,8 @@ namespace Services
             return new ListDto<Entity_EntityRelation>(items, count, pageSize, pageNumber);
         }
 
-        
-     public async Task<ListDto<IsAccessModel>> GetEntityRelationById(int parentId, int pageSize, int pageNumber)
+
+        public async Task<ListDto<IsAccessModel>> GetEntityRelationById(int parentId, int pageSize, int pageNumber)
         {
             var count = await _context.Entity.CountAsync();
             var Workflows = await _context.Entity.Include(x => x.entity_EntityRelation)
