@@ -111,7 +111,7 @@ namespace AutomationEngine.Controllers
                 throw new CustomException<Workflow_User>(validationModel, 500);
 
             //initial action
-            await _WorkflowUserService.DeleteWorkflowUser(workflowUserId);
+        //    await _WorkflowUserService.DeleteWorkflowUser(workflowUserId);
             var saveResult = await _WorkflowUserService.SaveChangesAsync();
 
             if (!saveResult.IsSuccess)

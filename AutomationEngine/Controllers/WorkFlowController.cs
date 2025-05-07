@@ -285,7 +285,7 @@ namespace AutomationEngine.Controllers
 
         // GET: api/nodeMove  
         [HttpGet("nodeMove")]
-        public async Task<ResultViewModel> NodeMove(int WorkflowUserId, int state, string? nodeId, int newWorkflowUserId)
+        public async Task<ResultViewModel> NodeMove(int WorkflowUserId, int state, string? nodeId, int? newWorkflowUserId)
         {
             if (WorkflowUserId == 0)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowNotfound", WorkflowUserId), 500);
@@ -298,7 +298,7 @@ namespace AutomationEngine.Controllers
             if (workflow == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "WorkflowNotfound", WorkflowUserId), 500);
 
-            var node = workflow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkflowState);
+            var node =  await _workflowService.GetNodByIdAsync(workflowUser.WorkflowState);
             if (node == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "NodeNotFound", WorkflowUserId), 500);
 
@@ -331,15 +331,15 @@ namespace AutomationEngine.Controllers
                     throw new CustomException<int>(new ValidationDto<int>(false, "Workflow", "CorruptedWorkflowPreviousNode", WorkflowUserId), 500);
                 }
 
-                if (newWorkflowUserId == 0)
+                if (newWorkflowUserId == null)
                 {
                     workflowUser.WorkflowState = linkNode.Id;
                 }
                 else
                 {
-                    var workflowUserModel = await _workflowUserService.GetWorkflowUserById(newWorkflowUserId);
+                    var workflowUserModel = await _workflowUserService.GetWorkflowUserById(newWorkflowUserId.Value);
                     workflowUserModel.WorkflowState = linkNode.Id;
-                    resultWorkflowUserId = newWorkflowUserId ;
+                    resultWorkflowUserId = newWorkflowUserId.Value ;
                 }
             }
 

@@ -221,7 +221,7 @@ namespace AutomationEngine.Controllers
 
             //initial action
             var workflowUser = await _workflowUserService.GetWorkflowUserById(workflowUserId);
-            var node = workflowUser.Workflow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkflowState);
+            var node = await _workflowService.GetNodByIdAsync(workflowUser.WorkflowState);
             var form = await _formService.GetFormByIdIncEntityIncPropertyAsync(node.FormId.Value);
             var formBody = await _formService.GetFormPreviewAsync(form, workflowUserId);
             if (formBody == null)

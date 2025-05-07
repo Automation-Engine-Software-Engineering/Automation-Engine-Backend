@@ -1,4 +1,6 @@
-﻿using Entities.Models.MainEngine;
+﻿using Entities.Models.Enums;
+using Entities.Models.MainEngine;
+using Entities.Models.TableBuilder;
 using FrameWork.Model.DTO;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -13,14 +15,15 @@ namespace DataLayer.DbContext
     {
         private readonly IConfiguration _configuration;
         public DbSet<User> User { get; set; }
+        public DbSet<RelationList> RelationLists { get; set; }
 
-        public DynamicDbContext(DbContextOptions<DynamicDbContext> options , IConfiguration configuration) : base(options)
+        public DynamicDbContext(DbContextOptions<DynamicDbContext> options, IConfiguration configuration) : base(options)
         {
             this._configuration = configuration;
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-        { }
+        {}
 
         public async Task ExecuteSqlRawAsync(string inputCommand, List<(string ParameterName, string ParameterValue)>? parameters = null)
         {

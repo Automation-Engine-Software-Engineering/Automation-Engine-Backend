@@ -3,6 +3,7 @@ using DataLayer.DbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20250128202841_add reltion")]
+    partial class addreltion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -230,15 +233,6 @@ namespace DataLayer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Entity");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Description = "RelationLists",
-                            PreviewName = "RelationLists",
-                            TableName = "RelationLists"
-                        });
                 });
 
             modelBuilder.Entity("Entities.Models.TableBuilder.EntityProperty", b =>
@@ -286,44 +280,6 @@ namespace DataLayer.Migrations
                     b.HasIndex("EntityId");
 
                     b.ToTable("Property");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Description = "RelationId",
-                            EntityId = 1,
-                            PreviewName = "RelationId",
-                            PropertyName = "RelationId",
-                            Type = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Description = "Element2",
-                            EntityId = 1,
-                            PreviewName = "Element2",
-                            PropertyName = "Element2",
-                            Type = 1
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Description = "Element1",
-                            EntityId = 1,
-                            PreviewName = "Element1",
-                            PropertyName = "Element1",
-                            Type = 1
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Description = "WorkflowUserId",
-                            EntityId = 1,
-                            PreviewName = "WorkflowUserId",
-                            PropertyName = "WorkflowUserId",
-                            Type = 1
-                        });
                 });
 
             modelBuilder.Entity("Entities.Models.TableBuilder.Entity_EntityRelation", b =>

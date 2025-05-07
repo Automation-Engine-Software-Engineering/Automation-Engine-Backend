@@ -6,6 +6,7 @@ using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Tools.TextTools;
 using ViewModels.ViewModels.Entity;
 using ViewModels.ViewModels.FormBuilder;
@@ -164,6 +165,7 @@ namespace Services
             htmlBody = htmlBody.Replace("contenteditable=\"false\"", " ");
             htmlBody = htmlBody.Replace("resize: both;", " ");
             htmlBody = htmlBody.Replace("??>>", "disabled ");
+            htmlBody = htmlBody.Replace("value", "placeholder");
 
             //define the preview
             string tagName = "select";
@@ -175,21 +177,38 @@ namespace Services
                 var tableId = _htmlService.GetTagAttributesValue(tag, "data-tableid");
 
                 var condition = _htmlService.GetTagAttributesValue(tag, "data-condition");
-                condition = condition.Replace("{{", "");
-                condition = condition.Replace("}}", "");
-                condition = condition.Replace("و", ",");
-                condition = condition.Replace("-", ",");
+                var values = _htmlService.GetAttributeConditionValues(condition);
                 condition = condition.Replace("&nbsp;", " ");
 
                 var filter = _htmlService.GetTagAttributesValue(tag, "data-filter");
                 if (filter != null && filter != "")
                 {
-                    var userId = _context.Workflow_User.FirstOrDefault(x => x.Id == workflowUserId).UserId;
-                    filter = filter.Replace("{{UserId}}", " "+userId+" ");
+                    if (workflowUserId != 0)
+                    {
+                        var q = _context.Workflow_User.FirstOrDefault(x => x.Id == workflowUserId);
+                        var userId = q.UserId;
+                        filter = filter.Replace("{{UserId}}", " " + userId + " ");
+                        var workflow = q.Workflow.Id;
+                        filter = filter.Replace("{{Workflow}}", " " + workflow + " ");
+                        var wuIds = _context.Workflow_User.Where(x => x.UserId == userId).ToList();
+                        string wuIdString = $"(";
+
+                        int i = 0;
+                        wuIds.ForEach(wu =>
+                        {
+                            if (i != 0)
+                                wuIdString += " , ";
+                            i++;
+
+                            wuIdString += wu.Id;
+                        });
+                        wuIdString += ")";
+                        filter = filter.Replace("{{Workflow-Users}}", " " + wuIdString + " ");
+                    }
+
+                    filter = filter.Replace("{{DateNow}}", " " + DateTime.Now.ToString("yyyy/MM/dd - hh:mm") + " ");
                     filter = filter.Replace("{{", "");
                     filter = filter.Replace("}}", "");
-                    filter = filter.Replace("و", " ");
-                    filter = filter.Replace(",", " ");
                     filter = filter.Replace("&nbsp;", " ");
                 }
                 filter = (filter == null || filter == "") ? "1 = 1" : filter;
@@ -204,7 +223,13 @@ namespace Services
                 }
 
                 var table = await _context.Entity.Include(c => c.Properties).FirstAsync(x => x.Id == int.Parse(tableId));
-                var query = $"select " + condition + $" from [dbo].[{table.TableName}]  {relation} where {filter}";
+                var query = $"select [dbo].[{table.TableName}].WorkflowUserId , [dbo].[{table.TableName}].Id";
+                foreach (var item in values)
+                {
+                    query += " , ";
+                    query += item + " AS " + item;
+                }
+                query += $" from [dbo].[{table.TableName}]  {relation} where {filter}";
                 query = query.Replace("&nbsp;", " ");
 
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
@@ -212,8 +237,7 @@ namespace Services
                 if (data != null && data.TotalCount != 0)
                 {
                     var childTags = new List<string>();
-                    var values = _htmlService.GetAttributeConditionValues(condition);
-
+                    childTags.Add($"<option value=\"0-{table.Id}\">{table.PreviewName} را انتخاب کنید</option>");
                     if (data.Data != null)
                         foreach (var item in data.Data)
                         {
@@ -222,14 +246,29 @@ namespace Services
                             {
                                 textValue = textValue.Replace("{{" + value + "}}", item.FirstOrDefault(x => x.Key == value).Value.ToString());
                             }
+                            var childTag = $"<option value=\"{item.GetValueOrDefault("Id")}\">{textValue}</option>";
 
-                            var childTag = $"<option value=\"{textValue}\">{textValue}</option>";
+                            var id = _htmlService.GetTagAttributesValue(tag, "id");
+                            id = id.Replace("&nbsp;", " ");
+                            if (int.Parse(id) == 2 || int.Parse(id) == 3 || int.Parse(id) == 1 || int.Parse(id) == 4)
+                                childTag = $"<option value=\"{item.GetValueOrDefault("Id")}-{table.Id}\">{textValue}</option>";
+
                             childTags.Add(childTag);
                         }
 
-                    var newTag = _htmlService.InsertTag(tag, childTags);
+                    var newTag = _htmlService.InsertTagWithRemoveAllChild("select", tag, childTags);
                     htmlBody = htmlBody.Replace(tag, newTag);
                 }
+                else
+                {
+                    var childTags = new List<string>();
+                    childTags.Add($"<option value=\"0-{table.Id}\">{table.PreviewName} ایی وجود ندارد</option>");
+
+                    var newTag = _htmlService.InsertTagWithRemoveAllChild("select", tag, childTags);
+                    htmlBody = htmlBody.Replace(tag, newTag);
+                }
+
+                
             }
 
             tagName = "table";
@@ -240,19 +279,38 @@ namespace Services
                 var tableId = _htmlService.GetTagAttributesValue(tag, "data-tableid");
 
                 var condition = _htmlService.GetTagAttributesValue(tag, "data-condition");
-                condition = condition.Replace("{{", "");
-                condition = condition.Replace("}}", "");
-                condition = condition.Replace("و", ",");
-                condition = condition.Replace("-", ",");
+                var values = _htmlService.GetAttributeConditionValues(condition);
                 condition = condition.Replace("&nbsp;", " ");
 
                 var filter = _htmlService.GetTagAttributesValue(tag, "data-filter");
                 if (filter != null && filter != "")
                 {
+                    if (workflowUserId != 0)
+                    {
+                        var q = _context.Workflow_User.FirstOrDefault(x => x.Id == workflowUserId);
+                        var userId = q.UserId;
+                        filter = filter.Replace("{{UserId}}", " " + userId + " ");
+                        var workflow = q.Workflow.Id;
+                        filter = filter.Replace("{{Workflow}}", " " + workflow + " ");
+                        var wuIds = _context.Workflow_User.Where(x => x.UserId == userId).ToList();
+                        string wuIdString = $"(";
+
+                        int i = 0;
+                        wuIds.ForEach(wu =>
+                        {
+                            if (i != 0)
+                                wuIdString += " , ";
+                            i++;
+
+                            wuIdString += wu.Id;
+                        });
+                        wuIdString += ")";
+                        filter = filter.Replace("{{Workflow-User}}", " " + wuIdString + " ");
+                    }
+
+                    filter = filter.Replace("{{DateNow}}", " " + DateTime.Now.ToString("yyyy/MM/dd - hh:mm") + " ");
                     filter = filter.Replace("{{", "");
                     filter = filter.Replace("}}", "");
-                    filter = filter.Replace("و", " ");
-                    filter = filter.Replace(",", " ");
                     filter = filter.Replace("&nbsp;", " ");
                 }
                 filter = (filter == null || filter == "") ? "1 = 1" : filter;
@@ -268,7 +326,13 @@ namespace Services
                     relation = relation.Replace("&nbsp;", " ");
                 }
                 var table = await _context.Entity.Include(c => c.Properties).FirstAsync(x => x.Id == int.Parse(tableId));
-                var query = $"select WorkflowUserId , " + condition + $" from [dbo].[{table.TableName}]  {relation} where {filter}";
+                var query = $"select [dbo].[{table.TableName}].WorkflowUserId";
+                for (int i = 0; i < values.Count; i++)
+                {
+                    query += " , ";
+                    query += values[i] + " AS a" + i;
+                }
+                query += $" from [dbo].[{table.TableName}]  {relation} where {filter} ";
                 query = query.Replace("&nbsp;", " ");
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
 
@@ -277,13 +341,22 @@ namespace Services
                     var icon = _htmlService.ExtractContentAfterTableCell(tag);
 
                     var childTags = new List<string>();
-                    var headerCount = condition.Split(",").ToList().Count;
+                    var headerCount = values.Count;
 
-                    string header = "<tr>";
-                    foreach (var item in condition.Split(",").ToList())
+                    string header = "<tr style=\"height: 50px;\">";
+                    foreach (var item in values)
                     {
-                        var name = table.Properties.FirstOrDefault(x => x.PropertyName == item.Replace(" ", "")).PreviewName;
-                        header += $"<th style=\"width: {100 / headerCount}%;\">{name}</th>";
+                        var name = new EntityProperty();
+                        if (item.Split(".").ToList().Count != 1)
+                            name = table.Properties.FirstOrDefault(x => x.PropertyName == item.Replace(" ", "").Split('.')[1]);
+                        else
+                            name = table.Properties.FirstOrDefault(x => x.PropertyName == item.Replace(" ", ""));
+
+                        if (name != null)
+                            header += $"<th style=\"width: {90 / headerCount}%;\">{name.PreviewName}</th>";
+                        else
+                            header += $"<th style=\"width: {90 / headerCount}%;\">بدون نام</th>";
+
                     }
                     header += "</tr>";
                     childTags.Add(header);
@@ -291,20 +364,21 @@ namespace Services
                     if (data.Data != null)
                         foreach (var item in data.Data)
                         {
-                            string body = "<tr>";
-                            foreach (var item2 in condition.Split(",").ToList())
+                            string body = "<tr style=\"height: 50px;\">";
+                            for (int i = 0; i < values.Count; i++)
                             {
-                                body += $"<td style=\"width: {100 / headerCount}%;\">{item.GetValueOrDefault(item2.Replace(" ", ""))}</td>";
+                                body += $"<td style=\"width: {90 / headerCount}%;\">{item.GetValueOrDefault("a" + i)}</td>";
                             }
-                            var newIcon = icon.Replace("data-workflow-user=\"\"", $"data-workflow-user=\"{item.GetValueOrDefault("WorkflowUserId")}\"");
+                            var newIcon = icon.Replace("data-workflow-user=\"\"", $"data-workflow-user=\"{item.GetValueOrDefault("WorkflowUserId")}\" style=\"width:5%;\"")
+                            .Replace("<td", "<td style=\"text-align: center;\"");
                             body += newIcon;
                             body += "</tr>";
                             childTags.Add(body);
                         }
 
-                    var newTag = _htmlService.InsertTag(tag, childTags);
+                    var newTag = _htmlService.InsertTagWithRemoveAllChild("table", tag, childTags);
                     htmlBody = htmlBody.Replace(tag, newTag);
-                    htmlBody = htmlBody.Replace("<tr>\n         <td>\n          پیش نمایش جدول\n         \n<tr>", "");
+                    // htmlBody = htmlBody.Replace("<tr>\n         <td>\n          پیش نمایش جدول\n", "");
                 }
             }
 
@@ -313,7 +387,7 @@ namespace Services
             var curentTime = DateTime.Now;
             tags.ForEach(x =>
             {
-                var replace = x.Replace("value=\"\" =\"\"", "value=\"2025-01-26\" disabled");
+                var replace = x.Replace("placeholder=\"\" =\"\"", $"value=\"{curentTime.ToString("yyyy-MM-dd")}\" disabled");
                 htmlBody = htmlBody.Replace(x, replace);
             });
 
@@ -366,17 +440,21 @@ namespace Services
                 }
             }
 
-            await CreatAndExeQuery(workflowUserId, formData, entites);
+            var endList = entites.Where(x => x.TableName == "RelationLists").ToList();
+            var topList = entites.Where(x => x.TableName != "RelationLists").ToList();
+            topList.AddRange(endList);
+            await CreatAndExeQuery(workflowUserId, formData, topList);
         }
         private async Task CreatAndExeQuery(int workflowUserId, List<SaveDataDTO> formData, List<Entity> entites)
         {
 
             foreach (var entity in entites)
             {
-                var updateQuery = $"SELECT TOP(1) Id FROM [dbo].[{entity.TableName}] where WorkflowUserId = {workflowUserId}";
+                var updateQuery = $"SELECT TOP(1) Id FROM [dbo].[{entity.TableName}]  where WorkflowUserId = {workflowUserId}";
                 var Updatedata = await _dynamicDbContext.ExecuteReaderAsync(updateQuery);
                 if (Updatedata.TotalCount != 0)
                 {
+                    var tId = 0;
                     string query = $"Update [dbo].[{entity.TableName}] set ";
                     var propName = new List<string>();
                     var propValue = new List<string>();
@@ -407,10 +485,29 @@ namespace Services
                         }
                         else
                         {
-                            query += $"N'{x}'";
+                            if (entity.TableName == "RelationLists")
+                            {
+                                tId = int.Parse(propValue[i - 1].Split("-")[1]);
+                                query += $"{propValue[i - 1].Split("-")[0]}";
+                            }
+                            else
+                            {
+                                query += $"N'{propValue[i - 1]}'";
+                            }
                         }
                     });
 
+                    query += $" where WorkflowUserId = {workflowUserId}";
+                    if (entity.TableName == "RelationLists")
+                    {
+                        var rIds = await _context.Entity_EntityRelation.Where(x => ((x.ChildId == tId) || (x.ParentId == tId))).ToListAsync();
+                        var resultIds = rIds.Where(x => entites.Any(xx => xx.Id == x.ParentId || xx.Id == x.ChildId)).ToList();
+
+                        string q = "(";
+                        resultIds.ForEach(x => q += x.Id);
+                        q += ")";
+                        query += $" and RelationId IN {q}";
+                    }
                     await _dynamicDbContext.ExecuteSqlRawAsync(query);
 
                 }
@@ -423,6 +520,7 @@ namespace Services
                     int i = 0;
                     var propName = new List<string>();
                     var propValue = new List<string>();
+                    var tId = 0;
 
                     entity.Properties?.ForEach(x =>
                     {
@@ -448,6 +546,19 @@ namespace Services
                         query += x;
                         i++;
                     });
+
+                    if (entity.TableName == "RelationLists")
+                    {
+                        if (query.Contains("Element1"))
+                        {
+                            query += " , Element2 , RelationId";
+                        }
+                        else
+                        {
+                            query += " , Element1 , RelationId";
+                        }
+                    }
+
                     query += ") Values (";
                     i = 0;
                     var id = 1;
@@ -479,37 +590,93 @@ namespace Services
                         }
                         else
                         {
-                            query += $"N'{x}'";
+                            if (entity.TableName != "RelationLists")
+                                query += $"N'{x}'";
+                            else
+                            {
+                                if (entity.TableName != "RelationLists")
+                                    query += $"N'{x.Split("-")[0]}'";
+                                else
+                                {
+                                    if (int.Parse(x.Split("-")[0]) != 0)
+                                        query += $"{x.Split("-")[0]}";
+                                    else
+                                    {
+                                        query += $"NULL";
+                                        tId = int.Parse(x.Split("-")[1]);
+                                    }
+                                }
+
+                            }
                         }
                         i++;
 
                     });
 
-                    query += ")";
+                    if (entity.TableName == "RelationLists")
+                    {
+                        var rIds = await _context.Entity_EntityRelation.Where(x => ((x.ChildId == tId) || (x.ParentId == tId))).ToListAsync();
+                        var resultIds = entites.Where(x => rIds.Any(xx => xx.ParentId == x.Id || xx.ChildId == x.Id)).ToList();
+                        foreach (var x in resultIds)
+                        {
+                            var newQuery = query;
+                            // var tableName = _context.Entity.FirstOrDefault(x => x.Id == tId);
+                            var tableQuery = $"select Id from {x.TableName} where WorkflowUserId = {workflowUserId}";
+                            var data2 = await _dynamicDbContext.ExecuteReaderAsync(tableQuery);
 
-                    await _dynamicDbContext.ExecuteSqlRawAsync(query);
+                            newQuery += $" , {data2.Data.ToList()[0]["Id"]} , {x.Id}";
+                            newQuery += ")";
+
+                            var newQuery2 = $"SET IDENTITY_INSERT RelationLists ON;{newQuery}; SET IDENTITY_INSERT RelationLists OFF;";
+
+                            await _dynamicDbContext.ExecuteSqlRawAsync(newQuery2);
+                        }
+                        ;
+
+                    }
+                    else
+                    {
+                        query += ")";
+
+                        await _dynamicDbContext.ExecuteSqlRawAsync(query);
+                    }
+
+
 
                     var result = await _context.Entity_EntityRelation.Where(x => x.ParentId == entity.Id || x.ChildId == entity.Id).ToListAsync();
-                    result.ForEach(x =>
+                    foreach (var x in result)
                     {
-                        if (result != null && entites.Any(n => n.Id == x.Id))
+                        if (result != null)
                         {
                             var table = _context.Entity.FirstOrDefault(xx => xx.Id == (x.ParentId == entity.Id ? x.ChildId : x.ParentId));
-                            var query = $"select WorkflowUserId  , Id from {table.TableName}";
-                            var data2 = _dynamicDbContext.ExecuteReaderAsync(query);
-                            var wuId = int.Parse(data2.Result.Data.ToList()[0]["WorkflowUserId"].ToString());
+                            query = $"select WorkflowUserId  , Id from {table.TableName} where WorkflowUserId = {workflowUserId}";
+                            var data2 = await _dynamicDbContext.ExecuteReaderAsync(query);
 
-                            if (wuId == workflowUserId)
+                            if (data2.Data.ToList().Count != 0)
                             {
-                                _context.RelationLists.AddAsync(new RelationList()
+                                if (!_dynamicDbContext.RelationLists.Any(xx => xx.WorkflowUserId == workflowUserId && xx.RelationId == x.Id))
                                 {
-                                    RelationId = x.Id,
-                                    Element1 = x.ParentId == entity.Id ? id : int.Parse(data2.Result.Data.ToList()[0]["id"].ToString()),
-                                    Element2 = x.ChildId == entity.Id ? id : int.Parse(data2.Result.Data.ToList()[0]["id"].ToString())
-                                });
+                                    await _dynamicDbContext.RelationLists.AddAsync(new RelationList()
+                                    {
+                                        RelationId = x.Id,
+                                        Element1 = x.ParentId == entity.Id ? id : int.Parse(data2.Data.ToList()[0]["Id"].ToString()),
+                                        Element2 = x.ChildId == entity.Id ? id : int.Parse(data2.Data.ToList()[0]["Id"].ToString()),
+                                        WorkflowUserId = workflowUserId
+                                    });
+                                    _dynamicDbContext.SaveChanges();
+                                }
+                                else
+                                {
+                                    var lastRelation = _dynamicDbContext.RelationLists.FirstOrDefault(xx => xx.WorkflowUserId == workflowUserId && xx.RelationId == x.Id);
+                                    lastRelation.Element1 = x.ParentId == entity.Id ? id : int.Parse(data2.Data.ToList()[0]["Id"].ToString());
+                                    lastRelation.Element2 = x.ChildId == entity.Id ? id : int.Parse(data2.Data.ToList()[0]["Id"].ToString());
+                                    lastRelation.WorkflowUserId = workflowUserId;
+
+                                    _dynamicDbContext.SaveChanges();
+                                }
                             }
                         }
-                    });
+                    }
                 }
             }
 

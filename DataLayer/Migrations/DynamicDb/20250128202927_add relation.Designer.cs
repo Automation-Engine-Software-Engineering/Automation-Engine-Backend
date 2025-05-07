@@ -3,6 +3,7 @@ using DataLayer.DbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations.DynamicDb
 {
     [DbContext(typeof(DynamicDbContext))]
-    partial class DynamicDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250128202927_add relation")]
+    partial class addrelation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -56,6 +59,25 @@ namespace DataLayer.Migrations.DynamicDb
                     b.ToTable("User");
                 });
 
+            modelBuilder.Entity("Entities.Models.TableBuilder.Entity_EntityRelation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ChildId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ParentId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Entity_EntityRelation");
+                });
+
             modelBuilder.Entity("Entities.Models.TableBuilder.RelationList", b =>
                 {
                     b.Property<int>("Id")
@@ -64,10 +86,10 @@ namespace DataLayer.Migrations.DynamicDb
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("Element1")
+                    b.Property<int>("Element1")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Element2")
+                    b.Property<int>("Element2")
                         .HasColumnType("int");
 
                     b.Property<int>("RelationId")
@@ -78,7 +100,25 @@ namespace DataLayer.Migrations.DynamicDb
 
                     b.HasKey("Id");
 
+                    b.HasIndex("RelationId");
+
                     b.ToTable("RelationLists");
+                });
+
+            modelBuilder.Entity("Entities.Models.TableBuilder.RelationList", b =>
+                {
+                    b.HasOne("Entities.Models.TableBuilder.Entity_EntityRelation", "Relation")
+                        .WithMany("RelationLists")
+                        .HasForeignKey("RelationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Relation");
+                });
+
+            modelBuilder.Entity("Entities.Models.TableBuilder.Entity_EntityRelation", b =>
+                {
+                    b.Navigation("RelationLists");
                 });
 #pragma warning restore 612, 618
         }
