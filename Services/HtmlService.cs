@@ -9,7 +9,7 @@ namespace Services
         List<string> FindHtmlTag(string htmBody, string htmlTag, List<string> attributes);
         List<string> FindSingleHtmlTag(string htmlBody);
         string InsertTag(string parentTag, List<string> childTags);
-        string InsertTagWithRemoveAllChild(string tag , string parentTag, List<string> childTags);
+        string InsertTagWithRemoveAllChild(string tag , string parentTag, string childTags);
         string? GetTagAttributesValue(string TagBody, string attributeName);
         List<string> GetAttributeConditionValues(string input);
         string ExtractContentAfterTableCell(string htmlBody);
@@ -135,9 +135,9 @@ namespace Services
             return openingPart + "\n" + embeddedContent + "\n" + closingPart;
         }
 
-        public string InsertTagWithRemoveAllChild(string tag , string parentTag, List<string> childTags)
+        public string InsertTagWithRemoveAllChild(string tag , string parentTag, string childTags)
         {
-            if (string.IsNullOrWhiteSpace(parentTag) || childTags == null || childTags.Count == 0)
+            if (string.IsNullOrWhiteSpace(parentTag) || childTags == null || childTags == null)
             {
                 return parentTag;
             }
@@ -155,10 +155,7 @@ namespace Services
             int openingTagEndIndex = openingPart.IndexOf('>') + 1;
             openingPart = openingPart.Substring(0, openingTagEndIndex);
 
-            // اضافه کردن تگ‌های جدید
-            string embeddedContent = string.Join("\n", childTags);
-
-            return openingPart + "\n" + embeddedContent + "\n" + closingPart;
+            return openingPart + "\n" + childTags + "\n" + closingPart;
         }
 
         public string RemoveSpecificTag(string htmlBody)
