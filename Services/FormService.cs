@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 using DataLayer.DbContext;
 using Entities.Models.FormBuilder;
@@ -299,7 +300,7 @@ namespace Services
                 {
                     tableRow += $"<td>{row[item]}</td>";
                 }
-                tableRow += trTag.InnerHtml.Replace("data-workflow-user" , $"data-workflow-user=\"{row["WorkflowUserId"]}\"");
+                tableRow += trTag.InnerHtml.Replace("data-workflow-user", $"data-workflow-user=\"{row["WorkflowUserId"]}\"");
                 tableRow += "</tr>";
                 tableRows += tableRow;
             }
@@ -312,10 +313,18 @@ namespace Services
         private string ProcessInputTags(string htmlBody)
         {
             var tags = _htmlService.FindSingleHtmlTag(htmlBody);
-            var currentTime = DateTime.Now.ToString("yyyy-MM-dd");
+            DateTime currentTime = DateTime.Now;
+            PersianCalendar persianCalendar = new PersianCalendar();
+
+            int year = persianCalendar.GetYear(currentTime);
+            int month = persianCalendar.GetMonth(currentTime);
+            int day = persianCalendar.GetDayOfMonth(currentTime);
+
+            string persianDate = $"{year:0000}-{month:00}-{day:00}";
+
             tags.ForEach(x =>
             {
-                var replace = x.Replace("placeholder=\"\" =\"\"", $"value=\"{currentTime}\" disabled");
+                var replace = x.Replace("placeholder=\"\" =\"\"", $"value=\"{persianDate}\" disabled");
                 htmlBody = htmlBody.Replace(x, replace);
             });
             return htmlBody;
