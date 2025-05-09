@@ -361,9 +361,9 @@ namespace Services
             var userId = user.UserId;
             var workflowId = user.Workflow.Id;
             var workflowUserIds = _context.Workflow_User.Where(x => x.UserId == userId).Select(x => x.Id).ToList();
-            return filter.Replace("{{UserId}}", userId.ToString())
+            return filter.Replace("{{Workflow-Users}}", "(" + string.Join(",", workflowUserIds) + ")")
+                         .Replace("{{UserId}}", userId.ToString())
                          .Replace("{{Workflow}}", workflowId.ToString())
-                         .Replace("{{Workflow-Users}}", string.Join(",", workflowUserIds))
                          .Replace("{{DateNow}}", DateTime.Now.ToString("yyyy/MM/dd - hh:mm"))
                          .Replace("{{", "").Replace("}}", "").Replace("&nbsp;", " ");
         }
