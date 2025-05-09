@@ -38,24 +38,43 @@ namespace Services
             var query1 = "select COUNT(*) from [dbo].[DraftContract]";
             var query2 = "select COUNT(*) from [dbo].[ExternalContract]";
             var query3 = "select COUNT(*) from [dbo].[InternalContract]";
+            var query4 = "select COUNT(*) from [dbo].[AllArticles] where IsRate is null or IsRate = N'نامشخص' ";
+            var query5 = "select COUNT(*) from [dbo].[AllArticles] where IsRate is null or IsRate = N'تایید'";
+            var query6 = "select COUNT(*) from [dbo].[AllArticles] where IsRate is null or IsRate = N'عدم تایید'";
+
 
             var data1 = await _dynamicDbContext.ExecuteReaderAsync(query1);
             var data2 = await _dynamicDbContext.ExecuteReaderAsync(query2);
             var data3 = await _dynamicDbContext.ExecuteReaderAsync(query3);
+            var data4 = await _dynamicDbContext.ExecuteReaderAsync(query4);
+            var data5 = await _dynamicDbContext.ExecuteReaderAsync(query5);
+            var data6 = await _dynamicDbContext.ExecuteReaderAsync(query6);
 
             foreach (var item in data1.Data)
             {
                 result.Add("عنصر جدی به پیش نویس‌ها اضافه شده است");
             }
 
-              foreach (var item in data2.Data)
+            foreach (var item in data2.Data)
             {
                 result.Add("عنصر جدی به قرارداد برون دانشگاهی اضافه شده است");
             }
 
-              foreach (var item in data2.Data)
+            foreach (var item in data3.Data)
             {
                 result.Add("عنصر جدی به درون دانشگاهی اضافه شده است");
+            }
+            foreach (var item in data4.Data)
+            {
+                result.Add("عنصر جدی به مقالات در انتظار تایید مالکیت اضافه شده است");
+            }
+            foreach (var item in data5.Data)
+            {
+                result.Add("عنصر جدی به مقالات تایید شده اضافه شده است");
+            }
+            foreach (var item in data6.Data)
+            {
+                result.Add("عنصر جدی به مقالات تایید نشده اضافه شده است");
             }
 
             return result;

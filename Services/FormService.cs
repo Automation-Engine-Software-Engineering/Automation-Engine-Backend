@@ -278,15 +278,15 @@ namespace Services
         {
             var tableRows = "";
 
-            var headers = _context.Property.Where(x => x.EntityId == int.Parse(tableId) && condition.Any(xx => xx == x.PropertyName)).Select(x => x.PreviewName).ToList();
+            var headers = _context.Property.Where(x => x.EntityId == int.Parse(tableId)).ToList();
             var doc = new HtmlDocument();
             doc.LoadHtml(tag);
             var trTag = doc.DocumentNode.SelectSingleNode("//tr");
             trTag.InnerHtml = trTag.InnerHtml.Replace("<td>\n          پیش نمایش جدول\n         </td>", "");
             var tableRow = "<tr style=\"height: 50px;\">";
-            foreach (var row in headers)
+            foreach (var row in condition)
             {
-                tableRow += $"<th>{row}</th>";
+                tableRow += $"<th>{headers.FirstOrDefault(x => x.PropertyName == row).PreviewName}</th>";
             }
 
             tableRow += trTag.InnerHtml;
