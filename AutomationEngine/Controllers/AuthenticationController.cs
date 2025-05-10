@@ -149,18 +149,18 @@ namespace AutomationEngine.Controllers
         }
 
         // POST: api/ChangePassword/{userName}  
-        [HttpPost("changePassword/{userName}")]
+        [HttpPost("changePassword")]
         [CheckAccess]
-        public async Task<ResultViewModel> ChangePassword(string userName, [FromBody] ChangePasswordInputModel input)
+        public async Task<ResultViewModel> ChangePassword([FromBody] ChangePasswordInputModel input)
         {
-            var userIdRoleId = await _roleService.Login(userName, input.OldPassword);
-
+            var claims = await HttpContext.Authorize();
+            var user = await _userService.GetUserById(claims.UserId);
             var salt = HashString.GetSalt();
             var hashPassword = HashString.HashPassword(input.NewPassword, salt);
-            userIdRoleId.User.Password = hashPassword;
-            userIdRoleId.User.Salt = salt;
+            user.Password = hashPassword;
+            user.Salt = salt;
 
-            await _userService.UpdateUser(userIdRoleId.User);
+            await _userService.UpdateUser(user);
             await _userService.SaveChangesAsync();
 
             return (new ResultViewModel { Data = input, Message = new ValidationDto<ChangePasswordInputModel>(true, "Success", "Success", input).GetMessage(200), Status = true, StatusCode = 200 });
