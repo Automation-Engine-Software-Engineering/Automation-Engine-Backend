@@ -151,7 +151,7 @@ namespace AutomationEngine.Controllers
         // POST: api/ChangePassword/{userName}  
         [HttpPost("changePassword")]
         [CheckAccess]
-        public async Task<ResultViewModel> ChangePassword([FromBody] ChangePasswordInputModel input)
+        public async Task<ResultViewModel> ChangePassword([FromForm] ChangePasswordInputModel input)
         {
             var claims = await HttpContext.Authorize();
             var user = await _userService.GetUserById(claims.UserId);
