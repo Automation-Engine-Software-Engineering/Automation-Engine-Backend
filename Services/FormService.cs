@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Drawing;
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using DataLayer.DbContext;
@@ -27,7 +28,7 @@ namespace Services
         Task<ListDto<Form>> GetAllFormsAsync(int pageSize, int pageNumber);
         Task UpdateFormBodyAsync(int formId, string htmlContent);
         Task SaveFormData(int workflowUserId, List<SaveDataDTO> formData);
-        Task<string> GetFormPreviewAsync(Form form, int workflowUserId);
+        Task<string> GetFormPreviewAsync(Form form, int workflowUserId, List<(string Id, int PageNumber)>? TablePageination);
         ValidationDto<Form> FormValidation(Form form);
         Task<ValidationDto<string>> SaveChangesAsync();
         Task<bool> IsFormExistAsync(int formId);
@@ -155,14 +156,15 @@ namespace Services
 
 
 
-        public async Task<string> GetFormPreviewAsync(Form form, int workflowUserId)
+        public async Task<string> GetFormPreviewAsync(Form form, int workflowUserId, List<(string Id, int PageNumber)>? TablePageination)
         {
             if (form.HtmlFormBody == null)
                 return "<span>بیتا زر اندیش پارس<span>";
 
             var htmlBody = CleanHtmlBody(form.HtmlFormBody.ToString());
             htmlBody = await ProcessSelectTags(htmlBody, workflowUserId);
-            htmlBody = await ProcessTableTags(htmlBody, workflowUserId);
+            htmlBody = await ProcessLink(htmlBody, workflowUserId);
+            htmlBody = await ProcessTableTags(htmlBody, workflowUserId, TablePageination);
             htmlBody = ProcessInputTags(htmlBody);
             htmlBody = await PopulateEntityValues(htmlBody, form, workflowUserId);
 
@@ -256,11 +258,15 @@ namespace Services
             return htmlBody.Replace(tag, newTag);
         }
 
-        private async Task<string> ProcessTableTags(string htmlBody, int workflowUserId)
+        private async Task<string> ProcessTableTags(string htmlBody, int workflowUserId, List<(string Id, int PageNumber)>? TablePageination)
         {
-            var tags = _htmlService.FindHtmlTag(htmlBody, "table", new List<string> { "data-tableid", "data-condition", "data-filter", "data-relation" });
+            var tags = _htmlService.FindHtmlTag(htmlBody, "table", new List<string> { "data-tableid", "data-condition", "data-filter", "data-relation", "data-size" });
             foreach (var tag in tags)
             {
+                var match = Regex.Match(tag, @"id\s*=\s*'([^']+)'");
+                var id = match.Groups[1].Value;
+
+                var pageNumber = TablePageination.Any(x => x.Id == id) ? 1 : TablePageination.FirstOrDefault(x => x.Id == id).PageNumber;
                 var tableId = _htmlService.GetTagAttributesValue(tag, "data-tableid");
                 var condition = _htmlService.GetAttributeConditionValues(CleanCondition(_htmlService.GetTagAttributesValue(tag, "data-condition")));
                 var conditionString = condition != null && condition.Any()
@@ -268,7 +274,8 @@ namespace Services
                 : string.Empty;
                 var filter = await ApplyWorkflowFilters(_htmlService.GetTagAttributesValue(tag, "data-filter"), workflowUserId);
                 var relation = CleanRelation(_htmlService.GetTagAttributesValue(tag, "data-relation"));
-                var query = GenerateTableQuery(tableId, conditionString, filter, relation);
+                var size = int.Parse(_htmlService.GetTagAttributesValue(tag, "data-size"));
+                var query = GenerateTableQuery(tableId, conditionString, filter, relation, size, pageNumber);
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
                 htmlBody = ReplaceTableTag(htmlBody, tag, data, condition, tableId);
             }
@@ -330,6 +337,25 @@ namespace Services
             return htmlBody;
         }
 
+        private async Task<string> ProcessLink(string htmlBody, int workflowUserId)
+        {
+            var tags = _htmlService.FindHtmlTag(htmlBody, "a", ["data-entity", "data-property"]);
+
+            tags.ForEach(async x =>
+            {
+                var entityId = _htmlService.GetTagAttributesValue(x, "data-entity");
+                var property = _htmlService.GetTagAttributesValue(x, "data-property");
+                var filter = $"{workflowUserId} IN {{Workflow-Users}}";
+                var query = GenerateTableQuery(entityId, property,
+                await ApplyWorkflowFilters(filter, workflowUserId), "", 1);
+                var data = await _dynamicDbContext.ExecuteReaderAsync(query);
+
+                var replace = x.Replace("'data-property'", $"href = \"{data}\""); ;
+                htmlBody = htmlBody.Replace(x, replace);
+            });
+            return htmlBody;
+        }
+
         private async Task<string> PopulateEntityValues(string htmlBody, Form form, int workflowUserId)
         {
             if (form.Entities == null) return htmlBody;
@@ -374,10 +400,17 @@ namespace Services
             return $"SELECT [dbo].[{table.TableName}].WorkflowUserId, [dbo].[{table.TableName}].Id, {condition} FROM [dbo].[{table.TableName}] {relation} WHERE {filter}".Replace("&nbsp;", " ");
         }
 
-        private string GenerateTableQuery(string tableId, string condition, string filter, string relation)
+        private string GenerateTableQuery(string tableId, string condition, string filter, string relation, int size = 10, int pageNumber = 1)
         {
             var table = _context.Entity.Include(c => c.Properties).First(x => x.Id == int.Parse(tableId));
-            return $"SELECT [dbo].[{table.TableName}].WorkflowUserId, {condition} FROM [dbo].[{table.TableName}] {relation} WHERE {filter}".Replace("&nbsp;", " ");
+            var query = $"SELECT [dbo].[{table.TableName}].WorkflowUserId, {condition} ";
+            query += $"FROM [dbo].[{table.TableName}] ";
+            query += $"{relation} ";
+            query += $"WHERE {filter}";
+            query += "ORDER BY Id";
+            query += $"OFFSET {(pageNumber - 1) * size} ROWS FETCH NEXT {size} ROWS ONLY";
+            query = query.Replace("&nbsp;", " ");
+            return query;
         }
 
 

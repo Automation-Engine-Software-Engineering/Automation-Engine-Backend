@@ -195,7 +195,7 @@ namespace AutomationEngine.Controllers
 
         // GET: api/form/{id}  
         [HttpGet("preview")]
-        public async Task<ResultViewModel> GetFormPreview(int formId)
+        public async Task<ResultViewModel> GetFormPreview(int formId , List<(string Id, int PageNumber)>? TablePageination)
         {
             //is validation model
             if (formId == 0)
@@ -203,7 +203,7 @@ namespace AutomationEngine.Controllers
 
             //initial action
             var form = await _formService.GetFormByIdAsync(formId);
-            var formBody = await _formService.GetFormPreviewAsync(form, 0);
+            var formBody = await _formService.GetFormPreviewAsync(form, 0 , TablePageination);
             if (formBody == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "FormNotfound", formId), 500);
 
@@ -213,7 +213,7 @@ namespace AutomationEngine.Controllers
 
         // GET: api/form/{id}  
         [HttpGet("previewByWorkflowUserId")]
-        public async Task<ResultViewModel> GetPreviewByWorkflowUserId(int workflowUserId)
+        public async Task<ResultViewModel> GetPreviewByWorkflowUserId(int workflowUserId , List<(string Id, int PageNumber)> TablePageination)
         {
             //is validation model
             if (workflowUserId == 0)
@@ -223,7 +223,7 @@ namespace AutomationEngine.Controllers
             var workflowUser = await _workflowUserService.GetWorkflowUserById(workflowUserId);
             var node = await _workflowService.GetNodByIdAsync(workflowUser.WorkflowState);
             var form = await _formService.GetFormByIdIncEntityIncPropertyAsync(node.FormId.Value);
-            var formBody = await _formService.GetFormPreviewAsync(form, workflowUserId);
+            var formBody = await _formService.GetFormPreviewAsync(form, workflowUserId , TablePageination);
             if (formBody == null)
                 throw new CustomException<int>(new ValidationDto<int>(false, "Form", "FormNotfound", node.FormId.Value), 500);
 
