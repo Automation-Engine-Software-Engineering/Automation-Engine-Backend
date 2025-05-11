@@ -151,7 +151,7 @@ namespace AutomationEngine.Controllers
         // POST: api/ChangePassword/{userName}  
         [HttpPost("changePassword")]
         [CheckAccess]
-        public async Task<ResultViewModel> ChangePassword([FromForm] ChangePasswordInputModel input)
+        public async Task<ResultViewModel> ChangePassword([FromBody] ChangePasswordInputModel input)
         {
             var claims = await HttpContext.Authorize();
             var user = await _userService.GetUserById(claims.UserId);
@@ -177,7 +177,8 @@ namespace AutomationEngine.Controllers
             {
                 Id = user.Id,
                 Name = user.Name,
-                NeedNewPassword = user.Password.IsNullOrEmpty()
+                NeedNewPassword = false
+                //NeedNewPassword = user.Password.IsNullOrEmpty()
             };
             return (new ResultViewModel { Data = data, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
