@@ -260,13 +260,15 @@ namespace Services
 
         private async Task<string> ProcessTableTags(string htmlBody, int workflowUserId, List<(string Id, int PageNumber)>? TablePageination)
         {
-            var tags = _htmlService.FindHtmlTag(htmlBody, "table", new List<string> { "data-tableid", "data-condition", "data-filter", "data-relation", "data-size" });
+            var tags = _htmlService.FindHtmlTag(htmlBody, "table", new List<string> { "data-tableid", "data-condition", "data-filter", "data-relation" });
             foreach (var tag in tags)
             {
                 var match = Regex.Match(tag, @"id\s*=\s*'([^']+)'");
                 var id = match.Groups[1].Value;
+                var pageNumber = 1;
+                if (TablePageination != null)
+                    pageNumber = TablePageination.Any(x => x.Id == id) ? 1 : TablePageination.FirstOrDefault(x => x.Id == id).PageNumber;
 
-                var pageNumber = TablePageination.Any(x => x.Id == id) ? 1 : TablePageination.FirstOrDefault(x => x.Id == id).PageNumber;
                 var tableId = _htmlService.GetTagAttributesValue(tag, "data-tableid");
                 var condition = _htmlService.GetAttributeConditionValues(CleanCondition(_htmlService.GetTagAttributesValue(tag, "data-condition")));
                 var conditionString = condition != null && condition.Any()
@@ -408,7 +410,7 @@ namespace Services
             query += $"{relation} ";
             query += $"WHERE {filter}";
             query += "ORDER BY Id";
-            query += $"OFFSET {(pageNumber - 1) * size} ROWS FETCH NEXT {size} ROWS ONLY";
+            query += $" OFFSET {(pageNumber - 1) * size} ROWS FETCH NEXT {size} ROWS ONLY";
             query = query.Replace("&nbsp;", " ");
             return query;
         }
