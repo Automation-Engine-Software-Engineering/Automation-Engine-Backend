@@ -177,7 +177,8 @@ namespace AutomationEngine.Controllers
             {
                 Id = user.Id,
                 Name = user.Name,
-                NeedNewPassword = user.Password.IsNullOrEmpty()
+                NeedNewPassword = false
+                //NeedNewPassword = user.Password.IsNullOrEmpty()
             };
             return (new ResultViewModel { Data = data, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
         }
