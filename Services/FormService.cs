@@ -291,7 +291,7 @@ namespace Services
             var doc = new HtmlDocument();
             doc.LoadHtml(tag);
             var trTag = doc.DocumentNode.SelectSingleNode("//tr");
-            trTag.InnerHtml = trTag.InnerHtml.Replace("<td>\n          پیش نمایش جدول\n         </td>", "");
+            trTag.InnerHtml = trTag.InnerHtml.Replace("\n            <td>\n              عنوان جدول\n            </td>\n          ", "");
             var tableRow = "<tr style=\"height: 50px;\">";
             foreach (var row in condition)
             {
