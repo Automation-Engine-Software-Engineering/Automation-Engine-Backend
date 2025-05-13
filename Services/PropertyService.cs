@@ -77,6 +77,8 @@ namespace Services
                     break;
 
                 case PropertyType.NvarcharLong:
+                case PropertyType.Editor:
+                case PropertyType.TextArea:
                     parameters.Add(("@Type", "Nvarchar(max)"));
                     break;
 
