@@ -213,7 +213,7 @@ namespace AutomationEngine.Controllers
 
         // GET: api/form/{id}  
         [HttpGet("previewByWorkflowUserId")]
-        public async Task<ResultViewModel> GetPreviewByWorkflowUserId(int workflowUserId , List<(string Id, int PageNumber)> TablePageination)
+        public async Task<ResultViewModel> GetPreviewByWorkflowUserId(int workflowUserId , List<(string Id, int PageNumber)>? TablePageination)
         {
             //is validation model
             if (workflowUserId == 0)
