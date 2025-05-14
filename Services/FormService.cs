@@ -290,15 +290,19 @@ namespace Services
             var headers = _context.Property.Where(x => x.EntityId == int.Parse(tableId)).ToList();
             var doc = new HtmlDocument();
             doc.LoadHtml(tag);
-            var trTag = doc.DocumentNode.SelectSingleNode("//tr");
-            trTag.InnerHtml = trTag.InnerHtml.Replace("\n            <td>\n              عنوان جدول\n            </td>\n          ", "");
+            var trTag = doc.DocumentNode.SelectNodes("//tr");
+            trTag[0].InnerHtml = trTag[0].InnerHtml.Replace("\n            <td>\n              عنوان جدول\n            </td>\n          ", "");
+            trTag[0].InnerHtml = trTag[0].InnerHtml.Replace("<td", "<td style=\"width: 60px; text-align: center;\"");
+            trTag[1].InnerHtml = trTag[1].InnerHtml.Replace("\n            <td>\n              متن نمایشی\n            </td>\n          ", "");
+            trTag[1].InnerHtml = trTag[1].InnerHtml.Replace("<td", "<td style=\"width: 60px; text-align: center;\"");
+
             var tableRow = "<tr style=\"height: 50px;\">";
             foreach (var row in condition)
             {
                 tableRow += $"<th>{headers.FirstOrDefault(x => x.PropertyName == row).PreviewName}</th>";
             }
 
-            tableRow += trTag.InnerHtml;
+            tableRow += trTag[0].InnerHtml;
             tableRow += "</tr>";
             tableRows += tableRow;
 
@@ -307,9 +311,14 @@ namespace Services
                 tableRow = "<tr style=\"height: 50px;\">";
                 foreach (var item in condition)
                 {
-                    tableRow += $"<td>{row[item]}</td>";
+                    var value = row[item];
+                    if (value.ToString().Length > 20)
+                    {
+                        value = value.ToString().Substring(0, 20) + "...";
+                    }
+                    tableRow += $"<td title=\"{row[item]}\" style=\"text-align: center;padding: 10px;\">{value}</td>";
                 }
-                tableRow += trTag.InnerHtml.Replace("data-workflow-user", $"data-workflow-user=\"{row["WorkflowUserId"]}\"");
+                tableRow += trTag[1].InnerHtml.Replace("data-workflow-user", $"data-workflow-user=\"{row["WorkflowUserId"]}\"");
                 tableRow += "</tr>";
                 tableRows += tableRow;
             }
