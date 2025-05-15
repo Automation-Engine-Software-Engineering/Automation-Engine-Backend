@@ -10,10 +10,11 @@ namespace Services
         List<string> FindSingleHtmlTag(string htmBody, string htmlTag, List<string> attributes);
         List<string> FindSingleHtmlTag(string htmlBody);
         string InsertTag(string parentTag, List<string> childTags);
-        string InsertTagWithRemoveAllChild(string tag , string parentTag, string childTags);
+        string InsertTagWithRemoveAllChild(string tag, string parentTag, string childTags);
         string? GetTagAttributesValue(string TagBody, string attributeName);
         List<string> GetAttributeConditionValues(string input);
         string ExtractContentAfterTableCell(string htmlBody);
+        List<string> ExtractWorkflowUserValues(string html);
     }
 
     public class HtmlService : IHtmlService
@@ -22,6 +23,17 @@ namespace Services
         public HtmlService(Context context)
         {
             _context = context;
+        }
+        public List<string> ExtractWorkflowUserValues(string html)
+        {
+            List<string> values = new List<string>();
+            string pattern = @"data-workflow-user=""([^""]*)""";
+            MatchCollection matches = Regex.Matches(html, pattern);
+            foreach (Match match in matches)
+            {
+                values.Add(match.Groups[1].Value);
+            }
+            return values;
         }
         public List<string> FindHtmlTag(string htmlBody, string htmlTag, List<string> attributes)
         {
@@ -42,7 +54,7 @@ namespace Services
 
             return result;
         }
-         public List<string> FindSingleHtmlTag(string htmlBody, string htmlTag, List<string> attributes)
+        public List<string> FindSingleHtmlTag(string htmlBody, string htmlTag, List<string> attributes)
         {
             var result = new List<string>();
 
@@ -155,7 +167,7 @@ namespace Services
             return openingPart + "\n" + embeddedContent + "\n" + closingPart;
         }
 
-        public string InsertTagWithRemoveAllChild(string tag , string parentTag, string childTags)
+        public string InsertTagWithRemoveAllChild(string tag, string parentTag, string childTags)
         {
             if (string.IsNullOrWhiteSpace(parentTag) || childTags == null || childTags == null)
             {

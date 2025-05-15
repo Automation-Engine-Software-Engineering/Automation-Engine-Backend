@@ -344,8 +344,20 @@ namespace Services
                     query += $" OFFSET {(pageNumber - 1) * size} ROWS FETCH NEXT {size} ROWS ONLY";
                 }
 
+                int i = 0;
+                var TableIds = new List<int>();
+                var WorkflowUserOfJoin = _htmlService.ExtractWorkflowUserValues(tag);
+                foreach (var element in WorkflowUserOfJoin)
+                    if (element != "")
+                    {
+                        var table = _context.Entity.FirstOrDefault(x => x.Id == int.Parse(element));
+                        TableIds.Add(table.Id);
+                        query = query.Replace("SELECT", $"SELECT [dbo].[{table.TableName}].WorkflowUserId AS '{i}' ,");
+                        i++;
+                    }
+
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
-                htmlBody = ReplaceTableTag(htmlBody, tag, data, condition, tableId);
+                htmlBody = ReplaceTableTag(htmlBody, tag, data, condition, tableId , i , TableIds);
 
                 htmlBody = await fillSearchItemSelect(htmlBody, id, int.Parse(tableId), condition);
             }
@@ -366,7 +378,7 @@ namespace Services
             return htmlBody.Replace(selectTag, newTag);
         }
 
-        private string ReplaceTableTag(string htmlBody, string tag, dynamic data, List<string> condition, string tableId)
+        private string ReplaceTableTag(string htmlBody, string tag, dynamic data, List<string> condition, string tableId, int WorkflowUserIdIndex , List<int> tableIds)
         {
             var tableRows = "";
 
@@ -400,7 +412,15 @@ namespace Services
                     }
                     tableRow += $"<td title=\"{row[item]}\" style=\"text-align: center;padding: 10px;\">{value}</td>";
                 }
-                tableRow += trTag[1].InnerHtml.Replace("data-workflow-user", $"data-workflow-user=\"{row["WorkflowUserId"]}\"");
+
+ 
+                var iconRow = trTag[1].InnerHtml.Replace("data-workflow-user=\"\"", $"data-workflow-user=\"{row["WorkflowUserId"]}\"");
+                for (var i = 0; i < WorkflowUserIdIndex; i++)
+                {
+                    iconRow = iconRow.Replace($"data-workflow-user=\"{tableIds[i]}\"", $"data-workflow-user=\"{row[i.ToString()]}\"");
+                
+                }
+                tableRow += iconRow ;
                 tableRow += "</tr>";
                 tableRows += tableRow;
             }
@@ -456,7 +476,10 @@ namespace Services
                 }
 
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
-                var replace = tag.Replace("input", $"input value=\"{data.Data.ToList()[0].ToList()[1].Value}\" disabled");
+                var replace = tag;
+                if (data.Data.Count() > 0)
+                replace = tag.Replace("input", $"input value=\"{data.Data.ToList()[0].ToList()[1].Value}\"");
+
                 htmlBody = htmlBody.Replace(tag, replace);
             }
 
@@ -727,8 +750,8 @@ namespace Services
 
         private string ProcessValue(string propName, string value, string tableName)
         {
-            if (propName == "on") return "1";
-            if (propName == "off") return "0";
+            if (value == "on") return "1";
+            if (value == "off") return "0";
 
             if (tableName == "RelationLists")
             {
