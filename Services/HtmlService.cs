@@ -7,6 +7,7 @@ namespace Services
     public interface IHtmlService
     {
         List<string> FindHtmlTag(string htmBody, string htmlTag, List<string> attributes);
+        List<string> FindSingleHtmlTag(string htmBody, string htmlTag, List<string> attributes);
         List<string> FindSingleHtmlTag(string htmlBody);
         string InsertTag(string parentTag, List<string> childTags);
         string InsertTagWithRemoveAllChild(string tag , string parentTag, string childTags);
@@ -32,6 +33,25 @@ namespace Services
             }
 
             string pattern = $@"<{htmlTag}\b[^>]*\b(?:{string.Join("|", attributes.ConvertAll(a => $@"\b{Regex.Escape(a)}=""[^""]*"""))})[^>]*>(.*?)</{htmlTag}>";
+            var matches = Regex.Matches(htmlBody, pattern, RegexOptions.Singleline);
+
+            foreach (Match match in matches)
+            {
+                result.Add(match.Value);
+            }
+
+            return result;
+        }
+         public List<string> FindSingleHtmlTag(string htmlBody, string htmlTag, List<string> attributes)
+        {
+            var result = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(htmlBody) || string.IsNullOrWhiteSpace(htmlTag) || attributes == null || attributes.Count == 0)
+            {
+                return result;
+            }
+
+            string pattern = $@"<{htmlTag}\b[^>]*\b(?:{string.Join("|", attributes.ConvertAll(a => $@"\b{Regex.Escape(a)}=""[^""]*"""))})[^>]*>(.*?)";
             var matches = Regex.Matches(htmlBody, pattern, RegexOptions.Singleline);
 
             foreach (Match match in matches)

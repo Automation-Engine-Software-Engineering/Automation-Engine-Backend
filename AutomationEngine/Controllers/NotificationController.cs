@@ -31,8 +31,8 @@ namespace AutomationEngine.Controllers
         [HttpGet("all")]
         public async Task<ResultViewModel> Notification()
         {
-            var rolId =(await HttpContext.Authorize()).RoleId;
-            var result =await _notificationService.GetallNotification(rolId);
+            var rolId = (await HttpContext.Authorize()).RoleId;
+            var result = await _notificationService.GetallNotification(rolId);
             return (new ResultViewModel { Data = result, Message = new ValidationDto<List<string>>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
         }
 

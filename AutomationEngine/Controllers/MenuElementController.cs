@@ -50,7 +50,8 @@ namespace AutomationEngine.Controllers
                 link = MenuElement.link,
                 ParentMenuElemntId = MenuElement.ParentMenuElemntId,
                 RoleId = MenuElement.RoleId,
-                WorkflowId = MenuElement.WorkflowId == 0 ? null : MenuElement.WorkflowId
+                WorkflowId = MenuElement.WorkflowId == 0 ? null : MenuElement.WorkflowId,
+                icon = MenuElement.icon
             };
 
             await _MenuService.InsertMenuElement(fetchModal);

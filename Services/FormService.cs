@@ -2,7 +2,9 @@
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using DataLayer.DbContext;
+using Entities.Models.Enums;
 using Entities.Models.FormBuilder;
 using Entities.Models.TableBuilder;
 using FrameWork.ExeptionHandler.ExeptionModel;
@@ -28,7 +30,7 @@ namespace Services
         Task<ListDto<Form>> GetAllFormsAsync(int pageSize, int pageNumber);
         Task UpdateFormBodyAsync(int formId, string htmlContent);
         Task SaveFormData(int workflowUserId, List<SaveDataDTO> formData);
-        Task<string> GetFormPreviewAsync(Form form, int workflowUserId, List<(string Id, int PageNumber)>? TablePageination);
+        Task<string> GetFormPreviewAsync(Form form, int workflowUserId, TableInput tableInput);
         ValidationDto<Form> FormValidation(Form form);
         Task<ValidationDto<string>> SaveChangesAsync();
         Task<bool> IsFormExistAsync(int formId);
@@ -156,7 +158,7 @@ namespace Services
 
 
 
-        public async Task<string> GetFormPreviewAsync(Form form, int workflowUserId, List<(string Id, int PageNumber)>? TablePageination)
+        public async Task<string> GetFormPreviewAsync(Form form, int workflowUserId, TableInput tableInput)
         {
             if (form.HtmlFormBody == null)
                 return "<span>بیتا زر اندیش پارس<span>";
@@ -164,17 +166,42 @@ namespace Services
             var htmlBody = CleanHtmlBody(form.HtmlFormBody.ToString());
             htmlBody = await ProcessSelectTags(htmlBody, workflowUserId);
             htmlBody = await ProcessLink(htmlBody, workflowUserId);
-            htmlBody = await ProcessTableTags(htmlBody, workflowUserId, TablePageination);
-            htmlBody = ProcessInputTags(htmlBody);
+            htmlBody = await ProcessTableTags(htmlBody, workflowUserId, tableInput);
+            htmlBody = await ProcessInputTags(htmlBody, workflowUserId);
             htmlBody = await PopulateEntityValues(htmlBody, form, workflowUserId);
 
+            return htmlBody;
+        }
+
+        private string HiddenInput(string htmlBody)
+        {
+            var tags = _htmlService.FindSingleHtmlTag(htmlBody, "input", new List<string> { "data-hidden" });
+            foreach (var item in tags)
+            {
+                var element = item.Replace("data-hidden=\"true\"", "data-hidden=\"true\" data-disabled=\"true\"");
+                element = element.Replace("type=\"text\"", "type=\"hidden\"");
+                element = element.Replace("type=\"checkbox\"", "type=\"hidden\"");
+                element = element.Replace("type=\"color\"", "type=\"hidden\"");
+                element = element.Replace("type=\"email\"", "type=\"hidden\"");
+                element = element.Replace("type=\"number\"", "type=\"hidden\"");
+                element = element.Replace("type=\"password\"", "type=\"hidden\"");
+                element = element.Replace("type=\"radio\"", "type=\"hidden\"");
+                element = element.Replace("type=\"range\"", "type=\"hidden\"");
+                element = element.Replace("type=\"tel\"", "type=\"hidden\"");
+                element = element.Replace("type=\"time\"", "type=\"hidden\"");
+                element = element.Replace("type=\"url\"", "type=\"hidden\"");
+                element = element.Replace("type=\"date\"", "type=\"hidden\"");
+                element = element.Replace("type=\"text\"", "type=\"hidden\"");
+                htmlBody = htmlBody.Replace(item, element);
+            }
             return htmlBody;
         }
 
         private string CleanHtmlBody(string htmlBody)
         {
             Console.WriteLine(htmlBody);
-            return htmlBody.Replace("data-disabled=\"true\"", "??>> ")
+            var htmlb = HiddenInput(htmlBody);
+            htmlb = htmlb.Replace("data-disabled=\"true\"", "??>> ")
                            .Replace("data-readonly=\"true\"", "data-readonly=\"true\" ??>> ")
                            .Replace("disabled", "")
                            .Replace("contenteditable=\"true\"", " ")
@@ -182,6 +209,7 @@ namespace Services
                            .Replace("resize: both;", " ")
                            .Replace("??>>", "disabled ")
                            .Replace("value", "placeholder");
+            return htmlb;
         }
 
         private async Task<string> ProcessSelectTags(string htmlBody, int workflowUserId)
@@ -258,16 +286,39 @@ namespace Services
             return htmlBody.Replace(tag, newTag);
         }
 
-        private async Task<string> ProcessTableTags(string htmlBody, int workflowUserId, List<(string Id, int PageNumber)>? TablePageination)
+        private async Task<string> ProcessTableTags(string htmlBody, int workflowUserId, TableInput tableInput)
         {
             var tags = _htmlService.FindHtmlTag(htmlBody, "table", new List<string> { "data-tableid", "data-condition", "data-filter", "data-relation" });
             foreach (var tag in tags)
             {
-                var match = Regex.Match(tag, @"id\s*=\s*'([^']+)'");
+                var match = Regex.Match(tag, @"id\s*=\s*['"" ]([^'"" ]+)['"" ]");
                 var id = match.Groups[1].Value;
+                var properyName = "";
+                var properyType = new Entities.Models.Enums.PropertyType();
+                var SearchValue = "";
                 var pageNumber = 1;
-                if (TablePageination != null)
-                    pageNumber = TablePageination.Any(x => x.Id == id) ? 1 : TablePageination.FirstOrDefault(x => x.Id == id).PageNumber;
+                if (tableInput.TablePagination.Count() > 0)
+                {
+                    pageNumber = !tableInput.TablePagination.Any(x => x.Id == id) ? 1 : tableInput.TablePagination.FirstOrDefault(x => x.Id == id).PageNumber;
+                    if (pageNumber <= 0)
+                        pageNumber = 1;
+                }
+                if (tableInput.TableSearches.Count() > 0)
+                {
+                    var searchItem = !tableInput.TableSearches.Any(x => x.Id == id) ? "" : tableInput.TableSearches.FirstOrDefault(x => x.Id == id).SearchElement;
+                    if (searchItem != "")
+                    {
+                        var propery = _context.Property.FirstOrDefault(x => x.Id == int.Parse(searchItem));
+                        properyName = propery.PropertyName;
+                        properyType = propery.Type;
+                        SearchValue = !tableInput.TableSearches.Any(x => x.Id == id) ? "" : tableInput.TableSearches.FirstOrDefault(x => x.Id == id).SearchValue;
+                        if (SearchValue == "")
+                        {
+                            searchItem = "";
+                            properyName = "";
+                        }
+                    }
+                }
 
                 var tableId = _htmlService.GetTagAttributesValue(tag, "data-tableid");
                 var condition = _htmlService.GetAttributeConditionValues(CleanCondition(_htmlService.GetTagAttributesValue(tag, "data-condition")));
@@ -277,17 +328,48 @@ namespace Services
                 var filter = await ApplyWorkflowFilters(_htmlService.GetTagAttributesValue(tag, "data-filter"), workflowUserId);
                 var relation = CleanRelation(_htmlService.GetTagAttributesValue(tag, "data-relation"));
                 var size = int.Parse(_htmlService.GetTagAttributesValue(tag, "data-size"));
-                var query = GenerateTableQuery(tableId, conditionString, filter, relation, size, pageNumber);
+                var query = GenerateTableQuery(tableId, conditionString, filter, relation, size, pageNumber, properyName, SearchValue, properyType);
+
+                var conditionTest = _htmlService.GetTagAttributesValue(tag, "data-filter");
+                if (conditionTest == "...")
+                {
+                    query = _htmlService.GetTagAttributesValue(tag, "data-relation").Replace("&nbsp;", "").Replace("\t", "");
+                    var q = "";
+                    if (properyType == PropertyType.INT)
+                        q += properyName != "" ? $" AND {properyName} = {SearchValue}" : "";
+                    else if (properyType == PropertyType.NvarcharShort || properyType == PropertyType.NvarcharLong || properyType == PropertyType.Password || properyType == PropertyType.Email || properyType == PropertyType.Time || properyType == PropertyType.TextArea)
+                        q += properyName != "" ? $" AND {properyName} Like N'%{SearchValue}%'" : "";
+
+                    query = query.Replace("GROUP", $"{q} GROUP");
+                    query += $" OFFSET {(pageNumber - 1) * size} ROWS FETCH NEXT {size} ROWS ONLY";
+                }
+
                 var data = await _dynamicDbContext.ExecuteReaderAsync(query);
                 htmlBody = ReplaceTableTag(htmlBody, tag, data, condition, tableId);
+
+                htmlBody = await fillSearchItemSelect(htmlBody, id, int.Parse(tableId), condition);
             }
             return htmlBody;
         }
+
+        private async Task<string> fillSearchItemSelect(string htmlBody, string id, int EntityId, List<string> condition)
+        {
+            var selectTags = _htmlService.FindHtmlTag(htmlBody, "select", new List<string> { "data-search-id" });
+            var selectTag = selectTags.FirstOrDefault(x => _htmlService.GetTagAttributesValue(x, "data-search-id") == id);
+            var options = "";
+            foreach (var conditionValue in condition)
+            {
+                var property = _context.Property.FirstOrDefault(x => x.PropertyName == conditionValue);
+                options += $"<option value=\"{property.Id}\" selected>{property.PreviewName}</option>";
+            }
+            var newTag = _htmlService.InsertTagWithRemoveAllChild("select", selectTag, options);
+            return htmlBody.Replace(selectTag, newTag);
+        }
+
         private string ReplaceTableTag(string htmlBody, string tag, dynamic data, List<string> condition, string tableId)
         {
             var tableRows = "";
 
-            var headers = _context.Property.Where(x => x.EntityId == int.Parse(tableId)).ToList();
             var doc = new HtmlDocument();
             doc.LoadHtml(tag);
             var trTag = doc.DocumentNode.SelectNodes("//tr");
@@ -299,7 +381,7 @@ namespace Services
             var tableRow = "<tr style=\"height: 50px;\">";
             foreach (var row in condition)
             {
-                tableRow += $"<th>{headers.FirstOrDefault(x => x.PropertyName == row).PreviewName}</th>";
+                tableRow += $"<th>{_context.Property.FirstOrDefault(x => x.PropertyName == row).PreviewName}</th>";
             }
 
             tableRow += trTag[0].InnerHtml;
@@ -328,7 +410,7 @@ namespace Services
         }
 
 
-        private string ProcessInputTags(string htmlBody)
+        private async Task<string> ProcessInputTags(string htmlBody, int workflowUserId)
         {
             var tags = _htmlService.FindSingleHtmlTag(htmlBody);
             DateTime currentTime = DateTime.Now;
@@ -342,11 +424,45 @@ namespace Services
 
             tags.ForEach(x =>
             {
-                var replace = x.Replace("placeholder=\"\" =\"\"", $"value=\"{persianDate}\" disabled");
+                var replace = x.Replace("placeholder=\"\"", $"value=\"{persianDate}\" disabled");
                 htmlBody = htmlBody.Replace(x, replace);
             });
+
+            htmlBody = await ApplyInputData(htmlBody, workflowUserId);
             return htmlBody;
         }
+
+        private async Task<string> ApplyInputData(string htmlBody, int workflowUserId)
+        {
+            var tags = _htmlService.FindSingleHtmlTag(htmlBody, "input", new List<string> { "data-tableid", "data-condition", "data-filter", "data-relation" });
+            foreach (var tag in tags)
+            {
+                var tableId = _htmlService.GetTagAttributesValue(tag, "data-tableid");
+                var condition = _htmlService.GetAttributeConditionValues(CleanCondition(_htmlService.GetTagAttributesValue(tag, "data-condition")));
+                var conditionString = condition != null && condition.Any()
+                ? string.Join(" , ", condition)
+                : string.Empty;
+                var filter = await ApplyWorkflowFilters(_htmlService.GetTagAttributesValue(tag, "data-filter"), workflowUserId);
+                var relation = CleanRelation(_htmlService.GetTagAttributesValue(tag, "data-relation"));
+                var query = "";
+                var conditionTest = _htmlService.GetTagAttributesValue(tag, "data-filter");
+                if (conditionTest == "...")
+                {
+                    query = _htmlService.GetTagAttributesValue(tag, "data-relation").Replace("&nbsp;", "").Replace("\t", "");
+                }
+                else
+                {
+                    query = GenerateTableQuery(tableId, conditionString, filter, relation, 1, 1);
+                }
+
+                var data = await _dynamicDbContext.ExecuteReaderAsync(query);
+                var replace = tag.Replace("input", $"input value=\"{data.Data.ToList()[0].ToList()[1].Value}\" disabled");
+                htmlBody = htmlBody.Replace(tag, replace);
+            }
+
+            return htmlBody;
+        }
+
 
         private async Task<string> ProcessLink(string htmlBody, int workflowUserId)
         {
@@ -411,14 +527,19 @@ namespace Services
             return $"SELECT [dbo].[{table.TableName}].WorkflowUserId, [dbo].[{table.TableName}].Id, {condition} FROM [dbo].[{table.TableName}] {relation} WHERE {filter}".Replace("&nbsp;", " ");
         }
 
-        private string GenerateTableQuery(string tableId, string condition, string filter, string relation, int size = 10, int pageNumber = 1)
+        private string GenerateTableQuery(string tableId, string condition, string filter, string relation, int size = 10, int pageNumber = 1,
+         string searchItem = "", string searchValue = "", PropertyType type = PropertyType.INT)
         {
             var table = _context.Entity.Include(c => c.Properties).First(x => x.Id == int.Parse(tableId));
             var query = $"SELECT [dbo].[{table.TableName}].WorkflowUserId, {condition} ";
             query += $"FROM [dbo].[{table.TableName}] ";
             query += $"{relation} ";
             query += $"WHERE {filter}";
-            query += "ORDER BY Id";
+            if (type == PropertyType.INT)
+                query += searchItem != "" ? $" AND {searchItem} = {searchValue}" : "";
+            else if (type == PropertyType.NvarcharShort || type == PropertyType.NvarcharLong || type == PropertyType.Password || type == PropertyType.Email || type == PropertyType.Time || type == PropertyType.TextArea)
+                query += searchItem != "" ? $" AND {searchItem} Like N'%{searchValue}%'" : "";
+            query += $" ORDER BY [dbo].[{table.TableName}].Id";
             query += $" OFFSET {(pageNumber - 1) * size} ROWS FETCH NEXT {size} ROWS ONLY";
             query = query.Replace("&nbsp;", " ");
             return query;
@@ -430,20 +551,23 @@ namespace Services
             List<Entity> entites = new List<Entity>();
             foreach (var prop in formData)
             {
-                var property = await _context.Property.Include(x => x.Entity).FirstOrDefaultAsync(x => x.Id == prop.id);
-                if (property == null)
-                    throw new CustomException<int>(new ValidationDto<int>(false, "Property", "PropertyNotFound", workflowUserId), 500);
-
-                if (!entites.Any(x => property != null && x == property.Entity && x.Description == prop.group))
+                if (prop.group != "E" && prop.id != null)
                 {
-                    var entity = property.Entity;
-                    entity.Description = prop.group;
+                    var property = await _context.Property.Include(x => x.Entity).FirstOrDefaultAsync(x => x.Id == prop.id);
+                    if (property == null)
+                        throw new CustomException<int>(new ValidationDto<int>(false, "Property", "PropertyNotFound", workflowUserId), 500);
 
-                    if (entity == null)
-                        throw new CustomException<int>(new ValidationDto<int>(false, "Entity", "EntityNotFound", workflowUserId), 500);
+                    if (!entites.Any(x => property != null && x == property.Entity && x.Description == prop.group))
+                    {
+                        var entity = property.Entity;
+                        entity.Description = prop.group;
 
-                    entity.Properties = [property];
-                    entites.Add(entity);
+                        if (entity == null)
+                            throw new CustomException<int>(new ValidationDto<int>(false, "Entity", "EntityNotFound", workflowUserId), 500);
+
+                        entity.Properties = [property];
+                        entites.Add(entity);
+                    }
                 }
             }
 
@@ -582,7 +706,7 @@ namespace Services
 
             if (entity.TableName == "RelationLists")
             {
-                columns.AddRange(new[] { "Element2", "RelationId" });
+                columns.AddRange(new[] { columns.Any(x => x == "Element2") ? "Element1" : "Element2", "RelationId" });
             }
 
             query.Append(string.Join(", ", columns));
@@ -660,7 +784,7 @@ namespace Services
                 var relatedEntityId = relation.ParentId == entity.Id ? relation.ChildId : relation.ParentId;
                 var relatedTable = _context.Entity.FirstOrDefault(e => e.Id == relatedEntityId)?.TableName;
 
-                var tableQuery = $"SELECT Id FROM {relatedTable} WHERE WorkflowUserId = {workflowUserId}";
+                var tableQuery = $"SELECT Id FROM [dbo].[{relatedTable}] WHERE WorkflowUserId = {workflowUserId}";
                 var data = await _dynamicDbContext.ExecuteReaderAsync(tableQuery);
                 if (data.TotalCount != 0)
                 {

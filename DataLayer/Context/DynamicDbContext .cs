@@ -106,7 +106,7 @@ namespace DataLayer.DbContext
         public DbConnection GetDbConnection()
         {
             // Ensure the connection string is properly set
-            var connectionString = _configuration.GetConnectionString("Dynamic2"); // Use your configuration
+            var connectionString = _configuration.GetConnectionString("Dynamic"); // Use your configuration
             if (string.IsNullOrEmpty(connectionString))
             {
                 throw new InvalidOperationException("Connection string is not set.");
