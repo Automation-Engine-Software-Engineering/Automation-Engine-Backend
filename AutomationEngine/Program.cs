@@ -158,6 +158,7 @@ builder.Services.AddScoped<IHtmlService, HtmlService>();
 builder.Services.AddScoped<IMenuElementService, MenuElementService>();
 builder.Services.AddScoped<IEntityRelationService, EntityRelationService>();
 builder.Services.AddSingleton<Logging>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddSingleton<TokenGenerator>();
 builder.Services.AddSingleton<EncryptionTool>();
 

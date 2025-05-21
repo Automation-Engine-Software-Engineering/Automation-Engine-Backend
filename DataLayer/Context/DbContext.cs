@@ -15,7 +15,6 @@ namespace DataLayer.DbContext
         public DbSet<Form> Form { get; set; }
         public DbSet<Entity> Entity { get; set; }
         public DbSet<Entity_EntityRelation> Entity_EntityRelation { get; set; }
-        public DbSet<RelationList> RelationLists{ get; set; }
         public DbSet<EntityProperty> Property { get; set; }
         public DbSet<MenuElement> MenuElements{ get; set; }
         public DbSet<User> User { get; set; }
@@ -77,6 +76,69 @@ namespace DataLayer.DbContext
                  .HasMany(n => n.entity_EntityRelation)
                  .WithOne()
                  .HasForeignKey(n => n.ParentId);
+
+            // Seed data for Entity
+            modelBuilder.Entity<Entity>().HasData(
+                new Entity
+                {
+                    Id = 1,
+                    PreviewName = "RelationLists",
+                    TableName = "RelationLists",
+                    Description = "RelationLists"
+                }
+            );
+
+            // Seed data for EntityProperty
+            modelBuilder.Entity<EntityProperty>().HasData(
+                new EntityProperty
+                {
+                    Id = 1,
+                    PreviewName = "RelationId",
+                    PropertyName = "RelationId",
+                    Description = "RelationId",
+                    Type = PropertyType.INT, // Example type
+                    EntityId = 1
+                }
+            );
+
+            // Seed data for EntityProperty
+            modelBuilder.Entity<EntityProperty>().HasData(
+                new EntityProperty
+                {
+                    Id = 2,
+                    PreviewName = "Element2",
+                    PropertyName = "Element2",
+                    Description = "Element2",
+                    Type = PropertyType.INT, // Example type
+                    EntityId = 1
+                }
+            );
+
+            // Seed data for EntityProperty
+            modelBuilder.Entity<EntityProperty>().HasData(
+                new EntityProperty
+                {
+                    Id = 3,
+                    PreviewName = "Element1",
+                    PropertyName = "Element1",
+                    Description = "Element1",
+                    Type = PropertyType.INT, // Example type
+                    EntityId = 1
+                }
+            );
+
+            // Seed data for EntityProperty
+            modelBuilder.Entity<EntityProperty>().HasData(
+                new EntityProperty
+                {
+                    Id = 4,
+                    PreviewName = "WorkflowUserId",
+                    PropertyName = "WorkflowUserId",
+                    Description = "WorkflowUserId",
+                    Type = PropertyType.INT, // Example type
+                    EntityId = 1
+                }
+            );
 
         }
 

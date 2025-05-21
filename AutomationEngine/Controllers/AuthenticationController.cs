@@ -227,7 +227,8 @@ namespace AutomationEngine.Controllers
             {
                 Id = user.Id,
                 Name = user.Name,
-                NeedNewPassword = user.Password.IsNullOrEmpty()
+                NeedNewPassword = false
+                //NeedNewPassword = user.Password.IsNullOrEmpty()
             };
             return new ResultViewModel<UserDashboardViewModel>(data);
         }

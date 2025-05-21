@@ -6,7 +6,7 @@ namespace ViewModels.ViewModels.FormBuilder
 {
     public class SaveDataDTO
     {
-        public int id { get; set; } = 0;
+        public int? id { get; set; } = 0;
         public string content { get; set; }
         public string? group { get; set; }
     }

@@ -29,6 +29,8 @@ namespace Entities.Models.Enums
         Email = 9,
         Password = 10,
         Select = 11,
+        Editor = 12,
+        TextArea = 13,
     }
     public enum LogLevel
     {

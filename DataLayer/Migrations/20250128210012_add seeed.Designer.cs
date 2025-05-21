@@ -3,6 +3,7 @@ using DataLayer.DbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20250128210012_add seeed")]
+    partial class addseeed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -67,9 +70,6 @@ namespace DataLayer.Migrations
 
                     b.Property<int?>("WorkflowId")
                         .HasColumnType("int");
-
-                    b.Property<string>("icon")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("link")
                         .HasColumnType("nvarchar(max)");
@@ -358,13 +358,10 @@ namespace DataLayer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("Element1")
+                    b.Property<int>("Element1")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Element2")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Entity_EntityRelationId")
+                    b.Property<int>("Element2")
                         .HasColumnType("int");
 
                     b.Property<int>("RelationId")
@@ -375,7 +372,7 @@ namespace DataLayer.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Entity_EntityRelationId");
+                    b.HasIndex("RelationId");
 
                     b.ToTable("RelationList");
                 });
@@ -585,9 +582,13 @@ namespace DataLayer.Migrations
 
             modelBuilder.Entity("Entities.Models.TableBuilder.RelationList", b =>
                 {
-                    b.HasOne("Entities.Models.TableBuilder.Entity_EntityRelation", null)
+                    b.HasOne("Entities.Models.TableBuilder.Entity_EntityRelation", "Relation")
                         .WithMany("RelationLists")
-                        .HasForeignKey("Entity_EntityRelationId");
+                        .HasForeignKey("RelationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Relation");
                 });
 
             modelBuilder.Entity("Entities.Models.Workflows.Node", b =>

@@ -10,6 +10,7 @@ namespace Entities.Models.MainEngine
         public int MenuType { get; set; }
         public int? ParentMenuElemntId { get; set; }
         public string? link { get; set; }
+        public string? icon { get; set; }
         public int? WorkflowId { get; set; }
         [ForeignKey(nameof(WorkflowId))]
         

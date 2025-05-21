@@ -280,7 +280,7 @@ namespace AutomationEngine.Controllers
 
         // GET: api/nodeMove  
         [HttpGet("nodeMove")]
-        public async Task<ResultViewModel<int>> NodeMove(int WorkflowUserId, int state, string? nodeId, int newWorkflowUserId)
+        public async Task<ResultViewModel<int>> NodeMove(int WorkflowUserId, int state, string? nodeId, int? newWorkflowUserId)
         {
             if (WorkflowUserId == 0)
                 throw new CustomException("Workflow", "WorkflowNotfound", WorkflowUserId);
@@ -326,15 +326,15 @@ namespace AutomationEngine.Controllers
                     throw new CustomException("Workflow", "CorruptedWorkflowPreviousNode");
                 }
 
-                if (newWorkflowUserId == 0)
+                if (newWorkflowUserId == null)
                 {
                     workflowUser.WorkflowState = linkNode.Id;
                 }
                 else
                 {
-                    var workflowUserModel = await _workflowUserService.GetWorkflowUserById(newWorkflowUserId);
+                    var workflowUserModel = await _workflowUserService.GetWorkflowUserById(newWorkflowUserId.Value);
                     workflowUserModel.WorkflowState = linkNode.Id;
-                    resultWorkflowUserId = newWorkflowUserId ;
+                    resultWorkflowUserId = newWorkflowUserId.Value ;
                 }
             }
 

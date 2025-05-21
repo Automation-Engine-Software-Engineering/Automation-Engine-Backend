@@ -10,10 +10,9 @@ namespace Entities.Models.TableBuilder
         public RelationList() { }
 
         public int Id { get; set; }
-        public int Element1 { get; set; }
-        public int Element2 { get; set; }
+        public int WorkflowUserId { get; set; }
+        public int? Element1 { get; set; }
+        public int? Element2 { get; set; }
         public int RelationId { get; set; }
-        [ForeignKey(nameof(RelationId))]
-        public Entity_EntityRelation Relation { get; set; }
     }
 }

@@ -44,7 +44,7 @@ namespace Services
             var commandText = $"ALTER TABLE [dbo].[{entity.TableName}] ADD ";
             commandText += property.PropertyName + " " + "@Type ";
             //commandText += "COMMENT" + " " + "@DescriptionValue ";
-            commandText += "DEFAULT" + " " + $"'{property.DefaultValue}' ";
+           // commandText += "DEFAULT" + " " + $"N'{property.DefaultValue}' ";
             commandText += " NULL";
 
             var parameters = new List<(string ParameterName, string? ParameterValue)>();
@@ -77,6 +77,8 @@ namespace Services
                     break;
 
                 case PropertyType.NvarcharLong:
+                case PropertyType.Editor:
+                case PropertyType.TextArea:
                     parameters.Add(("@Type", "Nvarchar(max)"));
                     break;
 

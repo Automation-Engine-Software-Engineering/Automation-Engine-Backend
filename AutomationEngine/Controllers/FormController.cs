@@ -187,8 +187,8 @@ namespace AutomationEngine.Controllers
 
 
         // GET: api/form/{id}  
-        [HttpGet("preview")]
-        public async Task<ResultViewModel<string?>> GetFormPreview(int formId)
+        [HttpPost("preview")]
+        public async Task<ResultViewModel<string?>> GetFormPreview(int formId, [FromBody] TableInput tableInput)
         {
             //is validation model
             if (formId == 0)
@@ -196,7 +196,7 @@ namespace AutomationEngine.Controllers
 
             //initial action
             var form = await _formService.GetFormByIdAsync(formId);
-            var formBody = await _formService.GetFormPreviewAsync(form, 0);
+            var formBody = await _formService.GetFormPreviewAsync(form, 0, tableInput);
             if (formBody == null)
                 throw new CustomException("Form", "FormNotfound", formId);
 
@@ -205,8 +205,8 @@ namespace AutomationEngine.Controllers
 
 
         // GET: api/form/{id}  
-        [HttpGet("previewByWorkflowUserId")]
-        public async Task<ResultViewModel<string?>> GetPreviewByWorkflowUserId(int workflowUserId)
+        [HttpPost("previewByWorkflowUserId")]
+        public async Task<ResultViewModel<string?>> GetPreviewByWorkflowUserId(int workflowUserId, [FromBody] TableInput tableInput)
         {
             //is validation model
             if (workflowUserId == 0)
@@ -214,9 +214,9 @@ namespace AutomationEngine.Controllers
 
             //initial action
             var workflowUser = await _workflowUserService.GetWorkflowUserById(workflowUserId);
-            var node = workflowUser.Workflow.Nodes.FirstOrDefault(n => n.Id == workflowUser.WorkflowState);
+            var node = await _workflowService.GetNodByIdAsync(workflowUser.WorkflowState);
             var form = await _formService.GetFormByIdIncEntityIncPropertyAsync(node.FormId.Value);
-            var formBody = await _formService.GetFormPreviewAsync(form, workflowUserId);
+            var formBody = await _formService.GetFormPreviewAsync(form, workflowUserId, tableInput);
             if (formBody == null)
                 throw new CustomException("Form", "FormNotfound", node.FormId.Value);
 
@@ -266,8 +266,8 @@ namespace AutomationEngine.Controllers
                 throw new CustomException("UserWorkflow", "UserWorkflowNotfound", workflowUserId);
 
             var claims = await HttpContext.Authorize();
-            if (claims.UserId != workflowUser.UserId)
-                throw new CustomException("User", "UserNotFound");
+            // if (claims.UserId != workflowUser.UserId)
+            //     throw new CustomException<int>(new ValidationDto<int>(false, "User", "UserNotFound", workflowUserId), 500);
 
             var workflow = await _workflowService.GetWorkflowByIdIncNodesAsync(workflowUser.WorkflowId);
             if (workflow == null)

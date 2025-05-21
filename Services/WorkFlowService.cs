@@ -145,7 +145,7 @@ namespace Services
 
         public async Task<Node> GetNodByIdAsync(string NodeId)
         {
-           var result = await _context.Node.FirstAsync(x => x.Id == NodeId);
+           var result = await _context.Node.Include(x => x.NextNode).FirstAsync(x => x.Id == NodeId);
             return result;
         }
     }
