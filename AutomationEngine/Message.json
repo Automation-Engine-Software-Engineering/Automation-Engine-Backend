@@ -1,83 +1,140 @@
 {
   "fa": {
     "Error": {
-      "Entity": {
+      "503": {
+        "SaveFailed": "خطا در دخیره اطلاعات وجود دارد"
+      }
+    },
+    "Entity": {
+      "503": {
         "CorruptedEntity": "خطا در اطلاعات جدول وجود دارد",
         "CorruptedEntityPreviewName": "نام نمایش جدول معتبر نمی باشد",
-        "CorruptedEntityTableName": "نام جدول معتبر نمی باشد",
-        "EntityNotFound": "جدول یافت نشد"
+        "CorruptedEntityTableName": "نام جدول معتبر نمی باشد"
       },
-      "Property": {
+      "404": {
+        "EntityNotFound": "جدول یافت نشد"
+      }
+    },
+    "Property": {
+      "503": {
         "CorruptedProperty": "خطا در اطلاعات عنصر وجود دارد",
         "CorruptedPropertyPreviewName": "نام نمایشی عنصر معتبر نمی باشد",
         "CorruptedPropertyPropertyName": "نام عنصر معتبر نمی باشد",
         "CorruptedPropertyType": "نوع عنصر معتبر نمی باشد",
-        "CorruptedPropertyAllowNull": "وضعیت الزامی بودن عنصر معتبر نمی باشد",
-        "PropertyNotFound": "عنصر یافت نشد"
+        "CorruptedPropertyAllowNull": "وضعیت الزامی بودن عنصر معتبر نمی باشد"
       },
-      "Form": {
+      "404": {
+        "PropertyNotFound": "عنصر یافت نشد"
+      }
+    },
+    "Form": {
+      "503": {
         "CorruptedForm": "خطا در اطلاعات فرم وجود دارد",
         "CorruptedFormName": "خطا در نام فرم وجود دارد",
         "CorruptedFormSize": "خطا در ابعاد فرم وجود دارد",
         "FormNotfound": "فرم یافت نشد",
         "CorruptedFormData": "اطلاعات فرم یا گردشکار یا داده ها دارای خطا می باشد"
-      },
-      "Workflow": {
+      }
+    },
+    "Workflow": {
+      "503": {
         "CorruptedWorkflow": "خطا در اطلاعات گردشکار وجود دارد",
         "CorruptedWorkflowName": "خطا در نام گردشکار وجود دارد",
-        "CorruptedWorkflowDes": "خطا در توضیحات گردشکار وجود دارد",
+        "CorruptedWorkflowDes": "خطا در توضیحات گردشکار وجود دارد"
+      },
+      "404": {
         "CorruptedWorkflowNextNode": "گره بعدی وجود ندارد",
         "CorruptedWorkflowPreviousNode": "گره قبلی وجود ندارد",
         "WorkflowNotfound": "گردشکار یافت نشد",
         "NodeNotFound": "گره یافت نشد"
-      },
-      "WorkflowRole": {
+      }
+    },
+    "WorkflowRole": {
+      "503": {
         "CorruptedWorkflowRole": "خطا در اطلاعات گردشکار وجود دارد",
         "CorruptedWorkflow": "خطا در گردشکار وجود دارد",
-        "CorruptedRole": "خطا در نقش وجود دارد",
+        "CorruptedRole": "خطا در نقش وجود دارد"
+      },
+      "404": {
         "WorkflowRoleNotfound": "گردشکار یافت نشد"
+      }
+    },
+    "User": {
+      "503": {
+        "CorruptedUser": "اطلاعات کاربر معتبر نمی باشد"
       },
-      "User": {
+      "404": {
         "UserNotFound": "کاربر یافت نشد"
-      },
-      "RoleUser": {
+      }
+    },
+    "RoleUser": {
+      "503": {
         "CorruptedRoleUser": "خطا در اطلاعات گردشکار وجود دارد",
         "CorruptedRole": "خطا در گردشکار وجود دارد",
-        "CorruptedUser": "خطا در اطلاعات فرد وجود دارد",
-        "RoleUserNotFound": "گردشکار یافت نشد"
+        "CorruptedUser": "خطا در اطلاعات فرد وجود دارد"
       },
-      "Role": {
+      "404": {
+        "RoleUserNotFound": "گردشکار یافت نشد"
+      }
+    },
+    "Role": {
+      "503": {
         "InvalidRole": "خطا در اطلاعات نقش وجود دارد",
         "InvalidName": "خطا در نام نقش وجود دارد",
         "InvalidDescription": "خطا در توضیحات نقش وجود دارد"
-      },
-      "UserWorkflow": {
+      }
+    },
+    "UserWorkflow": {
+      "503": {
         "CorruptedUserWorkflow": "خطا در اطلاعات گردشکار وجود دارد",
         "CorruptedUserWorkflowName": "خطا در نام گردشکار وجود دارد",
-        "CorruptedUserWorkflowDes": "خطا در توضیحات گردشکار وجود دارد",
-        "UserWorkflowNotfound": "گردشکار یافت نشد"
+        "CorruptedUserWorkflowDes": "خطا در توضیحات گردشکار وجود دارد"
       },
-      "File": {
+      "404": {
+        "UserWorkflowNotfound": "گردشکار یافت نشد"
+      }
+    },
+    "File": {
+      "503": {
         "FileSize": "حجم فایل آپلود شده بیشتر از مقدار تعیین شده است",
         "FileType": "پسوند فایل آپلود شده معتبر نمی باشد",
         "CorruptedFile": "فایل آپلود شده معتبر نمی باشد"
-      },
-      "Default": {
+      }
+    },
+    "Default": {
+      "503": {
         "CorruptedStringQuery": "خظا در نوشتار دستور وجود دارد",
         "CorruptedStringCommand": "خظا در نوشتار دستور وجود دارد",
         "CorruptedString": "خظا در نوشتار وجود دارد"
       }
     },
-    "Warning": {
-      "Authentication": {
-        "NotAuthorized": "شما به این بخش دسترسی ندارید",
-        "Login": "رمز عبور یا نام کاربری اشتباه است",
+    "Authentication": {
+      "403": {
+        "NotAuthorized": "شما به این بخش دسترسی ندارید"
+      },
+      "401": {
+        "LoginFailed": "رمز عبور یا نام کاربری اشتباه است",
+        "FieldIsEmpty": "نام کاربری و رمز عبور نمی تواند خالی باشد"
+      },
+      "429": {
         "TooManyRequests": "تعداد درخواست های شما بیش از حد مجاز است. لطفاً بعداً تلاش کنید"
       }
     },
     "Success": {
-      "Success": {
+      "200": {
         "Success": "عملیات با موفقیت انجام شد"
+      }
+    },
+    "AppSettings": {
+      "504": {
+        "RateLimiter": "عناصر بخش RateLimiter در AppSettings یافت نشد",
+        "Serilog": "عناصر بخش Serilog در AppSettings یافت نشد",
+        "JWTSettings": "عناصر بخش JWTSettings در AppSettings یافت نشد"
+      }
+    },
+    "Service": {
+      "504": {
+        "ServiceNotFound": "سرویس موردنظر یافت نشد"
       }
     }
   }

@@ -1,10 +1,12 @@
 ﻿using DataLayer.DbContext;
+using Entities.Models.Enums;
 using Entities.Models.FormBuilder;
 using Entities.Models.TableBuilder;
 using Entities.Models.Workflows;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 using Tools.TextTools;
 
 namespace Services
@@ -19,16 +21,16 @@ namespace Services
         Task<Workflow> GetWorkflowIncRolesById(int id);
         Task<Workflow> GetWorkflowByIdIncNodesAsync(int id);
         Task<ListDto<Workflow>> GetAllWorkflowsAsync(int pageSize, int pageNumber);
+        CustomException WorkflowValidation(Workflow workflow);
+        Task SaveChangesAsync();
         Task<ListDto<Node>> GetAllNodsAsync(int pageSize, int pageNumber);
-        Task<ValidationDto<Workflow>> WorkflowValidationAsync(Workflow workflow);
-        Task<ValidationDto<string>> SaveChangesAsync();
         Task<bool> IsWorkflowExistAsync(int formId);
         Task<Node> GetNodByIdAsync(string NodeId);
     }
     public class WorkflowService : IWorkflowService
     {
-        private readonly DataLayer.DbContext.Context _context;
-        public WorkflowService(DataLayer.DbContext.Context context)
+        private readonly Context _context;
+        public WorkflowService(Context context)
         {
             _context = context;
         }
@@ -102,33 +104,25 @@ namespace Services
             _context.Workflow.Update(fetchModel);
         }
 
-        public async Task<ValidationDto<Workflow>> WorkflowValidationAsync(Workflow workflow)
+        public CustomException WorkflowValidation(Workflow workflow)
         {
-            if (workflow == null) return new ValidationDto<Workflow>(false, "Workflow", "CorruptedWorkflow", workflow);
-            if (workflow.Name == null || !workflow.Name.IsValidString()) return new ValidationDto<Workflow>(false, "Workflow", "CorruptedWorkflowName", workflow);
-            if (workflow.Description == null || !workflow.Description.IsValidString()) return new ValidationDto<Workflow>(false, "Workflow", "CorruptedWorkflowDes", workflow);
+            var invalidValidation = new CustomException("Property", "CorruptedProperty", workflow);
+            if (workflow == null) return invalidValidation;
+            if (workflow.Description == null || !workflow.Description.IsValidString()) return invalidValidation;
+            if (workflow.Name.IsNullOrEmpty() || !workflow.Name.IsValidString()) return invalidValidation;
 
-            return new ValidationDto<Workflow>(true, "Success", "Success", workflow);
+            return new CustomException("Success", "Success", workflow);
         }
 
-        public async Task<ValidationDto<string>> SaveChangesAsync()
+        public async Task SaveChangesAsync()
         {
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new ValidationDto<string>(true, "Success", "Success", null);
-            }
-            catch (Exception ex)
-            {
-                return new ValidationDto<string>(false, "Workflow", "CorruptedWorkflow", ex.Message);
-            }
+            await _context.SaveChangesAsync();
         }
         public async Task<bool> IsWorkflowExistAsync(int workflowId)
         {
             //check model exist
             var isExist = await _context.Workflow.AnyAsync(x => x.Id == workflowId);
 
-            //return model
             return isExist;
         }
 

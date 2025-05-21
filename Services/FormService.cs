@@ -31,18 +31,18 @@ namespace Services
         Task UpdateFormBodyAsync(int formId, string htmlContent);
         Task SaveFormData(int workflowUserId, List<SaveDataDTO> formData);
         Task<string> GetFormPreviewAsync(Form form, int workflowUserId, TableInput tableInput);
-        ValidationDto<Form> FormValidation(Form form);
-        Task<ValidationDto<string>> SaveChangesAsync();
+        CustomException FormValidation(Form form);
         Task<bool> IsFormExistAsync(int formId);
         Task AddEntitiesToFormAsync(int formId, IEnumerable<int> entityIds);
+        Task SaveChangesAsync();
     }
 
     public class FormService : IFormService
     {
-        private readonly DataLayer.DbContext.Context _context;
+        private readonly Context _context;
         private readonly DynamicDbContext _dynamicDbContext;
         private readonly IHtmlService _htmlService;
-        public FormService(DataLayer.DbContext.Context context, DynamicDbContext dynamicDbContext, IHtmlService htmlService)
+        public FormService(Context context, DynamicDbContext dynamicDbContext, IHtmlService htmlService)
         {
             _context = context;
             _dynamicDbContext = dynamicDbContext;
@@ -578,15 +578,15 @@ namespace Services
                 {
                     var property = await _context.Property.Include(x => x.Entity).FirstOrDefaultAsync(x => x.Id == prop.id);
                     if (property == null)
-                        throw new CustomException<int>(new ValidationDto<int>(false, "Property", "PropertyNotFound", workflowUserId), 500);
+                        throw new CustomException("Property", "PropertyNotFound");
 
                     if (!entites.Any(x => property != null && x == property.Entity && x.Description == prop.group))
                     {
                         var entity = property.Entity;
                         entity.Description = prop.group;
 
-                        if (entity == null)
-                            throw new CustomException<int>(new ValidationDto<int>(false, "Entity", "EntityNotFound", workflowUserId), 500);
+                    if (entity == null)
+                        throw new CustomException("Entity", "EntityNotFound");
 
                         entity.Properties = [property];
                         entites.Add(entity);
@@ -835,23 +835,18 @@ namespace Services
                 await _dynamicDbContext.SaveChangesAsync();
             }
         }
-        public ValidationDto<Form> FormValidation(Form form)
+
+
+        public CustomException FormValidation(Form form)
         {
-            if (form == null) return new ValidationDto<Form>(false, "Form", "CorruptedForm", form);
-            if (form.Name == null || !form.Name.IsValidString()) return new ValidationDto<Form>(false, "Form", "CorruptedFormName", form);
-            return new ValidationDto<Form>(true, "Success", "Success", form);
+            var invalidValidation = new CustomException("Form", "CorruptedForm", form);
+            if (form == null) return invalidValidation;
+            if (form.Name == null || !form.Name.IsValidString()) return invalidValidation;
+            return new CustomException("Success", "Success", form);
         }
-        public async Task<ValidationDto<string>> SaveChangesAsync()
+        public async Task SaveChangesAsync()
         {
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new ValidationDto<string>(true, "Success", "Success", null);
-            }
-            catch (Exception ex)
-            {
-                return new ValidationDto<string>(false, "Form", "CorruptedForm", ex.Message);
-            }
+            await _context.SaveChangesAsync();
         }
     }
 }

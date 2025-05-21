@@ -1,10 +1,12 @@
 ﻿using DataLayer.DbContext;
 using Entities.Models.FormBuilder;
 using Entities.Models.TableBuilder;
+using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.IdentityModel.Tokens;
+using System.Threading.Tasks;
 using Tools.TextTools;
 using ViewModels.ViewModels.Workflow;
 namespace Services
@@ -18,19 +20,19 @@ namespace Services
         Task<ListDto<Entity>> GetAllEntitiesAsync(int pageSize, int pageNumber, string? search = null, int? formId = null);
         Task<ListDto<Entity>> GetAllEntitiesByFormIdAsync(int formId, int pageSize, int pageNumber);
         Task<Entity?> GetEntitiesByIdAsync(int entityId);
-        ValidationDto<Entity> EntityValidation(Entity entity);
+        CustomException EntityValidation(Entity entity);
+        Task SaveChangesAsync();
         Task<ListDto<IsAccessModel>> GetAllEntityForFormAccess(int FormId, int pageSize, int pageNumber);
-        Task<ValidationDto<string>> SaveChangesAsync();
         Task ReplaceEntityRolesByFormId(int formId, List<int> entiteIds);
         Task<bool> IsEntityExistAsync(int entityId);
     }
 
     public class EntityService : IEntityService
     {
-        private readonly DataLayer.DbContext.Context _context;
+        private readonly Context _context;
         private readonly DynamicDbContext _dynamicDbContext;
 
-        public EntityService(DataLayer.DbContext.Context context, DynamicDbContext dynamicDbContext)
+        public EntityService(Context context, DynamicDbContext dynamicDbContext)
         {
             _context = context;
             _dynamicDbContext = dynamicDbContext;
@@ -138,25 +140,17 @@ namespace Services
             return result;
         }
 
-        public ValidationDto<Entity> EntityValidation(Entity entity)
+        public CustomException EntityValidation(Entity entity)
         {
-            if (entity == null) return new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", entity);
-            if (entity.PreviewName == null || !entity.PreviewName.IsValidString()) return new ValidationDto<Entity>(false, "Entity", "CorruptedEntityPreviewName", entity);
-            if (entity.TableName == null || !entity.TableName.IsValidStringCommand()) return new ValidationDto<Entity>(false, "Entity", "CorruptedEntityTableName", entity);
-            return new ValidationDto<Entity>(true, "Success", "Success", entity);
+            if (entity == null) return new CustomException("Entity", "CorruptedEntity");
+            if (entity.PreviewName == null || !entity.PreviewName.IsValidString()) return new CustomException("Entity", "CorruptedEntityPreviewName", entity);
+            if (entity.TableName == null || !entity.TableName.IsValidStringCommand()) return new CustomException("Entity", "CorruptedEntityTableName", entity);
+            return new CustomException("Success", "Success");
         }
 
-        public async Task<ValidationDto<string>> SaveChangesAsync()
+        public async Task SaveChangesAsync()
         {
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new ValidationDto<string>(true, "Success", "Success", null);
-            }
-            catch (Exception ex)
-            {
-                return new ValidationDto<string>(false, "Form", "CorruptedForm", ex.Message);
-            }
+            await _context.SaveChangesAsync();
         }
 
         public async Task<ListDto<IsAccessModel>> GetAllEntityForFormAccess(int FormId, int pageSize, int pageNumber)

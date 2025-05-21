@@ -17,4 +17,8 @@ namespace ViewModels.ViewModels.FormBuilder
         public string? Description { get; set; }
         public string? HtmlFormBody { get; set; }
     }
+    public class ImageModel
+    {
+        public string? ImageUrl { get; set; }
+    }
 }

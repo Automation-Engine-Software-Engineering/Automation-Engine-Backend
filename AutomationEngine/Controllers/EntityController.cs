@@ -33,21 +33,21 @@ namespace AutomationEngine.Controllers
 
         // POST: api/entity/create  
         [HttpPost("create")]
-        public async Task<ResultViewModel> CreateEntity(int? formId, [FromBody] EntityDto entity)
+        public async Task<ResultViewModel<Entity?>> CreateEntity(int? formId, [FromBody] EntityDto entity)
         {
             if (entity == null)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
+                throw new CustomException("Entity", "CorruptedEntity");
 
             //transfer model
             var result = new Entity(entity.PreviewName, entity.TableName, entity.Description, new List<EntityProperty>(), new List<Form>());
 
             //is validation model
             if (entity.Id != 0)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
+                throw new CustomException("Entity", "CorruptedEntity");
 
             var validationModel = _entityService.EntityValidation(result);
             if (!validationModel.IsSuccess)
-                throw new CustomException<Entity>(validationModel, 500);
+                throw validationModel;
 
             result.TableName.IsValidStringCommand();
 
@@ -60,80 +60,73 @@ namespace AutomationEngine.Controllers
             {
                 var form = await _formService.GetFormByIdAsync(formId.Value);
                 if (form == null)
-                    throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Form", "FormNotfound", result), 500);
+                    throw new CustomException("Form", "FormNotfound", result);
 
                 await _entityService.CreateEntityAsync(formId.Value, result);
             }
+            await _entityService.SaveChangesAsync();
 
-            var saveResult = await _entityService.SaveChangesAsync();
-            if (!saveResult.IsSuccess)
-                throw new CustomException<string>(saveResult, 500);
-
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<Entity>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+            return new ResultViewModel<Entity?>(result);
         }
 
         // POST: api/entity/update  
         [HttpPost("update")]
-        public async Task<ResultViewModel> UpdateEntity([FromBody] EntityDto entity)
+        public async Task<ResultViewModel<Entity?>> UpdateEntity([FromBody] EntityDto entity)
         {
             if (entity == null)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
+                throw new CustomException("Entity", "CorruptedEntity");
 
             var result = new Entity(entity.PreviewName, entity.TableName, entity.Description, new List<EntityProperty>(), new List<Form>());
 
             //is validation model
             if (entity.Id == 0)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
+                throw new CustomException("Entity", "CorruptedEntity");
 
             result.Id = entity.Id;
             var validationModel = _entityService.EntityValidation(result);
             if (!validationModel.IsSuccess)
-                throw new CustomException<Entity>(validationModel, 500);
+                throw validationModel;
 
             var fetchEntity = await _entityService.GetEntitiesByIdAsync(entity.Id);
             if (fetchEntity == null)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "EntityNotFound", null), 500);
+                throw new CustomException("Entity", "EntityNotFound");
 
             result.TableName.IsValidStringCommand();
 
             //initial action
             await _entityService.UpdateEntityAsync(result);
-            var saveResult = await _entityService.SaveChangesAsync();
-            if (!saveResult.IsSuccess)
-                throw new CustomException<string>(saveResult, 500);
+            await _entityService.SaveChangesAsync();
 
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<Entity>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+            return new ResultViewModel<Entity?>(result);
         }
 
         // POST: api/entity/remove  
         [HttpPost("remove")]
-        public async Task<ResultViewModel> RemoveEntity(int entityId)
+        public async Task<ResultViewModel<Entity?>> RemoveEntity(int entityId)
         {
             //is validation model
             if (entityId == 0)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "EntityNotFound", null), 500);
+                throw new CustomException("Entity", "EntityNotFound");
 
             var fetchEntity = await _entityService.GetEntitiesByIdAsync(entityId);
             if (fetchEntity == null)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "EntityNotFound", null), 500);
+                throw new CustomException("Entity", "EntityNotFound");
 
             var validationModel = _entityService.EntityValidation(fetchEntity);
             if (!validationModel.IsSuccess)
-                throw new CustomException<Entity>(validationModel, 500);
+                throw validationModel;
 
             //initial action
             await _entityService.RemoveEntityAsync(entityId);
-            var saveResult = await _entityService.SaveChangesAsync();
-            if (!saveResult.IsSuccess)
-                throw new CustomException<string>(saveResult, 500);
+            await _entityService.SaveChangesAsync();
 
-            return (new ResultViewModel { Data = fetchEntity, Message = new ValidationDto<Entity>(true, "Success", "Success", fetchEntity).GetMessage(200), Status = true, StatusCode = 200 });
+            return new ResultViewModel<Entity?>(fetchEntity);
         }
 
         // GET: api/entity/all  
         [HttpGet("all")]
         [SwaggerOperation(Summary = "", Description = "set formId and search null if you don't want to filter result")]
-        public async Task<ResultViewModel> GetAllEntities(int pageSize, int pageNumber, int? formId, string? search)
+        public async Task<ResultViewModel<IEnumerable<Entity>?>> GetAllEntities(int pageSize, int pageNumber, int? formId, string? search)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -144,28 +137,28 @@ namespace AutomationEngine.Controllers
 
             //is valid data
             if ((((pageSize * pageNumber) - entities.TotalCount) > pageSize) && (pageSize * pageNumber) > entities.TotalCount)
-                throw new CustomException<ListDto<Entity>>(new ValidationDto<ListDto<Entity>>(false, "Form", "CorruptedEntity", entities), 500);
-            return (new ResultViewModel { Data = entities.Data, ListNumber = entities.ListNumber, ListSize = entities.ListSize, TotalCount = entities.TotalCount, Message = new ValidationDto<ListDto<Entity>>(true, "Success", "Success", entities).GetMessage(200), Status = true, StatusCode = 200 });
+                throw new CustomException("Form", "CorruptedEntity", entities);
+            return new ResultViewModel<IEnumerable<Entity>?> { Data = entities.Data, ListNumber = entities.ListNumber, ListSize = entities.ListSize, TotalCount = entities.TotalCount };
         }
 
         // GET: api/entity/{id}  
         [HttpGet("{entityId}")]
-        public async Task<ResultViewModel> GetEntity(int entityId)
+        public async Task<ResultViewModel<Entity?>> GetEntity(int entityId)
         {
             //is validation model
             if (entityId == 0)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "EntityNotFound", null), 500);
+                throw new CustomException("Entity", "EntityNotFound");
 
             //initial action
             var entities = await _entityService.GetEntitiesByIdAsync(entityId);
             var fetchEntity = await _entityService.GetEntitiesByIdAsync(entityId);
             if (fetchEntity == null)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "EntityNotFound", null), 500);
+                throw new CustomException("Entity", "EntityNotFound");
             var validationModel = _entityService.EntityValidation(fetchEntity);
             if (!validationModel.IsSuccess)
-                throw new CustomException<Entity>(validationModel, 500);
+                throw validationModel;
 
-            return (new ResultViewModel { Data = entities, Message = new ValidationDto<Entity>(true, "Success", "Success", entities).GetMessage(200), Status = true, StatusCode = 200 });
+            return new ResultViewModel<Entity?>(entities);
         }
 
 
@@ -180,14 +173,14 @@ namespace AutomationEngine.Controllers
 
         //    //is validation model
         //    if (entityId == 0)
-        //        throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "EntityNotFound", null), 500);
+        //        throw new CustomException("Entity", "EntityNotFound");
 
         //    //var entities = await _entityService.GetEntitiesByIdAsync(entityId);
 
         //    //initial action
         //    var fetchEntity = await _entityService.GetEntitiesByIdAsync(entityId);
         //    if (fetchEntity == null)
-        //        throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "EntityNotFound", null), 500);
+        //        throw new CustomException("Entity", "EntityNotFound");
 
         //    var validationModel = await _entityService.EntityValidation(fetchEntity);
         //    if (!validationModel.IsSuccess)
@@ -196,7 +189,7 @@ namespace AutomationEngine.Controllers
         //    //initial action
         //    var result = new EntityValueDto();
         //    if (fetchEntity.Properties.Count == 0)
-        //        throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Property", "PropertyNotFound", null), 500);
+        //        throw new CustomException("Property", "PropertyNotFound");
 
         //    var header = fetchEntity.Properties.Select(x => x.PreviewName).ToList();
         //    //var dtoListHeader = new ListDto<string>(header, header.Count, header.Count, 1);
@@ -205,16 +198,16 @@ namespace AutomationEngine.Controllers
 
         //    //is valid data
         //    if ((((pageSize * pageNumber) - properties.TotalCount) > pageSize) && (pageSize * pageNumber) > properties.TotalCount)
-        //        throw new CustomException<ListDto<Dictionary<string, object>>>(new ValidationDto<ListDto<Dictionary<string, object>>>(false, "Entity", "CorruptedEntity", properties), 500);
+        //        throw new CustomException<ListDto<Dictionary<string, object>>>(new CustomException<ListDto<Dictionary<string, object>>>(false, "Entity", "CorruptedEntity", properties);
 
         //    result.Body = properties.Data;
-        //    return (new ResultViewModel { ListNumber = properties.ListNumber, ListSize = properties.ListSize, TotalCount = properties.TotalCount, Data = result, Message = new ValidationDto<EntityValueDto>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
+        //    return (new ResultViewModel { ListNumber = properties.ListNumber, ListSize = properties.ListSize, TotalCount = properties.TotalCount, Data = result)EntityValueDto
         //}
 
 
         // GET: api/entity/{entityName}/property  
         [HttpGet("{entityId}/property")]
-        public async Task<ResultViewModel> GetAllPropertiesFromEntity(int entityId, int pageSize, int pageNumber)
+        public async Task<ResultViewModel<IEnumerable<EntityProperty>?>> GetAllPropertiesFromEntity(int entityId, int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -222,24 +215,24 @@ namespace AutomationEngine.Controllers
                 pageNumber = 1;
 
             if (entityId == 0)
-                throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", null), 500);
+                throw new CustomException("Property", "CorruptedProperty");
 
             var entity = await _entityService.GetEntitiesByIdAsync(entityId);
             if (entity == null)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
+                throw new CustomException("Entity", "CorruptedEntity");
 
             var columns = await _propertyService.GetAllColumnByEntityIdAsync(entityId, pageSize, pageNumber);
 
             //is valid data
             if ((((pageSize * pageNumber) - columns.TotalCount) > pageSize) && (pageSize * pageNumber) > columns.TotalCount)
-                throw new CustomException<ListDto<EntityProperty>>(new ValidationDto<ListDto<EntityProperty>>(false, "Property", "CorruptedProperty", columns), 500);
+                throw new CustomException("Property", "CorruptedProperty", columns);
 
-            return (new ResultViewModel { Data = columns.Data, ListNumber = columns.ListNumber, ListSize = columns.ListSize, TotalCount = columns.TotalCount, Message = new ValidationDto<ListDto<EntityProperty>>(true, "Success", "Success", columns).GetMessage(200), Status = true, StatusCode = 200 });
+            return new ResultViewModel<IEnumerable<EntityProperty>?> { Data = columns.Data, ListNumber = columns.ListNumber, ListSize = columns.ListSize, TotalCount = columns.TotalCount };
         }
 
         // GET: api/property/entityId/value
         [HttpGet("{entityId}/property/value")]
-        public async Task<ResultViewModel> GetAllPropertiesValueFromEntity(int entityId, int pageSize, int pageNumber)
+        public async Task<ResultViewModel<IEnumerable<Dictionary<string, object>>>> GetAllPropertiesValueFromEntity(int entityId, int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -247,24 +240,24 @@ namespace AutomationEngine.Controllers
                 pageNumber = 1;
 
             if (entityId == 0)
-                throw new CustomException<EntityProperty>(new ValidationDto<EntityProperty>(false, "Entity", "CorruptedEntity", null), 500);
+                throw new CustomException("Entity", "CorruptedEntity");
 
             var entity = await _entityService.GetEntitiesByIdAsync(entityId);
             if (entity == null)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
+                throw new CustomException("Entity", "CorruptedEntity");
 
             var columns = await _propertyService.GetAllColumnValuesByEntityIdAsync(entityId, pageSize, pageNumber);
 
             //is valid data
             if ((((pageSize * pageNumber) - columns.TotalCount) > pageSize) && (pageSize * pageNumber) > columns.TotalCount)
-                throw new CustomException<ListDto<Dictionary<string, object>>>(new ValidationDto<ListDto<Dictionary<string, object>>>(false, "Property", "CorruptedProperty", columns), 500);
+                throw new CustomException("Property", "CorruptedProperty", columns);
 
-            return (new ResultViewModel { ListNumber = columns.ListNumber, ListSize = columns.ListSize, TotalCount = columns.TotalCount, Data = columns.Data, Message = new ValidationDto<ListDto<Dictionary<string, object>>>(true, "Success", "Success", columns).GetMessage(200), Status = true, StatusCode = 200 });
+            return new ResultViewModel<IEnumerable<Dictionary<string, object>>> { ListNumber = columns.ListNumber, ListSize = columns.ListSize, TotalCount = columns.TotalCount, Data = columns.Data };
         }
 
         // GET: api/form/all  
         [HttpGet("form/all")]
-        public async Task<ResultViewModel> GetAllRoleUserAndUser(int FormId, int pageSize, int pageNumber)
+        public async Task<ResultViewModel<IEnumerable<IsAccessModel>>> GetAllRoleUserAndUser(int FormId, int pageSize, int pageNumber)
         {
             if (pageSize > 100)
                 pageSize = 100;
@@ -275,33 +268,31 @@ namespace AutomationEngine.Controllers
 
             //is valid data
             if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
-                throw new CustomException<ListDto<IsAccessModel>>(new ValidationDto<ListDto<IsAccessModel>>(false, "Form", "CorruptedInvalidPage", forms), 500);
+                throw new CustomException("Form", "CorruptedInvalidPage");
 
-            return (new ResultViewModel { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount, Message = new ValidationDto<ListDto<IsAccessModel>>(true, "Success", "Success", forms).GetMessage(200), Status = true, StatusCode = 200 });
+            return new ResultViewModel<IEnumerable<IsAccessModel>> { Data = forms.Data, ListNumber = forms.ListNumber, ListSize = forms.ListSize, TotalCount = forms.TotalCount };
         }
 
-              // POST: api/form/create  
+        // POST: api/form/create  
         [HttpPost("create/allByFormId/{FormId}")]
-        public async Task<ResultViewModel> CreateWorkflowRoleAllByWorkflowId([FromBody] List<int> Entites,int FormId)
+        public async Task<ResultViewModel<List<Entity>>> CreateWorkflowRoleAllByWorkflowId([FromBody] List<int> Entites, int FormId)
         {
             if (Entites == null)
-                throw new CustomException<Entity>(new ValidationDto<Entity>(false, "Entity", "CorruptedEntity", null), 500);
+                throw new CustomException("Entity", "CorruptedEntity");
 
             var entites = new List<Entity>();
-            
+
             //is validation model
             foreach (var entite in entites)
             {
                 var validationModel = _entityService.EntityValidation(entite);
                 if (!validationModel.IsSuccess)
-                    throw new CustomException<Entity>(validationModel, 500);
+                    throw validationModel;
             }
 
-            await _entityService.ReplaceEntityRolesByFormId(FormId,Entites);
-            var validation = await _entityService.SaveChangesAsync();
-            if(!validation.IsSuccess)
-            throw new CustomException<string?>(validation, 503);
-            return (new ResultViewModel { Data = entites, Message = new ValidationDto<List<Entity>>(true, "Success", "Success", entites).GetMessage(200), Status = true, StatusCode = 200 });
+            await _entityService.ReplaceEntityRolesByFormId(FormId, Entites);
+            await _entityService.SaveChangesAsync();
+            return new ResultViewModel<List<Entity>>(entites);
         }
     }
 }

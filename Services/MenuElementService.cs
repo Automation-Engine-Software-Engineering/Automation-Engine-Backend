@@ -21,7 +21,7 @@ namespace Services
         Task<List<MenuElementDTO>> GetMenuElementByRoleId(int roleId);
         Task<MenuElement> GetMenuElementById(int id);
         Task<ListDto<MenuElement>> GetAllMenuElement(int pageSize, int pageNumber);
-        Task<ValidationDto<string>> SaveChangesAsync();
+        Task SaveChangesAsync();
     }
 
     public class MenuElementService : IMenuElementService
@@ -99,17 +99,9 @@ namespace Services
             return rootElements;
         }
 
-        public async Task<ValidationDto<string>> SaveChangesAsync()
+        public async Task SaveChangesAsync()
         {
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new ValidationDto<string>(true, "Success", "ChangesSaved", null);
-            }
-            catch (Exception ex)
-            {
-                return new ValidationDto<string>(false, "Error", "SaveFailed", ex.Message);
-            }
+            await _context.SaveChangesAsync();
         }
 
         public async Task<ListDto<MenuElement>> GetAllMenuElement(int pageSize, int pageNumber)

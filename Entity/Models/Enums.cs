@@ -32,4 +32,14 @@ namespace Entities.Models.Enums
         Editor = 12,
         TextArea = 13,
     }
+    public enum LogLevel
+    {
+        Critical,
+        Error,
+        Warning,
+        Information,
+        Debug,
+        Trace
+    }
+
 }

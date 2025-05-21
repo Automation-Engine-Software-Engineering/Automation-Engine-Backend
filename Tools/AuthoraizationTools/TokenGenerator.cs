@@ -51,16 +51,17 @@ namespace Tools.AuthoraizationTools
 
             var issuer = _configuration["JWTSettings:Issuer"];
             if (issuer.IsNullOrEmpty())
-                throw new CustomException("دامنه یافت نشد");
+                throw new CustomException("AppSettings", "JWTSettings");
 
             var audience = _configuration["JWTSettings:Audience"];
             if (audience.IsNullOrEmpty())
-                throw new CustomException("دامنه یافت نشد");
+                throw new CustomException("AppSettings", "JWTSettings");
 
             // خواندن مقدار JWTSecret از فایل appsettings.json
             var secretKey = _configuration[secretConfigPath];
             if (secretKey.IsNullOrEmpty())
-                throw new CustomException("کلید خصوصی یافت نشد");
+                throw new CustomException("AppSettings", "JWTSettings");
+
             var key = Encoding.UTF8.GetBytes(secretKey ?? "");
 
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -93,7 +94,7 @@ namespace Tools.AuthoraizationTools
         public ClaimsPrincipal? ValidateToken(string token, bool isRefreshToken = false, bool checkValidation = true)
         {
             if (token == null)
-                throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "NotAuthorized", token), 403);
+                throw new CustomException("Authentication", "NotAuthorized", token);
             var refreshToken = token.Trim();
             if (refreshToken.Contains("Bearer "))
                 refreshToken = token.Substring("Bearer ".Length);
@@ -106,7 +107,9 @@ namespace Tools.AuthoraizationTools
                 tokenSecret = "JWTSettings:AccessTokenSecret";
 
             // خواندن مقدار JWTSecret از فایل appsettings.json
-            var secretKey = _configuration[tokenSecret] ?? throw new CustomException("کلید خصوصی یافت نشد");
+            var secretKey = _configuration[tokenSecret] ??
+                throw new CustomException("AppSettings", "JWTSettings");
+
             var issuer = _configuration["JWTSettings:Issuer"];
             var audience = _configuration["JWTSettings:Audience"];
 
@@ -144,7 +147,7 @@ namespace Tools.AuthoraizationTools
             catch (Exception e)
             {
                 if (checkValidation)
-                    throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "NotAuthorized", refreshToken), 403);
+                    throw new CustomException("Authentication", "NotAuthorized", refreshToken);
             }
             return null;
         }

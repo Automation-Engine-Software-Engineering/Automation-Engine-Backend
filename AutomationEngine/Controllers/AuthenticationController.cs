@@ -11,9 +11,11 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using Services;
+using System;
 using System.Net.Http;
 using System.Security.Claims;
 using Tools.AuthoraizationTools;
+using Tools.LoggingTools;
 using Tools.TextTools;
 using ViewModels;
 using ViewModels.ViewModels.AuthenticationDtos;
@@ -31,6 +33,8 @@ namespace AutomationEngine.Controllers
         private readonly IConfiguration _configuration;
         private readonly EncryptionTool _encryptionTool;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly Logging _logger;
+
         //private readonly string _issuer;
         //private readonly bool _secure;
         //private readonly TimeSpan _accessTokenLifetime;
@@ -38,7 +42,13 @@ namespace AutomationEngine.Controllers
         private readonly CookieOptions _accessTokenCookieOptions;
         private readonly CookieOptions _refreshTokenCookieOptions;
 
-        public AuthenticationController(IRoleService roleService, IUserService userService, TokenGenerator tokenGenerator, IConfiguration configuration, EncryptionTool encryptionTool, IWebHostEnvironment webHostEnvironment)
+        public AuthenticationController(IRoleService roleService,
+            IUserService userService,
+            TokenGenerator tokenGenerator,
+            IConfiguration configuration,
+            EncryptionTool encryptionTool,
+            IWebHostEnvironment webHostEnvironment,
+            Logging logger)
         {
             _roleService = roleService;
             _userService = userService;
@@ -46,7 +56,7 @@ namespace AutomationEngine.Controllers
             _configuration = configuration;
             _encryptionTool = encryptionTool;
             _webHostEnvironment = webHostEnvironment;
-
+            _logger = logger;
             var _issuer = _configuration["JWTSettings:Issuer"];
             var _secure = bool.Parse(_configuration["JWTSettings:Secure"]);
             var _accessTokenLifetime = TimeSpan.Parse(_configuration["JWTSettings:AccessTokenExpireTimespan"]);
@@ -68,49 +78,28 @@ namespace AutomationEngine.Controllers
             _refreshTokenCookieOptions = cookieOptions;
         }
 
-        // POST: api/login/{userName}  
-        [HttpPost("login/{userName}")]
+        // POST: api/login/{username}  
+        [HttpPost("login/{username}")]
         [EnableRateLimiting("LoginRateLimit")]
-        public async Task<ResultViewModel> Login(string userName, [FromBody] string password)
+        public async Task<ResultViewModel<TokenResultViewModel>> Login(string username, [FromBody] string password)
         {
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+                throw new CustomException("Authentication", "FieldIsEmpty");
+
             var ip = HttpContext.GetIP();
             var userAgent = HttpContext.GetUserAgent();
-            var userRoleId = await _roleService.Login(userName, password);
+            var user = await CheckUserPassAsync(username, password);
 
-            var tokens = GenerateTokens(userRoleId.User, userRoleId.RoleId);
-            userRoleId.User.IP = ip;
-            userRoleId.User.UserAgent = userAgent;
-            userRoleId.User.RefreshToken = tokens.RefreshToken;
+            _logger.LogUserLoginSuccess(user.Id, username, ip, userAgent);
 
-            await _userService.UpdateUser(userRoleId.User);
-            await _userService.SaveChangesAsync();
+            var role = await _roleService.GetRoleByUserAsync(user.Id);
 
-            var needNewPassword = userRoleId.User.Password.IsNullOrEmpty();
-            var result = new TokenResultViewModel();
-            //if (_webHostEnvironment.IsDevelopment())
-            //{
-            result.AccessToken = tokens.AccessToken;
-            result.RefreshToken = tokens.RefreshToken;
-            //}
+            var tokens = GenerateTokens(user, role?.Id);
+            user.IP = ip;
+            user.UserAgent = userAgent;
+            user.RefreshToken = tokens.RefreshToken;
 
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<TokenResultViewModel>(true, "Success", "Success", result).GetMessage(200), Status = true, StatusCode = 200 });
-        }
-
-        // POST: api/generateToken
-        [HttpGet("generateToken")]
-        //[EnableRateLimiting("LoginRateLimit")]
-        public async Task<ResultViewModel> GenerateToken()
-        {
-            var claims = await HttpContext.AuthorizeRefreshToken();
-            var user = await _userService.GetUserById(claims.UserId);
-
-            if (user.RefreshToken != claims.Token)
-                throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "Login", claims.Token), 401);
-
-            var tokens = GenerateTokens(user, claims.RoleId);
-
-            user.RefreshToken = null;
-            await _userService.UpdateUser(user);
+            await _userService.UpdateUserAsync(user);
             await _userService.SaveChangesAsync();
 
             var needNewPassword = user.Password.IsNullOrEmpty();
@@ -121,58 +110,119 @@ namespace AutomationEngine.Controllers
             result.RefreshToken = tokens.RefreshToken;
             //}
 
-            return (new ResultViewModel { Data = result, Message = new ValidationDto<string>(true, "Success", "Success", tokens.AccessToken).GetMessage(200), Status = true, StatusCode = 200 });
+            return new ResultViewModel<TokenResultViewModel>(result);
         }
-        [HttpPost("logout")]
-        //[EnableRateLimiting("LoginRateLimit")]
-        public async Task<ResultViewModel> Logout()
+        private async Task<User> CheckUserPassAsync(string username, string password)
+        {
+            var user = await _userService.GetUserByUsernameAsync(username);
+            if (user == null)
+            {
+                var exception = new CustomException("Authentication", "LoginFailed");
+                throw exception;
+            }
+
+            if (user.Password.IsNullOrEmpty())
+            {
+                if (username != user.Password)
+                    throw new CustomException("Authentication", "LoginFailed");
+            }
+            else
+            {
+                var hashPassword = HashString.HashPassword(password, user.Salt);
+                if (hashPassword != user.Password)
+                    throw new CustomException("Authentication", "LoginFailed");
+            }
+            
+            return user;
+        }
+        // POST: api/generateToken
+        [HttpGet("generateToken")]
+        [EnableRateLimiting("LoginRateLimit")]
+        public async Task<ResultViewModel<TokenResultViewModel>> GenerateToken()
         {
             var claims = await HttpContext.AuthorizeRefreshToken();
+            var user = await _userService.GetUserByIdAsync(claims.UserId);
+
+            if (user.RefreshToken != claims.Token)
+                throw new CustomException("Authentication", "LoginFailed");
+
+            var tokens = GenerateTokens(user, claims.RoleId);
+
+            user.RefreshToken = null;
+            await _userService.UpdateUserAsync(user);
+            await _userService.SaveChangesAsync();
+
+            var needNewPassword = user.Password.IsNullOrEmpty();
+            var result = new TokenResultViewModel();
+            //if (_webHostEnvironment.IsDevelopment())
+            //{
+            result.AccessToken = tokens.AccessToken;
+            result.RefreshToken = tokens.RefreshToken;
+            //}
+
+            return new ResultViewModel<TokenResultViewModel>(result);
+        }
+        [HttpPost("logout")]
+        [EnableRateLimiting("LoginRateLimit")]
+        public async Task<ResultViewModel<object>> Logout()
+        {
+            var claims = await HttpContext.AuthorizeRefreshToken();
+            var ip = HttpContext.GetIP();
+            var userAgent = HttpContext.GetUserAgent();
 
             if (string.IsNullOrEmpty(claims.Token) || claims.UserId == 0)
-                throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "Login", claims.Token), 401);
+                throw new CustomException("Authentication", "LoginFailed", 401);
 
-            var user = await _userService.GetUserById(claims.UserId);
+
+            var user = await _userService.GetUserByIdAsync(claims.UserId);
             if (user.RefreshToken != claims.Token)
-                throw new CustomException<string>(new ValidationDto<string>(false, "Authentication", "Login", claims.Token), 401);
+                throw new CustomException("Authentication", "LoginFailed", claims.Token);
 
             if (user != null)
             {
                 user.RefreshToken = null;
 
-                await _userService.UpdateUser(user);
+                await _userService.UpdateUserAsync(user);
                 await _userService.SaveChangesAsync();
             }
+
+            _logger.LogUserLogout(claims.UserId, user.UserName,ip, userAgent);
+
             Response.Cookies.Delete("access_token");
             Response.Cookies.Delete("refresh_token");
-            return new ResultViewModel();
+            return new ResultViewModel<object>();
         }
 
-        // POST: api/ChangePassword/{userName}  
-        [HttpPost("changePassword")]
+        // POST: api/ChangePassword/{username}  
+        [HttpPost("changePassword/{username}")]
         [CheckAccess]
-        public async Task<ResultViewModel> ChangePassword([FromBody] ChangePasswordInputModel input)
+        public async Task<ResultViewModel<ChangePasswordInputModel>> ChangePassword(string username, [FromBody] ChangePasswordInputModel input)
         {
-            var claims = await HttpContext.Authorize();
-            var user = await _userService.GetUserById(claims.UserId);
+            var user = await CheckUserPassAsync(username, input.OldPassword);
+            
+            var ip = HttpContext.GetIP();
+            var userAgent = HttpContext.GetUserAgent();
+
+            _logger.LogUserChangePassword(user.Id, username, ip, userAgent);
+
             var salt = HashString.GetSalt();
             var hashPassword = HashString.HashPassword(input.NewPassword, salt);
             user.Password = hashPassword;
             user.Salt = salt;
 
-            await _userService.UpdateUser(user);
+            await _userService.UpdateUserAsync(user);
             await _userService.SaveChangesAsync();
 
-            return (new ResultViewModel { Data = input, Message = new ValidationDto<ChangePasswordInputModel>(true, "Success", "Success", input).GetMessage(200), Status = true, StatusCode = 200 });
+            return new ResultViewModel<ChangePasswordInputModel>(input);
         }
 
         // POST: api/ChangePassword/{userName}  
         [HttpGet("user")]
         [CheckAccess]
-        public async Task<ResultViewModel> GetUser()
+        public async Task<ResultViewModel<UserDashboardViewModel>> GetUser()
         {
             var claims = await HttpContext.Authorize();
-            var user = await _userService.GetUserById(claims.UserId);
+            var user = await _userService.GetUserByIdAsync(claims.UserId);
             var data = new UserDashboardViewModel
             {
                 Id = user.Id,
@@ -180,7 +230,7 @@ namespace AutomationEngine.Controllers
                 NeedNewPassword = false
                 //NeedNewPassword = user.Password.IsNullOrEmpty()
             };
-            return (new ResultViewModel { Data = data, Message = "عملیات با موفقیت انجام شد.", Status = true, StatusCode = 200 });
+            return new ResultViewModel<UserDashboardViewModel>(data);
         }
         private (string AccessToken, string RefreshToken) GenerateTokens(User User, int? RoleId)
         {

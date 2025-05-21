@@ -12,7 +12,7 @@ namespace Services
     public interface IPropertyService
     {
         Task AddColumnToTableAsync(EntityProperty property);
-         Task UpdateColumssnInTableAsync(EntityProperty property);
+        Task UpdateColumnInTableAsync(EntityProperty property);
         Task RemoveColumnByIdAsync(int propertyId);
         Task<ListDto<EntityProperty>> GetAllColumnsAsync(int pageSize, int pageNumber);
         Task<EntityProperty?> GetColumnByIdAsync(int propertyId);
@@ -20,16 +20,16 @@ namespace Services
         Task<ListDto<Dictionary<string, object>>> GetColumnValuesByIdAsync(int propertyId, int pageSize, int pageNumber);
         Task<ListDto<EntityProperty>> GetAllColumnByEntityIdAsync(int entityId, int pageSize, int pageNumber);
         Task<ListDto<Dictionary<string, object>>> GetAllColumnValuesByEntityIdAsync(int entityId, int pageSize, int pageNumber);
-        ValidationDto<EntityProperty> PropertyValidation(EntityProperty property);
-        Task<ValidationDto<string>> SaveChangesAsync();
+        CustomException PropertyValidation(EntityProperty property);
+        Task SaveChangesAsync();
     }
 
     public class PropertyService : IPropertyService
     {
-        private readonly DataLayer.DbContext.Context _context;
+        private readonly Context _context;
         private readonly DynamicDbContext _dynamicDbContext;
 
-        public PropertyService(DataLayer.DbContext.Context context, DynamicDbContext dynamicDbContext)
+        public PropertyService(Context context, DynamicDbContext dynamicDbContext)
         {
             _context = context;
             _dynamicDbContext = dynamicDbContext;
@@ -105,7 +105,7 @@ namespace Services
             await _context.Property.AddAsync(property);
         }
 
-        public async Task UpdateColumssnInTableAsync(EntityProperty property)
+        public async Task UpdateColumnInTableAsync(EntityProperty property)
         {
             property.DefaultValue.IsValidString();
 
@@ -130,7 +130,7 @@ namespace Services
         public async Task RemoveColumnByIdAsync(int propertyId)
         {
             var property = await _context.Property.Include(x => x.Entity).FirstAsync(x => x.Id == propertyId);
-            var commandText = $"ALTER TABLE {property.Entity.TableName} ;";
+            var commandText = $"ALTER TABLE {property.Entity?.TableName} ;";
             commandText += $"DROP COLUMN {property.PropertyName};";
             await _dynamicDbContext.ExecuteSqlRawAsync(commandText, null);
 
@@ -164,17 +164,17 @@ namespace Services
         {
             var result = await _context.Property.Include(x => x.Entity).FirstAsync(x => x.Id == propertyId);
             int offset = (pageNumber - 1) * pageSize;
-            var commandText = $"SELECT {result.PropertyName} FROM {result.Entity.TableName} {/*ORDER BY [SomeColumn]*/""} OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
-            commandText = commandText.Replace("@TableName", result.Entity.TableName);
+            var commandText = $"SELECT {result.PropertyName} FROM {result.Entity?.TableName} {/*ORDER BY [SomeColumn]*/""} OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+            commandText = commandText.Replace("@TableName", result.Entity?.TableName);
 
             return await _dynamicDbContext.ExecuteReaderAsync(commandText);
         }
 
         public async Task<ListDto<EntityProperty>> GetAllColumnByEntityIdAsync(int entityId, int pageSize, int pageNumber)
         {
-            var query = await _context.Entity.Include(x => x.Properties).FirstAsync(x => x.Id == entityId);
-            var count = query.Properties.Count;
-            var result = query.Properties.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            var query = _context.Property.Where(x => x.EntityId == entityId);
+            var count = await query.CountAsync();
+            var result = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 
             return new ListDto<EntityProperty>(result, count, pageSize, pageNumber);
         }
@@ -188,27 +188,20 @@ namespace Services
             return await _dynamicDbContext.ExecuteReaderAsync(commandText);
         }
 
-        public ValidationDto<EntityProperty> PropertyValidation(EntityProperty property)
+        public CustomException PropertyValidation(EntityProperty property)
         {
-            if (property == null) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", property);
-            if (property.EntityId == 0) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedProperty", property);
-            if (property.PreviewName.IsNullOrEmpty() || !property.PreviewName.IsValidString()) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyPreviewName", property);
-            if (property.PropertyName.IsNullOrEmpty() || !property.PropertyName.IsValidStringCommand()) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyPropertyName", property);
-            if (property.Type.GetType() != new PropertyType().GetType()) return new ValidationDto<EntityProperty>(false, "Property", "CorruptedPropertyType", property);
-            return new ValidationDto<EntityProperty>(true, "Success", "Success", property);
+            var invalidValidation = new CustomException("Property", "CorruptedProperty", property);
+            if (property == null) return invalidValidation;
+            if (property.EntityId == 0) return invalidValidation;
+            if (property.PreviewName.IsNullOrEmpty() || !property.PreviewName.IsValidString()) return invalidValidation;
+            if (property.PropertyName.IsNullOrEmpty() || !property.PropertyName.IsValidStringCommand()) return invalidValidation;
+            if (property.Type.GetType() != new PropertyType().GetType()) return invalidValidation;
+            return new CustomException("Success", "Success", property);
         }
 
-        public async Task<ValidationDto<string>> SaveChangesAsync()
+        public async Task SaveChangesAsync()
         {
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new ValidationDto<string>(true, "Success", "Success", null);
-            }
-            catch (Exception ex)
-            {
-                return new ValidationDto<string>(false, "Form", "CorruptedForm", ex.Message);
-            }
+            await _context.SaveChangesAsync();
         }
     }
 }

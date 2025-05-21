@@ -17,7 +17,7 @@ namespace Services
 {
     public interface INotificationService
     {
-        Task<List<string>> GetallNotification(int RoleId);
+        Task<List<string>> GetAllNotification(int RoleId);
     }
 
     public class NotificationService : INotificationService
@@ -32,7 +32,7 @@ namespace Services
             _htmlService = htmlService;
         }
 
-        public async Task<List<string>> GetallNotification(int RoleId)
+        public async Task<List<string>> GetAllNotification(int RoleId)
         {
             var result = new List<string>();
             // var query1 = "select COUNT(*)  as c from [dbo].[DraftContract]";

@@ -5,26 +5,32 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using Services;
 using System.Text;
 using System.Threading.RateLimiting;
 using Tools.AuthoraizationTools;
+using Serilog.Settings.Configuration;
+using Tools.LoggingTools;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var audience = builder.Configuration["JWTSettings:Audience"] ?? throw new CustomException("Audience در appsettings یافت نشد");
-var accessTokenSecret = builder.Configuration["JWTSettings:AccessTokenSecret"] ?? throw new CustomException("Audience در appsettings یافت نشد");
-var issuer = builder.Configuration["JWTSettings:Issuer"] ?? throw new CustomException("Issuer در appsettings یافت نشد");
-var secure = bool.Parse(builder.Configuration["JWTSettings:Secure"] ?? throw new CustomException("Secure در appsettings یافت نشد"));
+var exceptionJWTSettings = new CustomException("AppSettings", "JWTSettings");
+var audience = builder.Configuration["JWTSettings:Audience"] ?? throw exceptionJWTSettings;
+var accessTokenSecret = builder.Configuration["JWTSettings:AccessTokenSecret"] ?? throw exceptionJWTSettings;
+var issuer = builder.Configuration["JWTSettings:Issuer"] ?? throw exceptionJWTSettings;
+var secure = bool.Parse(builder.Configuration["JWTSettings:Secure"] ?? throw exceptionJWTSettings);
 
-var queueLimit = int.Parse(builder.Configuration["RateLimiter:QueueLimit"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
-var permitLimit = int.Parse(builder.Configuration["RateLimiter:PermitLimit"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
-var window = TimeSpan.Parse(builder.Configuration["RateLimiter:Window"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
 
-var queueLimitLogin = int.Parse(builder.Configuration["RateLimiter:QueueLimitLogin"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
-var permitLimitLogin = int.Parse(builder.Configuration["RateLimiter:PermitLimitLogin"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
-var windowLogin = TimeSpan.Parse(builder.Configuration["RateLimiter:WindowLogin"] ?? throw new CustomException("Issuer در appsettings یافت نشد"));
+var exceptionRateLimiter = new CustomException("AppSettings", "RateLimiter");
+var queueLimit = int.Parse(builder.Configuration["RateLimiter:QueueLimit"] ?? throw exceptionRateLimiter);
+var permitLimit = int.Parse(builder.Configuration["RateLimiter:PermitLimit"] ?? throw exceptionRateLimiter);
+var window = TimeSpan.Parse(builder.Configuration["RateLimiter:Window"] ?? throw exceptionRateLimiter);
+
+var queueLimitLogin = int.Parse(builder.Configuration["RateLimiter:QueueLimitLogin"] ?? throw exceptionRateLimiter);
+var permitLimitLogin = int.Parse(builder.Configuration["RateLimiter:PermitLimitLogin"] ?? throw exceptionRateLimiter);
+var windowLogin = TimeSpan.Parse(builder.Configuration["RateLimiter:WindowLogin"] ?? throw exceptionRateLimiter);
 
 
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -62,7 +68,7 @@ builder.Services.AddRateLimiter(options =>
     // response of error
     options.OnRejected = (context, token) =>
     {
-        var ex = new CustomException<object>(new FrameWork.Model.DTO.ValidationDto<object>(false, "Authentication", "TooManyRequests", null), 429);
+        var ex = new CustomException("Authentication", "TooManyRequests", null);
         throw ex;
     };
 });
@@ -101,7 +107,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 //Add-Migration InitialCreate -Context Context
 //Update-Database InitialCreate -Context Context
-builder.Services.AddDbContext<DataLayer.DbContext.Context>(options =>
+builder.Services.AddDbContext<Context>(options =>
            options.UseSqlServer(builder.Configuration.GetConnectionString("Basic")));
 
 //Add-Migration InitialCreate -DbContext DynamicDbContext
@@ -125,6 +131,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.RequireHttpsMetadata = true;
     });
 
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration.ReadFrom.Configuration(context.Configuration, new ConfigurationReaderOptions())
+    .Enrich.FromLogContext();
+});
+builder.Host.UseSerilog();
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
+Log.Information("Application Starting...");
+
 builder.Services.AddScoped<Context>();
 builder.Services.AddScoped<DynamicDbContext>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -139,6 +157,7 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IHtmlService, HtmlService>();
 builder.Services.AddScoped<IMenuElementService, MenuElementService>();
 builder.Services.AddScoped<IEntityRelationService, EntityRelationService>();
+builder.Services.AddSingleton<Logging>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddSingleton<TokenGenerator>();
 builder.Services.AddSingleton<EncryptionTool>();
@@ -160,6 +179,7 @@ headers.AddRange(["Content-Type", "Authorization", "User-Agent"]);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseSerilogRequestLogging();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 if (app.Environment.IsDevelopment())
 {

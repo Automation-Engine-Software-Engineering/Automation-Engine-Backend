@@ -1,4 +1,5 @@
 ﻿using DataLayer.DbContext;
+using Entities.Models.Enums;
 using Entities.Models.MainEngine;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
@@ -14,35 +15,35 @@ namespace Services
 {
     public interface IRoleUserService
     {
-        Task InsertRoleUser(Role_User roleUser);
-        Task UpdateRoleUser(Role_User roleUser);
-        Task DeleteRoleUser(int id);
-        Task<Role_User> GetRoleUserById(int userId);
-        Task<ListDto<Role_User>> GetRoleUserByUserId(int userId, int pageSize, int pageNumber);
-        Task<ListDto<Role_User>> GetAllRoleUsers(int pageSize, int pageNumber);
-        Task<ValidationDto<Role_User>> RoleUserValidation(Role_User roleUser);
+        Task InsertRoleUserAsync(Role_User roleUser);
+        Task UpdateRoleUserAsync(Role_User roleUser);
+        Task DeleteRoleUserAsync(int id);
+        Task<Role_User> GetRoleUserByIdAsync(int userId);
+        Task<ListDto<Role_User>> GetRoleUserByUserIdAsync(int userId, int pageSize, int pageNumber);
+        Task<ListDto<Role_User>> GetAllRoleUsersAsync(int pageSize, int pageNumber);
+        CustomException RoleUserValidation(Role_User roleUser);
         Task InsertRangeUserRole(List<Role_User> Users);
         Task ReplaceUserRolesByRoleId(int RoleId, List<int> UserIds);
-        Task<ValidationDto<string>> SaveChangesAsync();
+        Task SaveChangesAsync();
     }
 
     public class RoleUserService : IRoleUserService
     {
-        private readonly DataLayer.DbContext.Context _context;
+        private readonly Context _context;
 
-        public RoleUserService(DataLayer.DbContext.Context context)
+        public RoleUserService(Context context)
         {
             _context = context;
         }
 
-        public async Task InsertRoleUser(Role_User roleUser)
+        public async Task InsertRoleUserAsync(Role_User roleUser)
         {
             await _context.Role_Users.AddAsync(roleUser);
         }
 
-        public async Task UpdateRoleUser(Role_User roleUser)
+        public async Task UpdateRoleUserAsync(Role_User roleUser)
         {
-            var existingRoleUser = await _context.Role_Users.FirstOrDefaultAsync(x => x.Id == roleUser.Id);
+            var existingRoleUser = await _context.Role_Users.FirstAsync(x => x.Id == roleUser.Id);
 
             existingRoleUser.RoleId = roleUser.RoleId;
             existingRoleUser.UserId = roleUser.UserId;
@@ -66,21 +67,21 @@ namespace Services
             await InsertRangeUserRole(newRoleWorkflows);
         }
 
-        public async Task DeleteRoleUser(int id)
+        public async Task DeleteRoleUserAsync(int id)
         {
-            var roleUser = await _context.Role_Users.FirstOrDefaultAsync(x => x.Id == id);
+            var roleUser = await _context.Role_Users.FirstAsync(x => x.Id == id);
 
             _context.Role_Users.Remove(roleUser);
         }
 
-        public async Task<Role_User> GetRoleUserById(int id)
+        public async Task<Role_User?> GetRoleUserByIdAsync(int id)
         {
             var roleUser = await _context.Role_Users.FirstOrDefaultAsync(x => x.Id == id);
 
             return roleUser;
         }
 
-        public async Task<ListDto<Role_User>> GetAllRoleUsers(int pageSize, int pageNumber)
+        public async Task<ListDto<Role_User>> GetAllRoleUsersAsync(int pageSize, int pageNumber)
         {
             var query = _context.Role_Users;
 
@@ -90,40 +91,22 @@ namespace Services
             return new ListDto<Role_User>(items, count, pageSize, pageNumber);
         }
 
-        public async Task<ValidationDto<Role_User>> RoleUserValidation(Role_User roleUser)
+        public CustomException RoleUserValidation(Role_User roleUser)
         {
-            if (roleUser == null)
-            {
-                return new ValidationDto<Role_User>(false, "RoleUser", "InvalidRoleUser", roleUser);
-            }
+            var invalidValidation = new CustomException("Property", "CorruptedProperty", roleUser);
+            if (roleUser == null) return invalidValidation;
+            if (roleUser.RoleId == 0 || roleUser.Role == null) return invalidValidation;
+            if (roleUser.UserId == 0) return invalidValidation;
+           return new CustomException("Success", "Success", roleUser);
 
-            if (roleUser.RoleId == 0 || roleUser.Role == null)
-            {
-                return new ValidationDto<Role_User>(false, "RoleUser", "InvalidRole", roleUser);
-            }
+          }
 
-            if (roleUser.UserId == 0)
-            {
-                return new ValidationDto<Role_User>(false, "RoleUser", "InvalidUser", roleUser);
-            }
-
-            return new ValidationDto<Role_User>(true, "Success", "ValidationPassed", roleUser);
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
         }
 
-        public async Task<ValidationDto<string>> SaveChangesAsync()
-        {
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new ValidationDto<string>(true, "Success", "ChangesSaved", null);
-            }
-            catch (Exception ex)
-            {
-                return new ValidationDto<string>(false, "Error", "SaveFailed", ex.Message);
-            }
-        }
-
-        public async Task<ListDto<Role_User>> GetRoleUserByUserId(int userId, int pageSize, int pageNumber)
+        public async Task<ListDto<Role_User>> GetRoleUserByUserIdAsync(int userId, int pageSize, int pageNumber)
         {
             var query = _context.Role_Users.Where(x => x.UserId == userId);
             var count = await query.CountAsync();

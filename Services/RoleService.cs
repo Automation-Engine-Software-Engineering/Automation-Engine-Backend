@@ -18,77 +18,49 @@ namespace Services
 {
     public interface IRoleService
     {
-        Task<(User User, int? RoleId)> Login(string userName, string password);
-        Task<List<Workflow>> GetWorkflowsByRole(int roleId);
-        Task<List<Workflow_User>> GetWorkflowUsersByRole(int userId);
-        Task<Role> GetRoleByUser(int userId);
+        Task<List<Workflow?>> GetWorkflowsByRoleAsync(int roleId);
+        Task<List<Workflow_User>> GetWorkflowUsersByRoleAsync(int userId);
+        Task<Role?> GetRoleByUserAsync(int userId);
         Task InsertRoleAsync(Role role);
         Task UpdateRoleAsync(Role role);
         Task DeleteRoleAsync(int id);
-        Task<Role> GetRoleByIdAsync(int id);
+        Task<Role?> GetRoleByIdAsync(int id);
         Task<ListDto<Role>> GetAllRolesAsync(int pageSize, int pageNumber);
-        Task<ValidationDto<Role>> RoleValidationAsync(Role role);
-        Task<ValidationDto<string>> SaveChangesAsync();
-        Task<ListDto<IsAccessModel>> GetAllUserForRoleAccess(int roleId, int pageSize, int pageNumber);
+        CustomException RoleValidation(Role role);
+        Task SaveChangesAsync();
+        Task<ListDto<IsAccessModel>> GetAllUserForRoleAccessAsync(int roleId, int pageSize, int pageNumber);
     }
     public class RoleService : IRoleService
     {
         private readonly Context _context;
         private readonly DynamicDbContext _dynamicContext;
 
-        public RoleService(DataLayer.DbContext.Context context, DynamicDbContext dynamicContext)
+        public RoleService(Context context, DynamicDbContext dynamicContext)
         {
             _context = context;
             _dynamicContext = dynamicContext;
         }
 
-        public async Task<Role> GetRoleByUser(int userId)
+        public async Task<Role?> GetRoleByUserAsync(int userId)
         {
-            if (userId == 0) throw new CustomException("فرد یافت نشد.");
-            var roleUser = await _context.Role_Users.Include(x => x.Role).FirstOrDefaultAsync(x => x.UserId == userId)
-              ?? throw new CustomException("نقش مورد نظر یافت نشد.");
-
-            return roleUser.Role;
+            var roleUser = await _context.Role_Users.Include(x => x.Role).FirstOrDefaultAsync(x => x.UserId == userId);
+            return roleUser?.Role;
         }
 
-        public async Task<List<Workflow>> GetWorkflowsByRole(int roleId)
+        public async Task<List<Workflow?>> GetWorkflowsByRoleAsync(int roleId)
         {
-            if (roleId == 0) throw new CustomException("نقش یافت نشد.");
-
-            var RoleWorkflow = await _context.Role_Workflows.Include(x => x.Workflow).Where(x => x.RoleId == roleId).ToListAsync()
-                ?? throw new CustomException("نقش یافت نشد.");
-
+            var RoleWorkflow = await _context.Role_Workflows.Include(x => x.Workflow).Where(x => x.RoleId == roleId).ToListAsync();
             var Workflows = RoleWorkflow.Select(x => x.Workflow).ToList();
 
             return Workflows;
         }
 
-        public async Task<List<Workflow_User>> GetWorkflowUsersByRole(int userId)
+        public async Task<List<Workflow_User>> GetWorkflowUsersByRoleAsync(int userId)
         {
-            if (userId == 0) throw new CustomException("فرد یافت نشد.");
-            var workflowUser = await _context.Workflow_User.Where(x => x.UserId == userId).ToListAsync()
-                ?? throw new CustomException("نقش یافت نشد.");
-
+            var workflowUser = await _context.Workflow_User.Where(x => x.UserId == userId).ToListAsync();
             return workflowUser;
         }
 
-        public async Task<(User User, int? RoleId)> Login(string userName, string password)
-        {
-            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password)) throw new CustomException("نام کاربری و رمز عبور نمی تواند خالی باشد");
-
-            var user = await _dynamicContext.User.SingleOrDefaultAsync(x => x.UserName == userName)
-                   ?? throw new CustomException<object>(new ValidationDto<object>(false, "Authentication", "Login", null), 401);
-
-            if (!user.Password.IsNullOrEmpty())
-            {
-                var hashPassword = HashString.HashPassword(password, user.Salt);
-                if (hashPassword != user.Password)
-                    throw new CustomException<object>(new ValidationDto<object>(false, "Authentication", "Login", null), 401);
-            }
-            var roleUser = await _context.Role_Users.FirstOrDefaultAsync(x => x.UserId == user.Id);
-
-            return (user, roleUser?.RoleId);
-        }
         public async Task InsertRoleAsync(Role role)
         {
             await _context.Roles.AddAsync(role);
@@ -96,7 +68,7 @@ namespace Services
 
         public async Task UpdateRoleAsync(Role role)
         {
-            var existingRole = await _context.Roles.FirstOrDefaultAsync(x => x.Id == role.Id);
+            var existingRole = await _context.Roles.FirstAsync(x => x.Id == role.Id);
 
             existingRole.Name = role.Name;
             existingRole.Description = role.Description;
@@ -105,11 +77,11 @@ namespace Services
 
         public async Task DeleteRoleAsync(int id)
         {
-            var role = await _context.Roles.FirstOrDefaultAsync(x => x.Id == id);
+            var role = await _context.Roles.FirstAsync(x => x.Id == id);
             _context.Roles.Remove(role);
         }
 
-        public async Task<Role> GetRoleByIdAsync(int id)
+        public async Task<Role?> GetRoleByIdAsync(int id)
         {
             var role = await _context.Roles.FirstOrDefaultAsync(x => x.Id == id);
             return role;
@@ -125,40 +97,31 @@ namespace Services
             return new ListDto<Role>(items, count, pageSize, pageNumber);
         }
 
-        public async Task<ValidationDto<Role>> RoleValidationAsync(Role role)
+        public CustomException RoleValidation(Role role)
         {
-            if (role == null) return new ValidationDto<Role>(false, "Role", "InvalidRole", role);
-            if (string.IsNullOrWhiteSpace(role.Name)) return new ValidationDto<Role>(false, "Role", "InvalidName", role);
-            if (string.IsNullOrWhiteSpace(role.Description)) return new ValidationDto<Role>(false, "Role", "InvalidDescription", role);
-            return new ValidationDto<Role>(true, "Success", "ValidationPassed", role);
+            var invalidRole = new CustomException("Role", "InvalidRole", role);
+            if (role == null) return invalidRole;
+            if (string.IsNullOrWhiteSpace(role.Name)) return invalidRole;
+            if (string.IsNullOrWhiteSpace(role.Description)) return invalidRole;
+            return new CustomException("Success", "Success", role);
         }
 
-        public async Task<ValidationDto<string>> SaveChangesAsync()
+        public async Task SaveChangesAsync()
         {
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new ValidationDto<string>(true, "Success", "ChangesSaved", null);
-            }
-            catch (Exception ex)
-            {
-                return new ValidationDto<string>(false, "Error", "SaveFailed", ex.Message);
-            }
+            await _context.SaveChangesAsync();
         }
 
-
-        public async Task<ListDto<IsAccessModel>> GetAllUserForRoleAccess(int roleId, int pageSize, int pageNumber)
+        public async Task<ListDto<IsAccessModel>> GetAllUserForRoleAccessAsync(int roleId, int pageSize, int pageNumber)
         {
             var roles = await _context.Roles.Include(x => x.role_User)
-            .FirstOrDefaultAsync(x => x.Id == roleId);
+            .FirstAsync(x => x.Id == roleId);
 
             var users = await _dynamicContext.User.Skip((pageNumber - 1) * pageSize).Take(pageSize)
             .ToListAsync();
 
+            var result = users.Select(x => new IsAccessModel() { Id = x.Id, Name = x.Name, IsAccess = roles.role_User.Any(xx => xx.UserId == x.Id), UserName = x.UserName }).ToList();
 
-            var result = users.Select(x => new IsAccessModel() { Id = x.Id, Name = x.Name, IsAccess =  roles.role_User.Any(xx => xx.UserId == x.Id) ? true : false  , UserName = x.UserName}).ToList();
-
-            var list = new ListDto<IsAccessModel>(result, result.Count, pageSize = pageSize, pageNumber = pageNumber);
+            var list = new ListDto<IsAccessModel>(result, result.Count, pageSize, pageNumber);
 
             return list;
         }
