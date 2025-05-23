@@ -123,7 +123,7 @@ namespace AutomationEngine.Controllers
 
             if (user.Password.IsNullOrEmpty())
             {
-                if (username != user.Password)
+                if (username != user.UserName)
                     throw new CustomException("Authentication", "LoginFailed");
             }
             else
@@ -143,8 +143,11 @@ namespace AutomationEngine.Controllers
             var claims = await HttpContext.AuthorizeRefreshToken();
             var user = await _userService.GetUserByIdAsync(claims.UserId);
 
+            if(user == null)
+                throw new CustomException("Authentication", "NotAuthorized");
+
             if (user.RefreshToken != claims.Token)
-                throw new CustomException("Authentication", "LoginFailed");
+                throw new CustomException("Authentication", "NotAuthorized");
 
             var tokens = GenerateTokens(user, claims.RoleId);
 
@@ -223,6 +226,9 @@ namespace AutomationEngine.Controllers
         {
             var claims = await HttpContext.Authorize();
             var user = await _userService.GetUserByIdAsync(claims.UserId);
+            if(user == null)
+                throw new CustomException("Authentication", "NotAuthorized");
+
             var data = new UserDashboardViewModel
             {
                 Id = user.Id,
