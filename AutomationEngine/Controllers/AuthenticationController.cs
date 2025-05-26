@@ -137,7 +137,6 @@ namespace AutomationEngine.Controllers
         }
         // POST: api/generateToken
         [HttpGet("generateToken")]
-        [EnableRateLimiting("LoginRateLimit")]
         public async Task<ResultViewModel<TokenResultViewModel>> GenerateToken()
         {
             var claims = await HttpContext.AuthorizeRefreshToken();
@@ -233,7 +232,8 @@ namespace AutomationEngine.Controllers
             {
                 Id = user.Id,
                 Name = user.Name,
-                NeedNewPassword = false
+                NeedNewPassword = false,
+                Description = "تست\nتست",
                 //NeedNewPassword = user.Password.IsNullOrEmpty()
             };
             return new ResultViewModel<UserDashboardViewModel>(data);
