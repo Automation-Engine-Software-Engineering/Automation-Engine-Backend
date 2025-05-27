@@ -56,7 +56,7 @@ namespace AutomationEngine.Controllers
 
             await _MenuService.InsertMenuElement(fetchModal);
             await _MenuService.SaveChangesAsync();
-            
+
             return new ResultViewModel<MenuElementInsertDTO>(MenuElement);
         }
 
@@ -86,7 +86,7 @@ namespace AutomationEngine.Controllers
 
             await _MenuService.UpdateMenuElement(result);
             await _MenuService.SaveChangesAsync();
-            return new ResultViewModel<MenuElement?> (result);
+            return new ResultViewModel<MenuElement?>(result);
         }
 
         // POST: api/form/delete  
@@ -134,7 +134,7 @@ namespace AutomationEngine.Controllers
             if ((((pageSize * pageNumber) - forms.TotalCount) > pageSize) && (pageSize * pageNumber) > forms.TotalCount)
                 throw new CustomException("Form", "CorruptedInvalidPage");
 
-            return new ResultViewModel<IEnumerable<MenuElement>>(forms.Data,forms.ListNumber,forms.ListSize,forms.TotalCount);
+            return new ResultViewModel<IEnumerable<MenuElement>>(forms.Data, forms.TotalCount, forms.ListSize, forms.ListNumber);
         }
 
     }

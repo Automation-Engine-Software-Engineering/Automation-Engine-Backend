@@ -91,6 +91,7 @@
         "CorruptedUserWorkflowDes": "خطا در توضیحات گردشکار وجود دارد"
       },
       "404": {
+        "WorkflowNodeNotfound": "گره ای برای این گردشکار یافت نشد",
         "UserWorkflowNotfound": "گردشکار یافت نشد"
       }
     },

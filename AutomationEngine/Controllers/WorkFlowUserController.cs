@@ -40,7 +40,9 @@ namespace AutomationEngine.Controllers
             var workflow = await _workflowService.GetWorkflowByIdAsync(workflowUser.WorkflowId);
 
             var claims = await HttpContext.Authorize();
-         
+
+            if (workflow.Nodes?.Count == 0)
+                throw new CustomException("UserWorkflow", "WorkflowNodeNotfound");
             var result = new Workflow_User()
             {
                 UserId = claims.UserId,

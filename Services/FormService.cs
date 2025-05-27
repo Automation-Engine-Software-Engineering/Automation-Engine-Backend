@@ -291,8 +291,9 @@ namespace Services
             var tags = _htmlService.FindHtmlTag(htmlBody, "table", new List<string> { "data-tableid", "data-condition", "data-filter", "data-relation" });
             foreach (var tag in tags)
             {
-                var match = Regex.Match(tag, @"id\s*=\s*['"" ]([^'"" ]+)['"" ]");
+                var match = Regex.Match(tag, @"\bid\s*=\s*['""]([^'""]+)['""]");
                 var id = match.Groups[1].Value;
+
                 var properyName = "";
                 var properyType = new Entities.Models.Enums.PropertyType();
                 var SearchValue = "";
