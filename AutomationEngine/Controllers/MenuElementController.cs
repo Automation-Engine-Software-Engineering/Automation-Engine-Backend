@@ -77,7 +77,7 @@ namespace AutomationEngine.Controllers
                 link = MenuElement.link,
                 ParentMenuElemntId = MenuElement.ParentMenuElemntId,
                 RoleId = MenuElement.RoleId,
-                WorkflowId = MenuElement.WorkflowId
+                WorkflowId = MenuElement.WorkflowId == 0 ? null : MenuElement.WorkflowId
             };
 
             //is validation model
