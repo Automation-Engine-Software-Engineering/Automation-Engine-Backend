@@ -1,16 +1,6 @@
-﻿using DataLayer.DbContext;
-using FrameWork.ExeptionHandler.ExeptionModel;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+﻿using FrameWork.ExeptionHandler.ExeptionModel;
 using Serilog;
-using Services;
-using System.Text;
-using System.Threading.RateLimiting;
 using Tools.AuthoraizationTools;
-using Serilog.Settings.Configuration;
-using Tools.LoggingTools;
 using AutomationEngine.CustomMiddlewares.Security;
 using AutomationEngine.CustomMiddlewares.Configuration;
 using AutomationEngine.CustomMiddlewares.Extensions;
