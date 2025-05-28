@@ -1,5 +1,6 @@
 ﻿using DataLayer.DbContext;
 using Entities.Models.Enums;
+using Entities.Models.MainEngine;
 using Entities.Models.Workflows;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using FrameWork.Model.DTO;
@@ -40,139 +41,83 @@ namespace AutomationEngine.ControllerAttributes
     }
     public static class Authorization
     {
-        public static async Task<TokenClaims> Authorize(this HttpContext httpContext, int? workflowId = null)
+        private static T GetDependencyService<T>(this HttpContext httpContext)
         {
-            // گرفتن از Dependency Injection
             var exceptionService = new CustomException("Service", "ServiceNotFound");
-            var userService = httpContext.RequestServices.GetService<IUserService>() ?? throw exceptionService;
-            var tokenGeneratorService = httpContext.RequestServices.GetService<TokenGenerator>() ?? throw exceptionService;
-            var encryptionToolService = httpContext.RequestServices.GetService<EncryptionTool>() ?? throw exceptionService;
-            var workflowService = httpContext.RequestServices.GetService<IWorkflowService>() ?? throw exceptionService;
+            return httpContext.RequestServices.GetService<T>() ?? throw exceptionService;
+        }
 
-            //ویندوز: cmd: set ASPNETCORE_ENVIRONMENT = Production
-            var environment = httpContext.RequestServices.GetService<IWebHostEnvironment>();
-            if (environment != null && environment.IsDevelopment())
-            {
-                var tokenAuthorization = httpContext.Request.Headers["Authorization"].ToString();
-                // در حالت Development هیچ چکی انجام نمی شود
-                var claimsAuthorization = tokenGeneratorService.ValidateToken(tokenAuthorization, false, false);
-                var userIdAuthorization = claimsAuthorization?.FindFirstValue(nameof(TokenClaims.UserId));
-                var roleIdAuthorization = claimsAuthorization?.FindFirstValue(nameof(TokenClaims.RoleId));
+        private static TokenClaims GetTokenClaims(ClaimsPrincipal claims, string token)
+        {
+            var userIdClaim = claims?.FindFirstValue(nameof(TokenClaims.UserId));
+            var roleIdClaim = claims?.FindFirstValue(nameof(TokenClaims.RoleId));
 
-                var tokenClaim = new TokenClaims
-                {
-                    UserId = userIdAuthorization.IsNullOrWhiteSpace() ? 0 : int.Parse(userIdAuthorization),
-                    RoleId = roleIdAuthorization.IsNullOrWhiteSpace() ? 0 : int.Parse(roleIdAuthorization),
-                    Token = tokenAuthorization.Replace("Bearer ", "")
-                };
-                return tokenClaim;
-            }
-            // چک کردن توکن
-            //var encryptedToken = httpContext.Request.Cookies["access_token"];
-            //var token = encryptionToolService.DecryptCookie(encryptedToken);
-            var token = httpContext.Request.Headers["Authorization"].ToString();
-
-            if (token == null || token.IsNullOrWhiteSpace())
-                throw new CustomException("Authentication", "NotAuthorized");
-
-            var claims = tokenGeneratorService.ValidateToken(token);
-
-            var userIdClaim = claims.FindFirstValue(nameof(TokenClaims.UserId));
-            var roleIdClaim = claims.FindFirstValue(nameof(TokenClaims.RoleId));
-
-            var tokenClaims = new TokenClaims
+            return new TokenClaims
             {
                 UserId = userIdClaim.IsNullOrWhiteSpace() ? 0 : int.Parse(userIdClaim),
                 RoleId = roleIdClaim.IsNullOrWhiteSpace() ? 0 : int.Parse(roleIdClaim),
                 Token = token.Replace("Bearer ", "")
             };
+        }
 
-            var user = await userService.GetUserByIdAsync(tokenClaims.UserId);
-
+        private static async Task<User> GetUserAsync(IUserService userService, int userId)
+        {
+            var user = await userService.GetUserByIdAsync(userId);
             if (user == null)
-                throw new CustomException("User","UserNotFound");
+                throw new CustomException("Authentication", "NotAuthorized");
+            return user;
+        }
 
+        private static void ValidateUserAgent(User user, HttpContext httpContext)
+        {
             var currentIp = httpContext.GetIP();
             var currentUserAgent = httpContext.GetUserAgent();
             if (user.IP != currentIp || user.UserAgent != currentUserAgent)
             {
                 throw new CustomException("Authentication", "NotAuthorized", (currentIp, currentUserAgent));
             }
+        }
 
-            // چک کردن دسترسی به Workflow
-            var roleId = tokenClaims.RoleId;
+        private static async Task<TokenClaims> AuthorizeCommon(this HttpContext httpContext, bool isRefreshToken = false, int? workflowId = null)
+        {
+            var userService = httpContext.GetDependencyService<IUserService>();
+            var tokenGeneratorService = httpContext.GetDependencyService<TokenGenerator>();
+            var environment = httpContext.GetDependencyService<IWebHostEnvironment>();
+            var workflowService = httpContext.GetDependencyService<IWorkflowService>();
+
+            if (environment != null && environment.IsDevelopment())
+            {
+                var tokenAuthorization = httpContext.Request.Headers["Authorization"].ToString();
+                var claimsAuthorization = tokenGeneratorService.ValidateToken(tokenAuthorization, isRefreshToken, false);
+                return GetTokenClaims(claimsAuthorization, tokenAuthorization);
+            }
+
+            var token = httpContext.Request.Headers["Authorization"].ToString();
+            if (token.IsNullOrWhiteSpace())
+                throw new CustomException("Authentication", "NotAuthorized");
+
+            var claims = tokenGeneratorService.ValidateToken(token, isRefreshToken);
+            var tokenClaims = GetTokenClaims(claims, token);
+
+            var user = await GetUserAsync(userService, tokenClaims.UserId);
+            ValidateUserAgent(user, httpContext);
 
             if (workflowId != null)
             {
                 var workflow = await workflowService.GetWorkflowIncRolesById(workflowId.Value);
-                var hasAccess = workflow.Role_Workflows.Any(x => x.RoleId == roleId);
+                var hasAccess = workflow.Role_Workflows?.Any(x => x.RoleId == tokenClaims.RoleId) ?? false;
                 if (!hasAccess)
-                {
-                    throw new CustomException("Authentication", "NotAuthorized", (currentIp, currentUserAgent));
-                }
-            }
-            return tokenClaims;
-        }
-        public static async Task<TokenClaims> AuthorizeRefreshToken(this HttpContext httpContext)
-        {
-            // گرفتن از Dependency Injection
-            var exceptionService = new CustomException("Service", "ServiceNotFound");
-            var userService = httpContext.RequestServices.GetService<IUserService>() ?? throw exceptionService;
-            var tokenGeneratorService = httpContext.RequestServices.GetService<TokenGenerator>() ?? throw exceptionService;
-            var encryptionToolService = httpContext.RequestServices.GetService<EncryptionTool>() ?? throw exceptionService;
-            
-            //ویندوز: cmd: set ASPNETCORE_ENVIRONMENT = Production
-            var environment = httpContext.RequestServices.GetService<IWebHostEnvironment>();
-            if (environment != null && environment.IsDevelopment())
-            {
-                var tokenAuthorization = httpContext.Request.Headers["Authorization"].ToString();
-                // در حالت Development هیچ چکی انجام نمی شود
-                var claimsAuthorization = tokenGeneratorService.ValidateToken(tokenAuthorization, true, false);
-                var userId = claimsAuthorization.FindFirstValue(nameof(TokenClaims.UserId));
-                var roleId = claimsAuthorization?.FindFirstValue(nameof(TokenClaims.RoleId));
-
-                var tokenClaim = new TokenClaims
-                {
-                    UserId = userId.IsNullOrWhiteSpace() ? 0 : int.Parse(userId),
-                    RoleId = roleId.IsNullOrWhiteSpace() ? 0 : int.Parse(roleId),
-                    Token = tokenAuthorization.Replace("Bearer ","")
-                };
-                return tokenClaim;
-            }
-            // چک کردن توکن
-            //var encryptedToken = httpContext.Request.Cookies["refresh_token"];
-            //var token = encryptionToolService.DecryptCookie(encryptedToken);
-
-            var token = httpContext.Request.Headers["Authorization"].ToString();
-
-            if (token == null || token.IsNullOrWhiteSpace())
-                throw new CustomException("Authentication", "NotAuthorized");
-
-            var claims = tokenGeneratorService.ValidateToken(token,true);
-
-            var userIdClaim = claims.FindFirstValue(nameof(TokenClaims.UserId));
-            var roleIdClaim = claims.FindFirstValue(nameof(TokenClaims.RoleId));
-
-            var tokenClaims = new TokenClaims
-            {
-                UserId = userIdClaim.IsNullOrWhiteSpace() ? 0 : int.Parse(userIdClaim),
-                RoleId = roleIdClaim.IsNullOrWhiteSpace() ? 0 : int.Parse(roleIdClaim),
-                Token = token.Replace("Bearer ", "")
-            };
-
-            var user = await userService.GetUserByIdAsync(tokenClaims.UserId);
-
-            if (user == null)
-                throw new CustomException("User", "UserNotFound");
-
-            var currentIp = httpContext.GetIP();
-            var currentUserAgent = httpContext.GetUserAgent();
-            if (user.IP != currentIp || user.UserAgent != currentUserAgent)
-            {
-                throw new CustomException("Authentication", "NotAuthorized", (currentIp, currentUserAgent));
+                    throw new CustomException("Authentication", "NotAuthorized", (httpContext.GetIP(), httpContext.GetUserAgent()));
             }
 
             return tokenClaims;
         }
+
+        public static Task<TokenClaims> Authorize(this HttpContext httpContext, int? workflowId = null) =>
+            httpContext.AuthorizeCommon(false, workflowId);
+
+        public static Task<TokenClaims> AuthorizeRefreshToken(this HttpContext httpContext) =>
+            httpContext.AuthorizeCommon(true);
     }
+
 }

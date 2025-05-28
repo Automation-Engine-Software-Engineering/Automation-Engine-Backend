@@ -1,5 +1,4 @@
-﻿using AutomationEngine.CustomMiddlewares;
-using DataLayer.DbContext;
+﻿using DataLayer.DbContext;
 using FrameWork.ExeptionHandler.ExeptionModel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -12,217 +11,40 @@ using System.Threading.RateLimiting;
 using Tools.AuthoraizationTools;
 using Serilog.Settings.Configuration;
 using Tools.LoggingTools;
+using AutomationEngine.CustomMiddlewares.Security;
+using AutomationEngine.CustomMiddlewares.Configuration;
+using AutomationEngine.CustomMiddlewares.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-var exceptionJWTSettings = new CustomException("AppSettings", "JWTSettings");
-var audience = builder.Configuration["JWTSettings:Audience"] ?? throw exceptionJWTSettings;
-var accessTokenSecret = builder.Configuration["JWTSettings:AccessTokenSecret"] ?? throw exceptionJWTSettings;
-var issuer = builder.Configuration["JWTSettings:Issuer"] ?? throw exceptionJWTSettings;
-var secure = bool.Parse(builder.Configuration["JWTSettings:Secure"] ?? throw exceptionJWTSettings);
-
-
-var exceptionRateLimiter = new CustomException("AppSettings", "RateLimiter");
-var queueLimit = int.Parse(builder.Configuration["RateLimiter:QueueLimit"] ?? throw exceptionRateLimiter);
-var permitLimit = int.Parse(builder.Configuration["RateLimiter:PermitLimit"] ?? throw exceptionRateLimiter);
-var window = TimeSpan.Parse(builder.Configuration["RateLimiter:Window"] ?? throw exceptionRateLimiter);
-
-var queueLimitLogin = int.Parse(builder.Configuration["RateLimiter:QueueLimitLogin"] ?? throw exceptionRateLimiter);
-var permitLimitLogin = int.Parse(builder.Configuration["RateLimiter:PermitLimitLogin"] ?? throw exceptionRateLimiter);
-var windowLogin = TimeSpan.Parse(builder.Configuration["RateLimiter:WindowLogin"] ?? throw exceptionRateLimiter);
-
+var audience = builder.Configuration["JWTSettings:Audience"] ?? throw new CustomException("AppSettings", "JWTSettings");
+var headers = RequestHeaderHandler.ipHeaders.ToList();
+headers.AddRange(["Content-Type", "Authorization", "User-Agent"]);
 
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 Console.WriteLine($"Current Environment: {environment}");
 
-builder.Services.AddRateLimiter(options =>
-{
-    // محدودیت سراسری: حداکثر 5 درخواست در هر 10 ثانیه
-    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
-    {
-        return RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: context.GetIP(),
-            factory: partition => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = permitLimit, // تعداد درخواست مجاز
-                Window = window, // بازه زمانی
-                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                QueueLimit = queueLimit,// حداکثر تعداد درخواست در صف
-                AutoReplenishment = true
-            });
-    });
-    options.AddPolicy("LoginRateLimit", context =>
-       RateLimitPartition.GetFixedWindowLimiter(
-           context.GetIP(),
-           partition => new FixedWindowRateLimiterOptions
-           {
-               PermitLimit = permitLimitLogin,
-               Window = windowLogin, // بازه زمانی
-               QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-               QueueLimit = queueLimitLogin,
-               AutoReplenishment = true
-           }
-       )
-   );
-    // response of error
-    options.OnRejected = (context, token) =>
-    {
-        var ex = new CustomException("Authentication", "TooManyRequests", null);
-        throw ex;
-    };
-});
-
-builder.Services.AddControllers();
+builder.Services.AddAntiforgery();
+builder.Services.AddCustomAntiforgery();
+builder.Services.ConfigureRateLimiter(builder.Configuration);
+builder.Services.ConfigureJwtAuthentication(builder.Configuration);
+builder.Services.AddApplicationLogging(builder.Configuration);
+builder.Services.AddApplicationServices();
+builder.Services.SQLDatabaseConfig(builder.Configuration);
+builder.Services.AddSwaggerConfig();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Automaition Engine", Version = "v1" });
-
-    // تعریف Authorization
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Enter your token in the text input below.\n\nExample: 'Bearer 12345abcdef'"
-    });
-
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-        {
-            {
-                new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                },
-                new string[] {}
-            }
-        });
-});
-//Add-Migration InitialCreate -Context Context
-//Update-Database InitialCreate -Context Context
-builder.Services.AddDbContext<Context>(options =>
-           options.UseSqlServer(builder.Configuration.GetConnectionString("Basic")));
-
-//Add-Migration InitialCreate -DbContext DynamicDbContext
-//Update-Database InitialCreate -DbContext DynamicDbContext
-builder.Services.AddDbContext<DynamicDbContext>(options =>
-           options.UseSqlServer(builder.Configuration.GetConnectionString("Dynamic")));
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = issuer,
-            ValidAudience = audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(accessTokenSecret))
-        };
-        options.RequireHttpsMetadata = true;
-    });
-
-builder.Host.UseSerilog((context, services, configuration) =>
-{
-    configuration.ReadFrom.Configuration(context.Configuration, new ConfigurationReaderOptions())
-    .Enrich.FromLogContext();
-});
-builder.Host.UseSerilog();
-Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
-    .Enrich.FromLogContext()
-    .CreateLogger();
-Log.Information("Application Starting...");
-
-builder.Services.AddScoped<Context>();
-builder.Services.AddScoped<DynamicDbContext>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IFormService, FormService>();
-builder.Services.AddScoped<IEntityService, EntityService>();
-builder.Services.AddScoped<IPropertyService, PropertyService>();
-builder.Services.AddScoped<IWorkflowService, WorkflowService>();
-builder.Services.AddScoped<IWorkflowUserService, WorkflowUserService>();
-builder.Services.AddScoped<IWorkflowRoleService, WorkflowRoleService>();
-builder.Services.AddScoped<IRoleUserService, RoleUserService>();
-builder.Services.AddScoped<IRoleService, RoleService>();
-builder.Services.AddScoped<IHtmlService, HtmlService>();
-builder.Services.AddScoped<IMenuElementService, MenuElementService>();
-builder.Services.AddScoped<IEntityRelationService, EntityRelationService>();
-builder.Services.AddSingleton<Logging>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
-builder.Services.AddSingleton<TokenGenerator>();
-builder.Services.AddSingleton<EncryptionTool>();
-
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 });
 
-var headers = RequestHeaderHandler.ipHeaders.ToList();
-headers.AddRange(["Content-Type", "Authorization", "User-Agent"]);
-
-//builder.Services.AddAntiforgery(options =>
-//{
-//    options.Cookie.Name = "X-CSRF-TOKEN";
-//    options.Cookie.HttpOnly = true;
-//});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 app.UseSerilogRequestLogging();
-app.UseMiddleware<ExceptionHandlingMiddleware>();
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-else
-{
-    //app.UseHsts();
-    //app.UseMiddleware<CspMiddleware>();
-    if (secure)
-        app.UseHttpsRedirection();
-    app.UseRateLimiter();
-}
 
-app.UseCors(builder =>
-{
-    if (app.Environment.IsDevelopment())
-    {
-        // تنظیمات CORS در محیط Development
-        builder
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowAnyOrigin()
-            .SetPreflightMaxAge(TimeSpan.FromDays(15));
-    }
-    else
-    {
-        builder
-                    .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowAnyOrigin()
-            .SetPreflightMaxAge(TimeSpan.FromDays(15));
-
-
-        //builder
-        //  //.WithHeaders(headers.ToArray())
-        //  .WithOrigins(audience)
-        //  .WithMethods("GET", "POST")
-        //  .AllowAnyOrigin()
-        //  .SetPreflightMaxAge(TimeSpan.FromMinutes(15));
-    }
-});
+app.ConfigureMiddlewares(builder.Configuration);
+app.ConfigureCors(headers.ToArray(), audience);
 
 app.UseAuthorization();
 app.UseStaticFiles();

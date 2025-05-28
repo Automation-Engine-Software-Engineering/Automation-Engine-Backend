@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AutomationEngine.CustomMiddlewares
+namespace AutomationEngine.CustomMiddlewares.Security
 {
     public class CspMiddleware
     {
@@ -20,7 +20,7 @@ namespace AutomationEngine.CustomMiddlewares
         {
             context.Response.OnStarting(() =>
             {
-                context.Response.Headers.Add("Content-Security-Policy", "script-src 'self'; style-src 'self'; object-src 'none';");
+                context.Response.Headers.Append("Content-Security-Policy", "script-src 'self'; style-src 'self'; object-src 'none';");
                 return Task.CompletedTask;
             });
             await _next(context);

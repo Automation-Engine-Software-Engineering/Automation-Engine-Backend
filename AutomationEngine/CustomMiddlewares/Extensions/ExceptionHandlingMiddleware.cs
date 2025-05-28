@@ -17,7 +17,7 @@ using System.Collections;
 using Tools.TextTools;
 using Tools.LoggingTools;
 
-namespace AutomationEngine.CustomMiddlewares
+namespace AutomationEngine.CustomMiddlewares.Extensions
 {
     public class ExceptionHandlingMiddleware
     {
